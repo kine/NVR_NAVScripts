@@ -7,8 +7,9 @@ Param (
 Import-Module NVR_NAVScripts -WarningAction SilentlyContinue
 Import-Module 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\Microsoft.Dynamics.Nav.Model.Tools.psd1' -WarningAction SilentlyContinue
 
-#$mergetool = "C:\Program Files (x86)\Araxis\Araxis Merge v6.5\merge.exe"
-$mergetool = 'C:\Program Files (x86)\KDiff3\kdiff3.exe'
+#$mergetool = '"C:\Program Files (x86)\Araxis\Araxis Merge v6.5\merge.exe" $modified $source $target $result'
+$mergetool = "C:\Program Files (x86)\KDiff3\kdiff3.exe"
+$mergetoolparams="{0},{1},{2},-o {3}"
 
 function TestIfFolderClear([string]$repository)
 {
@@ -30,16 +31,17 @@ function SolveConflicts($conflicts)
         if (Test-Path -Path $conflictfile) {
             $filename = Split-Path -Path $_.result.FileName -Leaf
             $modified = (Split-Path -Path $_.Result.FileName -Parent)+'\ConflictModified\'+$filename
-            $source = (Split-Path -Path $_.Result.FileName -Parent)+'\ConflictSource\'+$filename
+            $source = (Split-Path -Path $_.Result.FileName -Parent)+'\ConflictOriginal\'+$filename
             $target =(Split-Path -Path $_.Result.FileName -Parent)+'\ConflictTarget\'+$filename
             $result =$_.Result
             & $conflictfile
-            & $mergetool $modified $source $target $result
+            $params= $mergetoolparams -f $modified,$source,$target,$result
+            & $mergetool $params.Split(" ")
             
             $answer = Read-Host -Prompt "Was conflict in $filename resolved (Nothing = no, something = yes)?"
             if ($answer -gt "") {
                 if ($answer -eq 'q') {
-                  return
+                    return
                 }
                 if (Test-Path -Path $conflictfile) {
                     Remove-Item -Path $conflictfile
