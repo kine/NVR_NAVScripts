@@ -2,14 +2,18 @@ Param (
   [string]$repository,
   [string]$sourcefiles,
   [string]$targetbranch,
-  [boolean]$copytorep
+  [boolean]$copytorep=$true,
+  [boolean]$remerge=$false
 )
 Import-Module NVR_NAVScripts -WarningAction SilentlyContinue
 Import-Module 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\Microsoft.Dynamics.Nav.Model.Tools.psd1' -WarningAction SilentlyContinue
 
-#$mergetool = '"C:\Program Files (x86)\Araxis\Araxis Merge v6.5\merge.exe" $modified $source $target $result'
-$mergetool = "C:\Program Files (x86)\KDiff3\kdiff3.exe"
-$mergetoolparams="{0} {1} {2} -o {3}"
+$mergetool = "C:\Program Files (x86)\Araxis\Araxis Merge v6.5\merge.exe"
+#$mergetool = "C:\Program Files (x86)\KDiff3\kdiff3.exe"
+$mergetoolparams="{0} {3} {2}"
+$mergetoolresult2source=$true
+$diff = "C:\Program Files (x86)\KDiff3\bin\diff3.exe"
+$diffparams = "{0} {1} {2} -E"
 
 function TestIfFolderClear([string]$repository)
 {
@@ -34,29 +38,41 @@ function SolveConflicts($conflicts)
             $source = (Split-Path -Path $_.Result.FileName -Parent)+'\ConflictOriginal\'+$filename
             $target =(Split-Path -Path $_.Result.FileName -Parent)+'\ConflictTarget\'+$filename
             $result =$_.Result
-            & $conflictfile
-            $params= $mergetoolparams -f $modified,$source,$target,$result
-            & $mergetool $params.Split(" ")
-            
-            $answer = Read-Host -Prompt "Was conflict in $filename resolved (Nothing = no, something = yes)?"
-            if ($answer -gt "") {
-                if ($answer -eq 'q') {
-                    return
-                }
-                if (Test-Path -Path $conflictfile) {
-                    Remove-Item -Path $conflictfile
-                }
-                if (Test-Path -Path $modified) {
-                    Remove-Item -Path $modified
-                }
-                if (Test-Path -Path $source) {
-                    Remove-Item -Path $source
-                }
-                if (Test-Path -Path $target) {
-                    Remove-Item -Path $target
-                }
-            } else {
+
+            $params = $diffparams -f $modified,$source,$target,$result
+            if ($mergetoolresult2source) {
+              #Copy-Item -Path $result -Destination $source -Force
             }
+            #Write-Output "----$filename conflicts-----"
+            #& $diff $params.Split(" ")
+            #Write-Output "----end-----"
+            #$answer = Read-Host -Prompt "Solve conflict in $filename manually (Nothing = yes, something = no)?"
+            #if ($answer -gt "") {
+
+                & $conflictfile
+                $params= $mergetoolparams -f $modified,$source,$target,$result
+                $result=& $mergetool $params.Split(" ")
+                Write-Host "Reuslt: $result"
+                $answer = Read-Host -Prompt "Was conflict in $filename resolved (Nothing = no, something = yes)?"
+                if ($answer -gt "") {
+                    if ($answer -eq 'q') {
+                        return
+                    }
+                    if (Test-Path -Path $conflictfile) {
+                        Remove-Item -Path $conflictfile
+                    }
+                    if (Test-Path -Path $modified) {
+                        Remove-Item -Path $modified
+                    }
+                    if (Test-Path -Path $source) {
+                        Remove-Item -Path $source
+                    }
+                    if (Test-Path -Path $target) {
+                        Remove-Item -Path $target
+                    }
+                } else {
+                }
+            #}
         }        
     }
 }
@@ -127,6 +143,7 @@ $sourcefolder = $tempfolder+"\NAVGIT\Source\"
 $targetfolder = $tempfolder+"\NAVGIT\Target\"
 $commonfolder = $tempfolder+"\NAVGIT\Common\"
 $resultfolder = $tempfolder+"\NAVGIT\Result\"
+
 $sourcefilespath = Split-Path $sourcefiles
 if ($sourcefilespath -eq "") {
   $sourcefilespath = "." 
@@ -136,14 +153,16 @@ $sourcefilespath = $sourcefilespath+"\"
 $sourcefiles = Split-Path $sourcefiles -leaf
 
 Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 'Clearing temp folders...'
-$result = Remove-Item -Path $sourcefolder -Force -Recurse
-$result = New-Item -Path $sourcefolder -ItemType directory -Force
+if (!$remerge) {
+    $result = Remove-Item -Path $sourcefolder -Force -Recurse
+    $result = New-Item -Path $sourcefolder -ItemType directory -Force
 
-$result = Remove-Item -Path $targetfolder -Force -Recurse
-$result = New-Item -Path $targetfolder -ItemType directory -Force
+    $result = Remove-Item -Path $targetfolder -Force -Recurse
+    $result = New-Item -Path $targetfolder -ItemType directory -Force
 
-$result = Remove-Item -Path $commonfolder -Force -Recurse
-$result = New-Item -Path $commonfolder -ItemType directory -Force
+    $result = Remove-Item -Path $commonfolder -Force -Recurse
+    $result = New-Item -Path $commonfolder -ItemType directory -Force
+}
 
 $result = Remove-Item -Path $resultfolder -Force -Recurse
 $result = New-Item -Path $resultfolder -ItemType directory -Force
@@ -151,32 +170,37 @@ $result = New-Item -Path $resultfolder -ItemType directory -Force
 $result = New-Item -Path $resultfolder$sourcefilespath -ItemType directory -Force
 
 
-SetupGitRepository
+
+if (!$remerge) {
+    SetupGitRepository
+}
 
 $startdatetime = Get-Date
 Write-Host  Starting at $startdatetime
 
 
-Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 'Getting Common Ancestor...'
-$commonbranch = git merge-base $sourcebranch $targetbranch
+if (!$remerge) {
+    Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 'Getting Common Ancestor...'
+    $commonbranch = git merge-base $sourcebranch $targetbranch
 
-Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Switching to $commonbranch"
-$result = git checkout --force "$commonbranch" --quiet
+    Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Switching to $commonbranch"
+    $result = git checkout --force "$commonbranch" --quiet
 
-Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Copying the $commonbranch to temp folder..."
-$result = Copy-Item -Path $sourcefilespath -Filter $sourcefiles -Destination $commonfolder -Recurse -Container
+    Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Copying the $commonbranch to temp folder..."
+    $result = Copy-Item -Path $sourcefilespath -Filter $sourcefiles -Destination $commonfolder -Recurse -Container
 
-Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Switching to $targetbranch"
-$result = git checkout --force "$targetbranch" --quiet
+    Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Switching to $targetbranch"
+    $result = git checkout --force "$targetbranch" --quiet
 
-Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Copying the $targetbranch to temp folder..."
-$result = Copy-Item -Path $sourcefilespath -Filter $sourcefiles -Destination $targetfolder -Recurse -Container
+    Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Copying the $targetbranch to temp folder..."
+    $result = Copy-Item -Path $sourcefilespath -Filter $sourcefiles -Destination $targetfolder -Recurse -Container
 
-Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Switching to $sourcebranch"
-$result = git checkout --force "$sourcebranch" --quiet
+    Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Switching to $sourcebranch"
+    $result = git checkout --force "$sourcebranch" --quiet
 
-Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Copying the $sourcebranch to temp folder..."
-$result = Copy-Item -Path $sourcefilespath -Filter $sourcefiles -Destination $sourcefolder -Recurse -Container
+    Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Copying the $sourcebranch to temp folder..."
+    $result = Copy-Item -Path $sourcefilespath -Filter $sourcefiles -Destination $sourcefolder -Recurse -Container
+}
 
 Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Merging NAV Object files..."
 
