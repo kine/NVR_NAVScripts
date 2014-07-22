@@ -134,6 +134,129 @@ function Get-NAVDatabaseObjects($sourceserver,$sourcedb,$sourcefilefolder,$sourc
     Remove-Item $sourcefilefolder'.txt'
 }
 
+function Import-NAVApplicationObjectFiles
+{
+    Param(
+    [String]$Files,
+    [String]$Server,
+    [String]$Database,
+    [String]$LogFolder,
+    [String]$NavIde='',
+    [String]$ClientFolder=''
+    )
+    if ($NavIde -eq '') {
+        $NavIde = $sourceclientfolder+'\finsql.exe';
+    }
+
+    $finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
+
+    $TextFiles = gci "$Files"
+    $i=0
+
+    $StartTime = Get-Date
+
+    foreach ($TextFile in $TextFiles){
+        $NowTime = Get-Date
+        $TimeSpan = New-TimeSpan $StartTime $NowTime
+        $Command = $importfinsqlcommand + $TextFile
+        $LogFile = "$LogFolder\$($TextFile.Basename).log"
+        $i = $i+1
+        $percent = $i / $TextFiles.Count
+        $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
+        $percent = $percent * 100
+        Write-Progress -Activity 'Importing object file...' -CurrentOperation $TextFile -PercentComplete $percent -SecondsRemaining $remtime
+        #Write-Debug $Command
+
+        $params = "Command=ImportObjects`,File=`"$TextFile`"`,ServerName=$Server`,Database=`"$Database`"`,LogFile=`"$LogFile`"`,importaction=`"overwrite`""
+        & $NavIde $params | Write-Output
+        #cmd /c $importfinsqlcommand
+
+        if (Test-Path "$LogFolder\navcommandresult.txt")
+        {
+            Write-Verbose "Processed $TextFile ."
+            Remove-Item "$LogFolder\navcommandresult.txt"
+        }
+        else
+        {
+            Write-Warning "Crashed when importing $TextFile !"
+        }
+
+        If (Test-Path "$LogFile") {
+            $logcontent=Get-Content -Path $LogFile 
+            if ($logcontent.Count -gt 1) {
+                $ErrorText=$logcontent[0]
+            } else {
+                $ErrorText=$logcontent
+            }
+            Write-Warning "Error when importing $TextFile : $ErrorText"
+        }
+    }
+}
+
+function Compile-NAVApplicationObjectFiles
+{
+    Param(
+    [String]$Files,
+    [String]$Server,
+    [String]$Database,
+    [String]$LogFolder,
+    [String]$NavIde='',
+    [String]$ClientFolder=''
+
+    )
+    if ($NavIde -eq '') {
+        $NavIde = $sourceclientfolder+'\finsql.exe';
+    }
+
+    #$finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
+
+    $TextFiles = gci "$Files"
+    $i=0
+
+    $FilesProperty=Get-NAVApplicationObjectProperty -Source $TextFiles
+    $StartTime = Get-Date
+    foreach ($FileProperty in $FilesProperty){
+        $NowTime = Get-Date
+        $TimeSpan = New-TimeSpan $StartTime $NowTime
+        #$Command = $importfinsqlcommand + $TextFile
+        $LogFile = "$LogFolder\$($FileProperty.FileName.Basename).log"
+        $i = $i+1
+        $percent = $i / $FilesProperty.Count
+        $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
+        $percent = $percent * 100
+        Write-Progress -Activity 'Compiling object file...' -CurrentOperation $FileProperty.FileName -PercentComplete $percent -SecondsRemaining $remtime
+        #Write-Debug $Command
+
+        $Type = $FileProperty.ObjectType
+        $Id = $FileProperty.Id
+        $Filter ="Type=$Type;Id=$Id"
+        $params = "Command=CompileObjects`,Filter=`"$Filter`"`,ServerName=$Server`,Database=`"$Database`"`,LogFile=`"$LogFile`""
+        & $NavIde $params | Write-Output
+        #cmd /c $importfinsqlcommand
+
+        if (Test-Path "$LogFolder\navcommandresult.txt")
+        {
+            Write-Verbose "Processed $($FileProperty.FileName) ."
+            Remove-Item "$LogFolder\navcommandresult.txt"
+        }
+        else
+        {
+            Write-Warning "Crashed when compiling $($FileProperty.FileName) !"
+        }
+
+        If (Test-Path "$LogFile") {
+            $logcontent=Get-Content -Path $LogFile 
+            if ($logcontent.Count -gt 1) {
+                $errortext=$logcontent[0]
+            } else {
+                $errortext=$logcontent
+            }
+            Write-Warning "Error when compiling $($FileProperty.FileName): $errortext"
+        }
+    }
+}
+
+
 function Merge-NAVDatabaseObjects($sourceserver,$sourcedb,$sourcefilefolder,$sourceclientfolder,
                                   $modifiedserver,$modifieddb,$modifiedfilefolder,$modifiedclientfolder,
                                   $targetserver,$targetdb,$targetfilefolder,$targetclientfolder,
@@ -215,3 +338,5 @@ Export-ModuleMember -Function Merge-NAVVersionListString
 Export-ModuleMember -Function Merge-NAVObjectVersionList
 Export-ModuleMember -Function Merge-NAVDatabaseObjects
 Export-ModuleMember -Function Get-NAVDatabaseObjects
+Export-ModuleMember -Function Import-NAVApplicationObjectFiles
+Export-ModuleMember -Function Compile-NAVApplicationObjectFiles
