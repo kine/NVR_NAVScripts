@@ -1,6 +1,8 @@
 ﻿#import-module -Name Microsoft.Dynamics.Nav.Ide -Verbose
 #. "Merge-NAVVersionListString script.ps1"
 
+Import-Module 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\Microsoft.Dynamics.Nav.Model.Tools.psd1' -WarningAction SilentlyContinue | Out-Null
+
 Add-Type -Language CSharp -TypeDefinition @"
   public enum VersionListMergeMode
   {
@@ -256,6 +258,94 @@ function Compile-NAVApplicationObjectFiles
     }
 }
 
+function Compile-NAVApplicationObject
+{
+    Param(
+    [String]$Filter,
+    [String]$Server,
+    [String]$Database,
+    [String]$LogFolder,
+    [String]$NavIde='',
+    [String]$ClientFolder=''
+
+    )
+    if ($NavIde -eq '') {
+        $NavIde = $sourceclientfolder+'\finsql.exe';
+    }
+
+    #$finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
+
+    $LogFile = "$LogFolder\$($FileProperty.FileName.Basename).log"
+    Write-Progress -Activity 'Compiling objects...' 
+    #Write-Debug $Command
+    $params = "Command=CompileObjects`,Filter=`"$Filter`"`,ServerName=$Server`,Database=`"$Database`"`,LogFile=`"$LogFile`""
+    & $NavIde $params | Write-Output
+
+    if (Test-Path "$LogFolder\navcommandresult.txt")
+    {
+        Write-Verbose "Processed $Filter."
+        Remove-Item "$LogFolder\navcommandresult.txt"
+    }
+    else
+    {
+        Write-Warning "Crashed when compiling $Filter !"
+    }
+
+    If (Test-Path "$LogFile") {
+        $logcontent=Get-Content -Path $LogFile 
+        if ($logcontent.Count -gt 1) {
+            $errortext=$logcontent[0]
+        } else {
+            $errortext=$logcontent
+        }
+        Write-Warning "Error when compiling Filter: $errortext"
+    }
+}
+
+function Export-NAVApplicationObject
+{
+    Param(
+    [String]$Filter,
+    [String]$Server,
+    [String]$Database,
+    [String]$LogFolder,
+    [String]$Path,
+    [String]$NavIde='',
+    [String]$ClientFolder=''
+
+    )
+    if ($NavIde -eq '') {
+        $NavIde = $sourceclientfolder+'\finsql.exe';
+    }
+
+    #Write-Progress -Activity 'Exporting objects...' 
+    #Write-Debug $Command
+    $logFile = (Join-Path $LogFolder naverrorlog.txt)
+
+    $params = "Command=ExportObjects`,Filter=`"$Filter`"`,ServerName=$Server`,Database=`"$Database`"`,LogFile=`"$logFile`"`,File=`"$Path`""
+    & $NavIde $params | Write-Output
+
+    if (Test-Path "$LogFolder\navcommandresult.txt")
+    {
+        Write-Verbose "Processed $Filter to $Path."
+        Remove-Item "$LogFolder\navcommandresult.txt"
+    }
+    else
+    {
+        Write-Warning "Crashed when exportin $Filter into $Path!"
+    }
+
+    If (Test-Path "$LogFile") {
+        $logcontent=Get-Content -Path $LogFile 
+        if ($logcontent.Count -gt 1) {
+            $errortext=$logcontent[0]
+        } else {
+            $errortext=$logcontent
+        }
+        Write-Warning "Error when Exporting $Filter to $Path : $errortext"
+    }
+}
+
 
 function Merge-NAVDatabaseObjects($sourceserver,$sourcedb,$sourcefilefolder,$sourceclientfolder,
                                   $modifiedserver,$modifieddb,$modifiedfilefolder,$modifiedclientfolder,
@@ -340,3 +430,5 @@ Export-ModuleMember -Function Merge-NAVDatabaseObjects
 Export-ModuleMember -Function Get-NAVDatabaseObjects
 Export-ModuleMember -Function Import-NAVApplicationObjectFiles
 Export-ModuleMember -Function Compile-NAVApplicationObjectFiles
+Export-ModuleMember -Function Compile-NAVApplicationObject
+Export-ModuleMember -Function Export-NAVApplicationObject

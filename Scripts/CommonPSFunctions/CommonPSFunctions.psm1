@@ -33,5 +33,19 @@ function Send-EmailToMe
     Send-MailMessage -Body $Body -From $FromEmail -SmtpServer $SMTPServer -Subject $Subject -To $myemail
 }
 
+function Remove-SQLDatabase
+{
+    [CmdletBinding()]
+    Param (
+        [String]$Server,
+        [String]$Database
+    )
+    [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SMO')  | Out-Null
+    $srv = new-Object Microsoft.SqlServer.Management.Smo.Server($Server)
+    #$srv.killallprocess($Database)
+    $srv.databases[$Database].drop()
+}
+
 Export-ModuleMember -Function Get-MyEmail
 Export-ModuleMember -Function Send-EmailToMe
+Export-ModuleMember -Function Remove-SQLDatabase
