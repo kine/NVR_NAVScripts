@@ -45,16 +45,7 @@ foreach ($FileObject in $FileObjects)
     if (($i % 10) -eq 0) {
         Write-Progress -Id 50 -Status "Processing $i of $count" -Activity 'Comparing objects...' -percentComplete ($i / $count*100) -SecondsRemaining $remtime
     }
-    switch ($FileObject.ObjectType)
-    {
-        "Table" {$Type = 1}
-        "Page" {$Type = 8}
-        "Codeunit" {$Type = 5}
-        "Report" {$Type = 3}
-        "XMLPort" {$Type = 6}
-        "Query" {$Type = 9}
-        "MenuSuite" {$Type = 7}
-    }
+    $Type= Get-NAVObjectTypeIdFromName -TypeName $FileObject.ObjectType
     $Id = $FileObject.Id
     $FileObjectsHash.Add("$Type-$Id",$true)
     $NAVObject=Get-SQLCommandResult -Server $Server -Database $Database -Command "select [Type],[ID],[Version List],[Modified],[Name],[Date],[Time] from Object where [Type]=$Type and [Id]=$Id"
@@ -115,16 +106,7 @@ foreach ($NAVObject in $NAVObjects)
     $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
 
     Write-Progress -Id 50 -Status "Processing $i of $count" -Activity 'Checking deleted objects...' -percentComplete ($i / $count*100) -SecondsRemaining $remtime
-    switch ($NAVObject.Type)
-    {
-        1 {$Type = "Table"}
-        8 {$Type = "Page"}
-        5 {$Type = "Codeunit"}
-        3 {$Type = "Report"}
-        6 {$Type = "XMLPort"}
-        9 {$Type = "Query"}
-        7 {$Type = "MenuSuite"}
-    }
+    $Type= Get-NAVObjectTypeNameFromId -TypeId $NAVObject.Type
     #$FileObject = $FileObjects | Where-Object {($_.ObjectType -eq $Type) -and ($_.Id -eq $NAVObject.ID)}
     $Exists = $FileObjectsHash["$($NAVObject.Type)-$($NAVObject.ID)"]
     if (!$Exists) {

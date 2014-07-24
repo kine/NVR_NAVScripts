@@ -92,6 +92,48 @@ function Get-SQLCommandResult
     }
 }
 
+Function Get-NAVObjectTypeIdFromName
+{
+    param(
+        [Parameter(Mandatory=$true,Position=0)]
+        [String]$TypeName
+    )
+    switch ($TypeName)
+    {
+        "TableData" {$Type = 0}
+        "Table" {$Type = 1}
+        "Page" {$Type = 8}
+        "Codeunit" {$Type = 5}
+        "Report" {$Type = 3}
+        "XMLPort" {$Type = 6}
+        "Query" {$Type = 9}
+        "MenuSuite" {$Type = 7}
+    }
+    Return $Type
+}
+
+Function Get-NAVObjectTypeNameFromId
+{
+    param(
+        [Parameter(Mandatory=$true,Position=0)]
+        [int]$TypeId
+    )
+    switch ($TypeId)
+    {
+        0 {$Type = "TableData"}
+        1 {$Type = "Table"}
+        8 {$Type = "Page"}
+        5 {$Type = "Codeunit"}
+        3 {$Type = "Report"}
+        6 {$Type = "XMLPort"}
+        9 {$Type = "Query"}
+        7 {$Type = "MenuSuite"}
+    }
+    Return $Type
+}
+
 Export-ModuleMember -Function Get-MyEmail
 Export-ModuleMember -Function Send-EmailToMe
 Export-ModuleMember -Function Remove-SQLDatabase
+Export-ModuleMember -Function Get-NAVObjectTypeIdFromName
+Export-ModuleMember -Function Get-NAVObjectTypeNameFromId
