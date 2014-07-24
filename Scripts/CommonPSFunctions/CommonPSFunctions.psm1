@@ -1,4 +1,9 @@
-﻿function Get-MyEmail
+﻿function Get-NAVIde
+{
+    return 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\finsql.exe'
+}
+
+function Get-MyEmail
 {
     ### Get the Email address of the current user
     try
@@ -44,6 +49,47 @@ function Remove-SQLDatabase
     $srv = new-Object Microsoft.SqlServer.Management.Smo.Server($Server)
     #$srv.killallprocess($Database)
     $srv.databases[$Database].drop()
+}
+
+<#
+.Synopsis
+   Short description
+.DESCRIPTION
+   Long description
+.EXAMPLE
+   Example of how to use this cmdlet
+.EXAMPLE
+   Another example of how to use this cmdlet
+#>
+function Get-SQLCommandResult
+{
+    [CmdletBinding()]
+    Param
+    (
+        # SQL Server
+        [Parameter(Mandatory=$true,
+                   Position=0)]
+        $Server,
+
+        # SQL Database Name
+        [String]
+        $Database,
+        # SQL Command to run
+        [String]
+        $Command
+    )
+
+    Begin
+    {
+        Import-Module “sqlps” -DisableNameChecking
+    }
+    Process
+    {
+        return Invoke-Sqlcmd -Database $Database -ServerInstance $Server -Query $Command
+    }
+    End
+    {
+    }
 }
 
 Export-ModuleMember -Function Get-MyEmail

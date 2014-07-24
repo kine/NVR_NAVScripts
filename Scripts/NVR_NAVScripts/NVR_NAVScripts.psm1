@@ -3,6 +3,7 @@
 
 Import-Module 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\Microsoft.Dynamics.Nav.Model.Tools.psd1' -WarningAction SilentlyContinue | Out-Null
 
+
 Add-Type -Language CSharp -TypeDefinition @"
   public enum VersionListMergeMode
   {
@@ -397,27 +398,25 @@ function Merge-NAVDatabaseObjects($sourceserver,$sourcedb,$sourcefilefolder,$sou
         }
     }
 #>
-    write-Host 'Deleting excluded objects...'
-    Remove-Item $targetfilefolder'\MEN1010.TXT'
-    Remove-Item $targetfilefolder'\MEN1030.TXT'
     write-Host 'Deleting Identical objects...'
     Remove-Item $identical.Result
     write-Host 'Restoring Modfied flags...'
     $modifiedwithflag | Set-NAVModifiedObject -path $targetfilefolder
-    Write-Host 'Joining Objects...';
+    Write-Host 'Joining Objects...'
     $joinresult = Join-NAVApplicationObjectFile -Source $targetfilefolder -Destination $targetfilefolder'.txt' -Force
 #>
     if ($targetserver) {
-        Write-Host 'Importing Objects...';
+        Write-Host 'Importing Objects...'
         Import-NAVApplicationObject -path $targetfilefolder'.txt' -Server $targetserver -Database $targetdb -Confirm
-        Write-Host 'Compiling Objects...';
+        Write-Host 'Compiling Objects...'
         $compileoutput = Compile-NAVApplicationObject -Server $targetserver -Database $targetdb
     }
     #return $mergeresult
 }
 
-$client = "c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client 36344\";
-$NavIde = "c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client 36344\finsql.exe";
+
+$client = split-path (Get-NAVIde)
+$NavIde = Get-NAVIde
 
 #$result=Merge-NAVDatabaseObjects -sourceserver devel -sourcedb NVR2013R2_CSY -sourcefilefolder source -sourceclientfolder $client `
 #-modifiedserver devel -modifieddb Adast2013 -modifiedfilefolder modified -modifiedclientfolder $client `

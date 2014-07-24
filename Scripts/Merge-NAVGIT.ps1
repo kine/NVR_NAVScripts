@@ -1,9 +1,12 @@
 Param (
-  [string]$repository,
-  [string]$sourcefiles,
-  [string]$targetbranch,
-  [boolean]$copytorep=$true,
-  [boolean]$remerge=$false
+    [Parameter(Mandatory=$true)]
+    [string]$repository,
+    [Parameter(Mandatory=$true)]
+    [string]$sourcefiles,
+    [Parameter(Mandatory=$true)]
+    [string]$targetbranch,
+    [switch]$skipcopytorep,
+    [switch]$remerge
 )
 Import-Module NVR_NAVScripts -WarningAction SilentlyContinue
 Import-Module 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\Microsoft.Dynamics.Nav.Model.Tools.psd1' -WarningAction SilentlyContinue
@@ -237,7 +240,7 @@ Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 
 SolveConflicts($conflicts);
 
 
-if ($copytorep) {
+if (!$skipcopytorep) {
     CreateGitMerge #set git to merge action, using ours strategy
     Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Copying result to the repository..."
     CreateResult($resultfolder);
