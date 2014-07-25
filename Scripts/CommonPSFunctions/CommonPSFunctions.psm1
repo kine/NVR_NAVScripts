@@ -20,6 +20,14 @@ function Get-NAVAdminPath
     return 'c:\Program Files\Microsoft Dynamics NAV\71\Service'
 }
 
+<#
+.Synopsis
+   Get the current user e-mail address from AD
+.DESCRIPTION
+   Get the current user e-mail address from AD
+.EXAMPLE
+   Get-MyEmail
+#>
 function Get-MyEmail
 {
     ### Get the Email address of the current user
@@ -41,6 +49,14 @@ function Get-MyEmail
     Write-Output $senderEmailAddress
 }
 
+<#
+.Synopsis
+   Send e-mail to the current user email address
+.DESCRIPTION
+   Send e-mail to the current user email address
+.EXAMPLE
+   Send-EmailToMe -Subject "Hello World" -Body "This is email from powershell" -From "from@address.net" -SMTPServer myserver
+#>
 function Send-EmailToMe
 {
     [CmdletBinding()]
@@ -55,6 +71,14 @@ function Send-EmailToMe
     Send-MailMessage -Body $Body -From $FromEmail -SmtpServer $SMTPServer -Subject $Subject -To $myemail
 }
 
+<#
+.Synopsis
+   Delete the selected database
+.DESCRIPTION
+   Delete the selected database from the SQL Server. Automatically kills all active sessions to this database
+.EXAMPLE
+   Remove-SQLDatabase -Server mysql -Database mydatabase
+#>
 function Remove-SQLDatabase
 {
     [CmdletBinding()]
@@ -70,13 +94,11 @@ function Remove-SQLDatabase
 
 <#
 .Synopsis
-   Short description
+   Execute T-SQL command on SQL server
 .DESCRIPTION
-   Long description
+   Execute T-SQL command on SQL server and returns the result back
 .EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
+   Get-SQLCommandResult -Server localhost -Database mydatabase -Command "select * from object"
 #>
 function Get-SQLCommandResult
 {
@@ -103,6 +125,14 @@ function Get-SQLCommandResult
     return $Result
 }
 
+<#
+.Synopsis
+   Translate object type names to integer
+.DESCRIPTION
+   Function takes the ObjectType names and returns the intiger number representing the object type
+.EXAMPLE
+   Get-NAVObjectTypeIdFrom Name -TypeName "Report"
+#>
 Function Get-NAVObjectTypeIdFromName
 {
     param(
@@ -123,6 +153,14 @@ Function Get-NAVObjectTypeIdFromName
     Return $Type
 }
 
+<#
+.Synopsis
+   Translate object type number to object type name
+.DESCRIPTION
+   Function takes the ObjectType number and returns the name representing the object type
+.EXAMPLE
+   Get-NAVObjectTypeNameFromId -TypeId 3
+#>
 Function Get-NAVObjectTypeNameFromId
 {
     param(
