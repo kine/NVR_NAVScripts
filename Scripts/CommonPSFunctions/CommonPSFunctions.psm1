@@ -1,6 +1,23 @@
-﻿function Get-NAVIde
+﻿function Import-NAVAdminTool
+{
+    Import-Module -Global 'C:\Program Files\Microsoft Dynamics NAV\71\Service\Microsoft.Dynamics.Nav.Management.dll'
+    Write-Verbose 'NAV admin tool imported'
+}
+
+function Import-NAVModelTool
+{
+    Import-Module -Global 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\Microsoft.Dynamics.Nav.Model.Tools.psd1' #-force -WarningAction SilentlyContinue | Out-Null
+    Write-Verbose 'NAV model tool imported'
+}
+
+function Get-NAVIde
 {
     return 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\finsql.exe'
+}
+
+function Get-NAVAdminPath
+{
+    return 'c:\Program Files\Microsoft Dynamics NAV\71\Service'
 }
 
 function Get-MyEmail
@@ -47,7 +64,7 @@ function Remove-SQLDatabase
     )
     [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SMO')  | Out-Null
     $srv = new-Object Microsoft.SqlServer.Management.Smo.Server($Server)
-    #$srv.killallprocess($Database)
+    $srv.KillAllprocesses("$Database")
     $srv.databases[$Database].drop()
 }
 
@@ -79,17 +96,11 @@ function Get-SQLCommandResult
         $Command
     )
 
-    Begin
-    {
-        Import-Module “sqlps” -DisableNameChecking
-    }
-    Process
-    {
-        return Invoke-Sqlcmd -Database $Database -ServerInstance $Server -Query $Command
-    }
-    End
-    {
-    }
+    Push-Location
+    Import-Module "sqlps" -DisableNameChecking
+    $Result = Invoke-Sqlcmd -Database $Database -ServerInstance $Server -Query $Command
+    Pop-Location
+    return $Result
 }
 
 Function Get-NAVObjectTypeIdFromName
@@ -132,8 +143,13 @@ Function Get-NAVObjectTypeNameFromId
     Return $Type
 }
 
+Export-ModuleMember -Function Import-NAVAdminTool
+Export-ModuleMember -Function Import-NAVModelTool
 Export-ModuleMember -Function Get-MyEmail
 Export-ModuleMember -Function Send-EmailToMe
 Export-ModuleMember -Function Remove-SQLDatabase
 Export-ModuleMember -Function Get-NAVObjectTypeIdFromName
 Export-ModuleMember -Function Get-NAVObjectTypeNameFromId
+Export-ModuleMember -Function Get-NAVIde
+Export-ModuleMember -Function Get-NAVAdminPath
+Export-ModuleMember -Function Get-SQLCommandResult

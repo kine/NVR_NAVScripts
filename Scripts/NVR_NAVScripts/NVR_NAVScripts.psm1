@@ -1,8 +1,9 @@
 ﻿#import-module -Name Microsoft.Dynamics.Nav.Ide -Verbose
 #. "Merge-NAVVersionListString script.ps1"
 
-Import-Module 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\Microsoft.Dynamics.Nav.Model.Tools.psd1' -WarningAction SilentlyContinue | Out-Null
-
+#Import-Module 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\Microsoft.Dynamics.Nav.Model.Tools.psd1' -WarningAction SilentlyContinue | Out-Null
+Import-NAVAdminTool
+Import-NAVModelTool
 
 Add-Type -Language CSharp -TypeDefinition @"
   public enum VersionListMergeMode
@@ -148,7 +149,7 @@ function Import-NAVApplicationObjectFiles
     [String]$ClientFolder=''
     )
     if ($NavIde -eq '') {
-        $NavIde = $sourceclientfolder+'\finsql.exe';
+        $NavIde = Get-NAVIde
     }
 
     $finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
@@ -415,6 +416,105 @@ function Merge-NAVDatabaseObjects($sourceserver,$sourcedb,$sourcefilefolder,$sou
 }
 
 
+<#
+.Synopsis
+    Short description
+.DESCRIPTION
+    Long description
+.EXAMPLE
+    Example of how to use this cmdlet
+.EXAMPLE
+    Another example of how to use this cmdlet
+#>
+Function Remove-NAVLocalApplication
+{
+    param (
+        #SQL Server address
+        [Parameter(Mandatory=$true)]
+        [String]$Server,
+
+        #SQL Database to update
+        [Parameter(Mandatory=$true)]
+        [String]$Database,
+
+        #Service Instance name to create
+        [Parameter(Mandatory=$true)]
+        [string] $ServiceInstance
+    )
+
+    Write-Progress -Activity 'Remove NAV Application' -CurrentOperation "Removing server instance..." -PercentComplete 50
+    Stop-Service -Name ("MicrosoftDynamicsNavServer`$$ServiceInstance") -Force
+    Remove-NAVServerInstance -ServerInstance $ServiceInstance -Force
+    Write-Verbose "Server instance removed"
+
+    Write-Progress -Activity 'Remove NAV Application' -CurrentOperation "Removing SQL DB..." -PercentComplete 90
+    Remove-SQLDatabase -Server $Server -Database $Database
+    Write-Verbose "SQL Database removed"
+
+    Write-Progress -Activity 'Remove NAV Application' -Completed
+}
+
+<#
+.Synopsis
+   Short description
+.DESCRIPTION
+   Long description
+.EXAMPLE
+   Example of how to use this cmdlet
+.EXAMPLE
+   Another example of how to use this cmdlet
+#>
+Function New-NAVLocalApplication
+{
+    param (
+        #SQL Server address
+        [Parameter(Mandatory=$true)]
+        [String]$Server,
+
+        #SQL Database to update
+        [Parameter(Mandatory=$true)]
+        [String]$Database,
+
+        #FOB file imported before the txt files are imported. Could update the objects stored in the DB Backup file to newer version.
+        [Parameter(Mandatory=$true)]
+        [string] $BaseFob,
+
+        #FLF file used to start the NAV Service tier. Must have enough permissions to import the txt files.
+        [Parameter(Mandatory=$true)]
+        [string] $LicenseFile,
+
+        #File of the NAV SQL backup for creating new NAV database. Used as base for importing the objects.
+        [Parameter(Mandatory=$true)]
+        [string] $DbBackupFile,
+
+        #Service Instance name to create
+        [Parameter(Mandatory=$true)]
+        [string] $ServiceInstance
+    )
+
+    Write-Progress -Activity 'Creating new database...'
+    New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force | Out-Null
+    Write-Verbose "Database Restored"
+
+    Write-Progress -Activity 'Creating new server instance...'
+    New-NAVServerInstance -DatabaseServer $Server -DatabaseName $Database -ServerInstance $ServiceInstance -ManagementServicesPort 7045 | Out-Null
+    Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServiceInstance")
+    Write-Verbose "Server instance created"
+
+    Write-Progress -Activity 'Importing License...'
+    Import-NAVServerLicense -LicenseFile $LicenseFile -Database NavDatabase -ServerInstance $ServiceInstance -WarningAction SilentlyContinue 
+    Write-Verbose "License imported"
+
+    Stop-Service -Name ("MicrosoftDynamicsNavServer`$$ServiceInstance")
+    Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServiceInstance")
+    Write-Verbose "Server instance restarted"
+
+    if ($BaseFob -gt '') {
+        Write-Progress -Activity 'Importing FOB File...'
+        Import-NAVApplicationObjectFiles -Files $BaseFob -Server $Server -Database $Database 
+        Write-Verbose "FOB Objects imported"
+    }
+}
 $client = split-path (Get-NAVIde)
 $NavIde = Get-NAVIde
 
@@ -431,3 +531,5 @@ Export-ModuleMember -Function Import-NAVApplicationObjectFiles
 Export-ModuleMember -Function Compile-NAVApplicationObjectFiles
 Export-ModuleMember -Function Compile-NAVApplicationObject
 Export-ModuleMember -Function Export-NAVApplicationObject
+Export-ModuleMember -Function New-NAVLocalApplication
+Export-ModuleMember -Function Remove-NAVLocalApplication

@@ -21,6 +21,11 @@ param (
     #If set, objects, which should be deleted, will be removed from the path
     [switch]$DeleteFiles
 )
+
+if (!($env:PSModulePath -like "*;$PSScriptRoot*")) {
+    $env:PSModulePath = $env:PSModulePath + ";$PSScriptRoot"
+}
+
 $FileObjects=Get-NAVApplicationObjectProperty -Source $Path\*.txt
 $FileObjectsHash=$null
 $FileObjectsHash=@{}

@@ -65,47 +65,30 @@ param (
     [switch] $SkipManual
     )
 
-try {
-    #Import-Module -Global Microsoft.Dynamics.Nav.Ide -ArgumentList $NavIde -Force 
-    Import-Module -Global 'C:\Program Files\Microsoft Dynamics NAV\71\Service\NavAdminTool.ps1' -WarningAction SilentlyContinue | Out-Null
+if (!($env:PSModulePath -like "*;$PSScriptRoot*")) {
     $env:PSModulePath = $env:PSModulePath + ";$PSScriptRoot"
+}
 
-    #Import-Module -Global $PSScriptRoot\NVR_NAVScripts -Force -WarningAction SilentlyContinue | Out-Null
-    #Import-Module -Global $PSScriptRoot\CommonPSFunctions -Force -WarningAction SilentlyContinue | Out-Null
+Import-NAVAdminTool
+Import-Module -Global NVR_NAVScripts
+
+try {
 
     if ($NavIde -eq '') {
       $NavIde = Get-NAVIde
     }
 
     if ($ContinueFromTxt -eq $false) {
-        Write-Progress -Activity 'Creating new database...'
-    #    New-NAVDatabase -Database merge -Server $sqlserver
-        Microsoft.Dynamics.Nav.Management\New-NAVDatabase -DatabaseName merge -FilePath $DbBackupFile -DatabaseServer localhost -Force -DataFilesDestinationPath $DbFolder -LogFilesDestinationPath $DbFolder | Out-Null
-        Write-Verbose "Database Restored"
-
-        Write-Progress -Activity 'Creating new server instance...'
-        New-NAVServerInstance -DatabaseServer $Sqlserver -DatabaseName $Dbname -ServerInstance merge -ManagementServicesPort 7045 | Out-Null
-        Start-Service -Name ('MicrosoftDynamicsNavServer$merge')
-        Write-Verbose "Server instance created"
-
-        Write-Progress -Activity 'Importing License...'
-        Import-NAVServerLicense -LicenseFile $LicenseFile -Database NavDatabase -ServerInstance merge -WarningAction SilentlyContinue 
-        Write-Verbose "License imported"
-
-        Stop-Service -Name ('MicrosoftDynamicsNavServer$merge')
-        Start-Service -Name ('MicrosoftDynamicsNavServer$merge')
-        Write-Verbose "Server instance restarted"
-
-        Write-Progress -Activity 'Importing FOB File...'
-        Import-NAVApplicationObjectFiles -Files $BaseFob -Server $Sqlserver -Database $Dbname -LogFolder $LogFolder -NavIde $NavIde
-        Write-Verbose "FOB Objects imported"
+        New-NAVLocalApplication -Server $SqlServer -Database $Dbname -BaseFob $BaseFob -License $LicenseFile -DbBackupFile $DbBackupFile -ServiceInstance merge
     }
+
     $ScriptStartTime = Get-Date
     Write-Output "Started at $ScriptStartTime"
 
 
     Write-Progress -Activity 'Iporting TXT Files...'
-    Import-NAVApplicationObjectFiles -Files $SourceTxtFiles -Server $Sqlserver -Database $Dbname -LogFolder $LogFolder -NavIde $NavIde
+    #Import-NAVApplicationObjectFiles -Files $SourceTxtFiles -Server $Sqlserver -Database $Dbname -LogFolder $LogFolder -NavIde $NavIde
+    . $PSScriptRoot\Update-NAVApplicationFromTxt.ps1 -Files $SourceTxtFiles -Server $Sqlserver -Database $Dbname -Compile -SkipDeleteCheck
     Write-Verbose "TXT Objects imported"
 
     Write-Progress -Activity 'Compiling System objects...'
@@ -137,12 +120,5 @@ try {
 }
 Finally
 {
-    Write-Progress -Activity 'Removing server instance...'
-    Stop-Service -Name ('MicrosoftDynamicsNavServer$merge') -Force
-    Remove-NAVServerInstance -ServerInstance merge -Force
-    Write-Verbose "Server instance removed"
-
-    Write-Progress -Activity 'Removing SQL DB...'
-    Remove-SQLDatabase -Server $Sqlserver -Database $Dbname
-    Write-Verbose "SQL Database removed"
+    Remove-NAVLocalApplication -Server $Sqlserver -Database $Dbname -ServiceInstance merge
 }
