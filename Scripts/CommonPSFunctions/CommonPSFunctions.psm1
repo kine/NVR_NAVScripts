@@ -61,9 +61,13 @@ function Send-EmailToMe
 {
     [CmdletBinding()]
     Param(
+        [Parameter(Mandatory=$true,ValueFromPipelinebyPropertyName=$True)]
         [String]$Subject,
+        [Parameter(Mandatory=$true,ValueFromPipelinebyPropertyName=$True)]
         [String]$Body,
+        [Parameter(Mandatory=$true,ValueFromPipelinebyPropertyName=$True)]
         [String]$SMTPServer,
+        [Parameter(Mandatory=$true,ValueFromPipelinebyPropertyName=$True)]
         [String]$FromEmail
     )
 
@@ -83,7 +87,9 @@ function Remove-SQLDatabase
 {
     [CmdletBinding()]
     Param (
+        [Parameter(Mandatory=$true,ValueFromPipelinebyPropertyName=$True)]
         [String]$Server,
+        [Parameter(Mandatory=$true,ValueFromPipelinebyPropertyName=$True)]
         [String]$Database
     )
     [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SMO')  | Out-Null
@@ -106,14 +112,16 @@ function Get-SQLCommandResult
     Param
     (
         # SQL Server
-        [Parameter(Mandatory=$true,
+        [Parameter(Mandatory=$true,ValueFromPipelinebyPropertyName=$True,
                    Position=0)]
         $Server,
 
         # SQL Database Name
+        [Parameter(Mandatory=$true,ValueFromPipelinebyPropertyName=$True)]
         [String]
         $Database,
         # SQL Command to run
+        [Parameter(Mandatory=$true,ValueFromPipelinebyPropertyName=$True)]
         [String]
         $Command
     )
@@ -136,7 +144,7 @@ function Get-SQLCommandResult
 Function Get-NAVObjectTypeIdFromName
 {
     param(
-        [Parameter(Mandatory=$true,Position=0)]
+        [Parameter(Mandatory=$true,ValueFromPipelinebyPropertyName=$True)]
         [String]$TypeName
     )
     switch ($TypeName)
@@ -164,7 +172,7 @@ Function Get-NAVObjectTypeIdFromName
 Function Get-NAVObjectTypeNameFromId
 {
     param(
-        [Parameter(Mandatory=$true,Position=0)]
+        [Parameter(Mandatory=$true,ValueFromPipelinebyPropertyName=$True)]
         [int]$TypeId
     )
     switch ($TypeId)
