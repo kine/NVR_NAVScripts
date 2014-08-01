@@ -217,7 +217,7 @@ function Compile-NAVApplicationObjectFiles
     $TextFiles = gci "$Files"
     $i=0
 
-    $FilesProperty=Get-NAVApplicationObjectProperty -Source $TextFiles
+    $FilesProperty=Get-NAVApplicationObjectProperty -Source $Files
     $StartTime = Get-Date
     foreach ($FileProperty in $FilesProperty){
         $NowTime = Get-Date

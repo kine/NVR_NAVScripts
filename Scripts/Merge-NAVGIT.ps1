@@ -31,52 +31,54 @@ function SolveConflicts($conflicts)
 {
     $i = 0
     $count = $conflicts.Count
-    $conflicts | foreach {
-        $i++
-        Write-Progress -Id 50 -Status "Processing $i of $count" -Activity 'Mergin GIT repositories...' -CurrentOperation "Resolving conflicts" -percentComplete ($i / $count*100)
-        $conflictfile = $_.Result.Filename.Replace(".TXT","") +'.conflict'
-        if (Test-Path -Path $conflictfile) {
-            $filename = Split-Path -Path $_.result.FileName -Leaf
-            $modified = (Split-Path -Path $_.Result.FileName -Parent)+'\ConflictModified\'+$filename
-            $source = (Split-Path -Path $_.Result.FileName -Parent)+'\ConflictOriginal\'+$filename
-            $target =(Split-Path -Path $_.Result.FileName -Parent)+'\ConflictTarget\'+$filename
-            $result =$_.Result
+    if ($count -gt 0) {
+        $conflicts | foreach {
+            $i++
+            Write-Progress -Id 50 -Status "Processing $i of $count" -Activity 'Mergin GIT repositories...' -CurrentOperation "Resolving conflicts" -percentComplete ($i / $count*100)
+            $conflictfile = $_.Result.Filename.Replace(".TXT","") +'.conflict'
+            if (Test-Path -Path $conflictfile) {
+                $filename = Split-Path -Path $_.result.FileName -Leaf
+                $modified = (Split-Path -Path $_.Result.FileName -Parent)+'\ConflictModified\'+$filename
+                $source = (Split-Path -Path $_.Result.FileName -Parent)+'\ConflictOriginal\'+$filename
+                $target =(Split-Path -Path $_.Result.FileName -Parent)+'\ConflictTarget\'+$filename
+                $result =$_.Result
 
-            $params = $diffparams -f $modified,$source,$target,$result
-            if ($mergetoolresult2source) {
-              #Copy-Item -Path $result -Destination $source -Force
-            }
-            #Write-Output "----$filename conflicts-----"
-            #& $diff $params.Split(" ")
-            #Write-Output "----end-----"
-            #$answer = Read-Host -Prompt "Solve conflict in $filename manually (Nothing = yes, something = no)?"
-            #if ($answer -gt "") {
-
-                & $conflictfile
-                $params= $mergetoolparams -f $modified,$source,$target,$result
-                $result=& $mergetool $params.Split(" ")
-                Write-Host "Reuslt: $result"
-                $answer = Read-Host -Prompt "Was conflict in $filename resolved (Nothing = no, something = yes)?"
-                if ($answer -gt "") {
-                    if ($answer -eq 'q') {
-                        return
-                    }
-                    if (Test-Path -Path $conflictfile) {
-                        Remove-Item -Path $conflictfile
-                    }
-                    if (Test-Path -Path $modified) {
-                        Remove-Item -Path $modified
-                    }
-                    if (Test-Path -Path $source) {
-                        Remove-Item -Path $source
-                    }
-                    if (Test-Path -Path $target) {
-                        Remove-Item -Path $target
-                    }
-                } else {
+                $params = $diffparams -f $modified,$source,$target,$result
+                if ($mergetoolresult2source) {
+                  #Copy-Item -Path $result -Destination $source -Force
                 }
-            #}
-        }        
+                #Write-Output "----$filename conflicts-----"
+                #& $diff $params.Split(" ")
+                #Write-Output "----end-----"
+                #$answer = Read-Host -Prompt "Solve conflict in $filename manually (Nothing = yes, something = no)?"
+                #if ($answer -gt "") {
+
+                    & $conflictfile
+                    $params= $mergetoolparams -f $modified,$source,$target,$result
+                    $result=& $mergetool $params.Split(" ")
+                    Write-Host "Reuslt: $result"
+                    $answer = Read-Host -Prompt "Was conflict in $filename resolved (Nothing = no, something = yes)?"
+                    if ($answer -gt "") {
+                        if ($answer -eq 'q') {
+                            return
+                        }
+                        if (Test-Path -Path $conflictfile) {
+                            Remove-Item -Path $conflictfile
+                        }
+                        if (Test-Path -Path $modified) {
+                            Remove-Item -Path $modified
+                        }
+                        if (Test-Path -Path $source) {
+                            Remove-Item -Path $source
+                        }
+                        if (Test-Path -Path $target) {
+                            Remove-Item -Path $target
+                        }
+                    } else {
+                    }
+                #}
+            }        
+        }
     }
 }
 
@@ -98,16 +100,18 @@ function MergeVersionLists($mergeresult)
 {
     $i=0
     $count= $mergeresult.Count
-    $mergeresult | foreach  {
-        $i = $i +1
-        Write-Progress -Id 50 -Status "Processing $i of $count" -Activity 'Mergin GIT repositories...' -CurrentOperation "Merging version lists" -percentComplete ($i / $mergeresult.Count*100)
-        $ProgressPreference = "SilentlyContinue"
-        $newversion = Merge-NAVVersionListString -source $_.Modified.VersionList -target $_.Target.VersionList -mode SourceFirst
+    if ($count -gt 0) {
+        $mergeresult | foreach  {
+            $i = $i +1
+            Write-Progress -Id 50 -Status "Processing $i of $count" -Activity 'Mergin GIT repositories...' -CurrentOperation "Merging version lists" -percentComplete ($i / $mergeresult.Count*100)
+            $ProgressPreference = "SilentlyContinue"
+            $newversion = Merge-NAVVersionListString -source $_.Modified.VersionList -target $_.Target.VersionList -mode SourceFirst
         
-        #if ($newversion -ne $_.Target.VersionList) {
-            Set-NAVApplicationObjectProperty -target $_.Result.FileName -VersionListProperty $newversion
-        #}
-        $ProgressPreference = "Continue"
+            #if ($newversion -ne $_.Target.VersionList) {
+                Set-NAVApplicationObjectProperty -target $_.Result.FileName -VersionListProperty $newversion
+            #}
+            $ProgressPreference = "Continue"
+        }
     }
 }
 

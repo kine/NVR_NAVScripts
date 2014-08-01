@@ -56,7 +56,7 @@ Process {
         $percent = $i / $count
         $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
 
-        Write-Progress -Status "Processing $i of $count" -Activity 'Comparing objects...' -percentComplete ($i / $count*100) -SecondsRemaining $remtime
+        Write-Progress -Id 10 -Status "Processing $i of $count" -Activity 'Comparing objects...' -percentComplete ($i / $count*100) -SecondsRemaining $remtime
 
         $Type= Get-NAVObjectTypeNameFromId -TypeId $NAVObject.Type
         $Id = $NAVObject.ID

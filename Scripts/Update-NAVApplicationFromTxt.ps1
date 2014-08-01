@@ -54,6 +54,9 @@ Process{
         $NowTime = Get-Date
         $TimeSpan = New-TimeSpan $StartTime $NowTime
         $percent = $i / $count
+        if ($percent -gt 1) {
+            $percent = 1
+        }
         $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
 
         if (($i % 10) -eq 0) {

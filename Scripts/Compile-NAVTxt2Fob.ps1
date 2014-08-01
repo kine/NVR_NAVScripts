@@ -98,7 +98,7 @@ Process {
         Write-Output "Started at $ScriptStartTime"
 
 
-        Write-Progress -Activity 'Iporting TXT Files...'
+        Write-Progress -Activity 'Importing TXT Files...'
         #Import-NAVApplicationObjectFiles -Files $FileName -Server $Server -Database $Database -LogFolder $LogFolder -NavIde $NavIde
         . $PSScriptRoot\Update-NAVApplicationFromTxt.ps1 -Files $FileName -Server $Server -Database $Database -Compile -SkipDeleteCheck
         Write-Verbose "TXT Objects imported"
