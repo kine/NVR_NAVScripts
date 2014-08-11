@@ -51,6 +51,43 @@ function Get-MyEmail
 
 <#
 .Synopsis
+   Get the specified user e-mail address from AD
+.DESCRIPTION
+   Get the specified user e-mail address from AD
+.EXAMPLE
+   Get-UserEmail
+#>
+function Get-UserEmail
+{
+    [CmdletBinding()]
+    Param(
+        [Parameter(Mandatory=$true,ValueFromPipelinebyPropertyName=$True)]
+        [String]$UserName
+    )
+
+    ### Get the Email address of the current user
+    try
+    {
+        $domain = New-Object DirectoryServices.DirectoryEntry
+        $search = [System.DirectoryServices.DirectorySearcher]$domain
+        $search.Filter = "(&(objectClass=user)(sAMAccountname=$UserName))"
+        $user = $search.FindOne().GetDirectoryEntry()
+ 
+        ### Use ADSI and the DN to get the AD object
+        $adsiUser = [adsi]("{0}" -F $user.Path)
+ 
+        ### Get the email address of the user
+        $senderEmailAddress = $adsiUser.mail[0]
+    }
+    catch
+    {
+        Throw ("Unable to get the Email Address for the current user. '{0}'" -f $userFqdn)
+    }
+    Write-Output $senderEmailAddress
+}
+
+<#
+.Synopsis
    Send e-mail to the current user email address
 .DESCRIPTION
    Send e-mail to the current user email address
@@ -192,6 +229,7 @@ Function Get-NAVObjectTypeNameFromId
 Export-ModuleMember -Function Import-NAVAdminTool
 Export-ModuleMember -Function Import-NAVModelTool
 Export-ModuleMember -Function Get-MyEmail
+Export-ModuleMember -Function Get-UserEmail
 Export-ModuleMember -Function Send-EmailToMe
 Export-ModuleMember -Function Remove-SQLDatabase
 Export-ModuleMember -Function Get-NAVObjectTypeIdFromName
