@@ -163,11 +163,22 @@ function Get-SQLCommandResult
         $Command
     )
 
-    Push-Location
-    Import-Module "sqlps" -DisableNameChecking
-    $Result = Invoke-Sqlcmd -Database $Database -ServerInstance $Server -Query $Command
-    Pop-Location
-    return $Result
+    $SqlConnection = New-Object System.Data.SqlClient.SqlConnection
+    $SqlConnection.ConnectionString = "Server = $Server; Database = $Database; Integrated Security = True"
+ 
+    $SqlCmd = New-Object System.Data.SqlClient.SqlCommand
+    $SqlCmd.CommandText = $Command
+    $SqlCmd.Connection = $SqlConnection
+ 
+    $SqlAdapter = New-Object System.Data.SqlClient.SqlDataAdapter
+    $SqlAdapter.SelectCommand = $SqlCmd
+ 
+    $DataSet = New-Object System.Data.DataSet
+    $SqlAdapter.Fill($DataSet)
+ 
+    $SqlConnection.Close()
+ 
+    return $DataSet.Tables[0]
 }
 
 <#
