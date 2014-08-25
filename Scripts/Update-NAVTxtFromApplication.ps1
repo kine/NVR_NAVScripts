@@ -28,6 +28,7 @@ Begin {
     if (!($env:PSModulePath -like "*;$PSScriptRoot*")) {
         $env:PSModulePath = $env:PSModulePath + ";$PSScriptRoot"
     }
+    Import-NAVModelTool
 }
 
 Process {
@@ -44,7 +45,7 @@ Process {
     $NAVObjectsHash = $null
     $NAVObjectsHash = @{}
     $i=0
-    $count = $FileObjects.Count
+    $count = $NAVObjects.Count
     $UpdatedObjects=@()
     $StartTime = Get-Date
 
@@ -74,7 +75,16 @@ Process {
         {
             Write-Verbose "$($FileObject.ObjectType) $($FileObject.Id) skipped..."
         } else {
-            $Object=@{"Type"=$Type;"ID"=$Id}
+            if ($FileObject -eq $null) {
+                $TargetFileName = $Type.ToString().ToUpper().Substring(0,3)
+                $TargetFileName += $Id.ToString()
+                $TargetFileName += '.TXT'
+                $TargetFileName = (Join-Path $Path $TargetFileName)
+            } else {
+                $TargetFileName = $FileObject.FileName
+            }
+            $Filter= "Type=$($NAVObject.Type);ID=$($NAVObject.Id)"
+            $Object=@{"Type"=$Type;"ID"=$Id;"Filter"=$Filter;"TargetFilename"=$TargetFileName}
             $UpdatedObjects += $Object
             if ($All) {
                 Write-Host "$($FileObject.ObjectType) $($FileObject.Id) forced..."
@@ -85,18 +95,24 @@ Process {
                     Write-Host "$Type $Id differs: Modified=$($FileObject.Modified -eq $NAVObject.Modified) Version=$($FileObject.VersionList -eq $NAVObject.'Version List') Time=$($FileObject.Time.TrimStart(' ') -eq $NAVObject.Time.ToString('H:mm:ss')) Date=$($FileObject.Date -eq $NAVObject.Date.ToString('dd.MM.yy'))"
                 }
             }
-            if ($FileObject -eq $null) {
-                $TargetFileName = $Type.ToString().ToUpper().Substring(0,3)
-                $TargetFileName += $Id.ToString()
-                $TargetFileName += '.TXT'
-                $TargetFileName = (Join-Path $Path $TargetFileName)
-            } else {
-                $TargetFileName = $FileObject.FileName
-            }
-            $Filter= "Type=$($NAVObject.Type);ID=$($NAVObject.Id)"
-            Export-NAVApplicationObject -Filter $Filter -Server $Server -Database $Database -LogFolder 'LOG' -Path $TargetFileName -NavIde (Get-NAVIde)
         }
     }
+
+    $i =0
+    $count = $UpdatedObjects.Count
+    $StartTime = Get-Date
+    foreach ($updateobject in $UpdatedObjects) {
+        $i++
+        $NowTime = Get-Date
+        $TimeSpan = New-TimeSpan $StartTime $NowTime
+        $percent = $i / $count
+        $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
+
+        Write-Progress -Id 10 -Status "Importing $i of $count" -Activity 'Importing objects...' -CurrentOperation $updateobject.Filter -percentComplete ($i / $count*100) -SecondsRemaining $remtime
+        Write-Host "Exporting $($updateobject.Filter)..."
+        Export-NAVApplicationObject -Filter $updateobject.Filter -Server $Server -Database $Database -LogFolder 'LOG' -Path $updateobject.TargetFileName -NavIde (Get-NAVIde)
+    }
+
     Write-Host ''
     Write-Host "Exported $($UpdatedObjects.Count) files..."
 

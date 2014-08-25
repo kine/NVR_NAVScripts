@@ -76,7 +76,7 @@ Process{
         {
             Write-Verbose "$($FileObject.ObjectType) $($FileObject.Id) skipped..."
         } else {
-            $Object=@{"Type"=$Type;"ID"=$Id}
+            $Object=@{"Type"=$Type;"ID"=$Id;"FileName"=$FileObject}
             $UpdatedObjects += $Object
             if ($All) {
                 Write-Host "$($FileObject.ObjectType) $($FileObject.Id) forced..."
@@ -88,9 +88,26 @@ Process{
                     Write-Host "$($FileObject.ObjectType) $($FileObject.Id) differs: Modified=$($FileObject.Modified -eq $NAVObject.Modified) Version=$($FileObject.VersionList -eq $NAVObject.'Version List') Time=$($FileObject.Time.TrimStart(' ') -eq $NAVObject.Time.ToString('H:mm:ss')) Date=$($FileObject.Date -eq $NAVObject.Date.ToString('dd.MM.yy'))"
                 }
             }
-            Import-NAVApplicationObjectFiles -Files $FileObject.FileName -Server $Server -Database $Database -NavIde (Get-NAVIde)
         }
     }
+
+    $i =0
+    $count = $UpdatedObjects.Count
+    $StartTime = Get-Date
+    foreach ($object in $UpdatedObjects) {
+        $i++
+        $NowTime = Get-Date
+        $TimeSpan = New-TimeSpan $StartTime $NowTime
+        $percent = $i / $count
+        if ($percent -gt 1) {
+            $percent = 1
+        }
+        $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
+
+        Write-Progress -Id 50 -Status "Importing $i of $count" -Activity 'Importing objects...' -CurrentOperation $object.FileName.FileName -percentComplete ($percent*100) -SecondsRemaining $remtime
+        Import-NAVApplicationObjectFiles -Files $object.FileName.FileName -Server $Server -Database $Database -NavIde (Get-NAVIde)
+    }
+
     Write-Host ''
     Write-Host "Updated $($UpdatedObjects.Count) objects..."
 
