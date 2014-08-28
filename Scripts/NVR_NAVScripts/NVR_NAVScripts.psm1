@@ -189,12 +189,12 @@ function Import-NAVApplicationObjectFiles
 
         If (Test-Path "$LogFile") {
             $logcontent=Get-Content -Path $LogFile 
-            if ($logcontent.Count -gt 1) {
-                $ErrorText=$logcontent[0]
-            } else {
-                $ErrorText=$logcontent
-            }
-            Write-Warning "Error when importing $TextFile : $ErrorText"
+            #if ($logcontent.Count -gt 1) {
+            #    $ErrorText=$logcontent
+            #} else {
+            #    $ErrorText=$logcontent
+            #}
+            Write-Warning "Error when importing $TextFile : $logcontent"
         }
     }
 }
@@ -277,6 +277,7 @@ function Compile-NAVApplicationObject
     )
     if ($NavIde -eq '') {
         $NavIde = $sourceclientfolder+'\finsql.exe';
+        $NavIde = Get-NavIde
     }
 
     #$finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
@@ -493,11 +494,13 @@ Function New-NAVLocalApplication
 
         #Service Instance name to create
         [Parameter(Mandatory=$true)]
-        [string] $ServiceInstance
+        [string] $ServiceInstance,
+
+        [string] $TargetPath
     )
 
     Write-Progress -Activity 'Creating new database...'
-    New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force | Out-Null
+    New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -DataFilesDestinationPath $TargetPath -LogFilesDestinationPath $TargetPath | Out-Null
     Write-Verbose "Database Restored"
 
     Write-Progress -Activity 'Creating new server instance...'

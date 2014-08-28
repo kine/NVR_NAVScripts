@@ -40,6 +40,9 @@ Begin {
     Import-NAVModelTool
 }
 Process{
+    if ($NavIde -eq "") {
+      $NavIde = Get-NAVIde
+    }
     $FileObjects=Get-NAVApplicationObjectProperty -Source $Files
     $FileObjectsHash=$null
     $FileObjectsHash=@{}
