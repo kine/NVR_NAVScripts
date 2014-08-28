@@ -168,7 +168,9 @@ function Import-NAVApplicationObjectFiles
         $percent = $i / $TextFiles.Count
         $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
         $percent = $percent * 100
-        Write-Progress -Activity 'Importing object file...' -CurrentOperation $TextFile -PercentComplete $percent -SecondsRemaining $remtime
+        if ($TextFiles.Count -gt 1) {
+            Write-Progress -Activity 'Importing object file...' -CurrentOperation $TextFile -PercentComplete $percent -SecondsRemaining $remtime
+        }
         #Write-Debug $Command
 
         $params = "Command=ImportObjects`,File=`"$TextFile`"`,ServerName=$Server`,Database=`"$Database`"`,LogFile=`"$LogFile`"`,importaction=`"overwrite`""
@@ -228,7 +230,9 @@ function Compile-NAVApplicationObjectFiles
         $percent = $i / $FilesProperty.Count
         $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
         $percent = $percent * 100
-        Write-Progress -Activity 'Compiling object file...' -CurrentOperation $FileProperty.FileName -PercentComplete $percent -SecondsRemaining $remtime
+        if ($FilesProperty.Count -gt 1) {
+            Write-Progress -Activity 'Compiling object file...' -CurrentOperation $FileProperty.FileName -PercentComplete $percent -SecondsRemaining $remtime
+        }
         #Write-Debug $Command
 
         $Type = $FileProperty.ObjectType

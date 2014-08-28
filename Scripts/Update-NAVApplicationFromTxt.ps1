@@ -104,7 +104,7 @@ Process{
         }
         $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
 
-        Write-Progress -Id 50 -Status "Importing $i of $count" -Activity 'Importing objects...' -CurrentOperation $object.FileName.FileName -percentComplete ($percent*100) -SecondsRemaining $remtime
+        Write-Progress -Status "Importing $i of $count" -Activity 'Importing objects...' -CurrentOperation $object.FileName.FileName -percentComplete ($percent*100) -SecondsRemaining $remtime
         Import-NAVApplicationObjectFiles -Files $object.FileName.FileName -Server $Server -Database $Database -NavIde (Get-NAVIde)
     }
 

@@ -1,12 +1,12 @@
 ﻿function Import-NAVAdminTool
 {
-    Import-Module -Global 'C:\Program Files\Microsoft Dynamics NAV\71\Service\Microsoft.Dynamics.Nav.Management.dll'
+    Import-Module -Global 'C:\Program Files\Microsoft Dynamics NAV\71\Service\Microsoft.Dynamics.Nav.Management.dll' -DisableNameChecking
     Write-Verbose 'NAV admin tool imported'
 }
 
 function Import-NAVModelTool
 {
-    Import-Module -Global 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\Microsoft.Dynamics.Nav.Model.Tools.psd1' #-force -WarningAction SilentlyContinue | Out-Null
+    Import-Module -Global 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\Microsoft.Dynamics.Nav.Model.Tools.psd1' -DisableNameChecking #-force -WarningAction SilentlyContinue | Out-Null
     Write-Verbose 'NAV model tool imported'
 }
 

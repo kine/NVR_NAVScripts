@@ -108,7 +108,7 @@ Process {
         $percent = $i / $count
         $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
 
-        Write-Progress -Id 10 -Status "Exporting $i of $count" -Activity 'Exporting objects...' -CurrentOperation $updateobject.Filter -percentComplete ($i / $count*100) -SecondsRemaining $remtime
+        Write-Progress -Status "Exporting $i of $count" -Activity 'Exporting objects...' -CurrentOperation $updateobject.Filter -percentComplete ($i / $count*100) -SecondsRemaining $remtime
         Write-Host "Exporting $($updateobject.Filter)..."
         Export-NAVApplicationObject -Filter $updateobject.Filter -Server $Server -Database $Database -LogFolder 'LOG' -Path $updateobject.TargetFileName -NavIde (Get-NAVIde)
     }
