@@ -70,7 +70,7 @@
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="TfsBuildExtensions.Activities">
-      <HintPath>..\..\Custom Assemblies\Code Activities\TfsBuildExtensions.Activities.dll</HintPath>
+      <HintPath>..\Custom Assemblies\Code Activities\TfsBuildExtensions.Activities.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
