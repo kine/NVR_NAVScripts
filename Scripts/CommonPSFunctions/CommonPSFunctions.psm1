@@ -19,6 +19,33 @@ function Get-NAVAdminPath
 {
     return 'c:\Program Files\Microsoft Dynamics NAV\71\Service'
 }
+ 
+function Write-TfsMessage
+{
+    [CmdletBinding()]
+    param (
+        [String]$message
+    )
+    Write-Output "0:$Message"
+}
+
+function Write-TfsError
+{
+    [CmdletBinding()]
+    param (
+        [String]$message
+    )
+    Write-Output "2:$Message"
+}
+
+function Write-TfsWarning
+{
+    [CmdletBinding()]
+    param (
+        [String]$message
+    )
+    Write-Output "1:$Message"
+}
 
 <#
 .Synopsis
@@ -163,6 +190,12 @@ function Get-SQLCommandResult
         $Command
     )
 
+    #Push-Location
+    #Import-Module "sqlps" -DisableNameChecking
+    #$Result = Invoke-Sqlcmd -Database $Database -ServerInstance $Server -Query $Command
+    #Pop-Location
+    #return $Result
+ 
     $SqlConnection = New-Object System.Data.SqlClient.SqlConnection
     $SqlConnection.ConnectionString = "Server = $Server; Database = $Database; Integrated Security = True"
  
@@ -179,6 +212,7 @@ function Get-SQLCommandResult
     $SqlConnection.Close()
  
     return $DataSet.Tables[0]
+
 }
 
 <#
@@ -248,3 +282,6 @@ Export-ModuleMember -Function Get-NAVObjectTypeNameFromId
 Export-ModuleMember -Function Get-NAVIde
 Export-ModuleMember -Function Get-NAVAdminPath
 Export-ModuleMember -Function Get-SQLCommandResult
+Export-ModuleMember -Function Write-TfsMessage
+Export-ModuleMember -Function Write-TfsError
+Export-ModuleMember -Function Write-TfsWarning

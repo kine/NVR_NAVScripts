@@ -48,7 +48,7 @@ Process{
     $FileObjectsHash=@{}
     $i=0
     $count = $FileObjects.Count
-    $UpdatedObjects=@()
+    $UpdatedObjects=New-Object System.Collections.ArrayList
     $StartTime = Get-Date
 
     foreach ($FileObject in $FileObjects)

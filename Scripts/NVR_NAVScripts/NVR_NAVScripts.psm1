@@ -184,7 +184,7 @@ function Import-NAVApplicationObjectFiles
         }
         else
         {
-            Write-Warning "Crashed when importing $TextFile !"
+            Write-Error "Crashed when importing $TextFile !"
         }
 
         If (Test-Path "$LogFile") {
@@ -194,7 +194,7 @@ function Import-NAVApplicationObjectFiles
             #} else {
             #    $ErrorText=$logcontent
             #}
-            Write-Warning "Error when importing $TextFile : $logcontent"
+            Write-Error "Error when importing $TextFile : $logcontent"
         }
     }
 }
@@ -249,7 +249,7 @@ function Compile-NAVApplicationObjectFiles
         }
         else
         {
-            Write-Warning "Crashed when compiling $($FileProperty.FileName) !"
+            Write-Error "Crashed when compiling $($FileProperty.FileName) !"
         }
 
         If (Test-Path "$LogFile") {
@@ -259,7 +259,7 @@ function Compile-NAVApplicationObjectFiles
             } else {
                 $errortext=$logcontent
             }
-            Write-Warning "Error when compiling $($FileProperty.FileName): $errortext"
+            Write-Error "Error when compiling $($FileProperty.FileName): $errortext"
         }
     }
 }
@@ -276,7 +276,6 @@ function Compile-NAVApplicationObject
 
     )
     if ($NavIde -eq '') {
-        $NavIde = $sourceclientfolder+'\finsql.exe';
         $NavIde = Get-NavIde
     }
 
@@ -295,7 +294,7 @@ function Compile-NAVApplicationObject
     }
     else
     {
-        Write-Warning "Crashed when compiling $Filter !"
+        Write-Error "Crashed when compiling $Filter !"
     }
 
     If (Test-Path "$LogFile") {
@@ -305,7 +304,7 @@ function Compile-NAVApplicationObject
         } else {
             $errortext=$logcontent
         }
-        Write-Warning "Error when compiling Filter: $errortext"
+        Write-Error "Error when compiling Filter: $errortext"
     }
 }
 
@@ -339,7 +338,7 @@ function Export-NAVApplicationObject
     }
     else
     {
-        Write-Warning "Crashed when exportin $Filter into $Path!"
+        Write-Error "Crashed when exportin $Filter into $Path!"
     }
 
     If (Test-Path "$LogFile") {
@@ -349,7 +348,7 @@ function Export-NAVApplicationObject
         } else {
             $errortext=$logcontent
         }
-        Write-Warning "Error when Exporting $Filter to $Path : $errortext"
+        Write-Error "Error when Exporting $Filter to $Path : $errortext"
     }
 }
 
