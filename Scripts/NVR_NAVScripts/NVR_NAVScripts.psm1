@@ -281,7 +281,7 @@ function Compile-NAVApplicationObject
 
     #$finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
 
-    $LogFile = "$LogFolder\$($FileProperty.FileName.Basename).log"
+    $LogFile = "$LogFolder\filtercompile.log"
     Write-Progress -Activity 'Compiling objects...' 
     #Write-Debug $Command
     $params = "Command=CompileObjects`,Filter=`"$Filter`"`,ServerName=$Server`,Database=`"$Database`"`,LogFile=`"$LogFile`""
@@ -299,12 +299,12 @@ function Compile-NAVApplicationObject
 
     If (Test-Path "$LogFile") {
         $logcontent=Get-Content -Path $LogFile 
-        if ($logcontent.Count -gt 1) {
-            $errortext=$logcontent[0]
-        } else {
-            $errortext=$logcontent
-        }
-        Write-Error "Error when compiling Filter: $errortext"
+        #if ($logcontent.Count -gt 1) {
+        #    $errortext=$logcontent[0]
+        #} else {
+        #    $errortext=$logcontent
+        #}
+        Write-Error "Error when compiling $Filter : $logcontent"
     }
 }
 

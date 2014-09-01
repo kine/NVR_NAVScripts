@@ -12,20 +12,8 @@ $ProgressPreference="SilentlyContinue"
 Compile-NAVApplicationObject -Server $Server -Database $Database -Filter 'Type=Table;Id=2000000000..' -LogFolder $LogFolder -NavIde $NavIde 
 
 if ($CompileAll -eq 1) {
-	Compile-NAVApplicationObjectFiles -Files $Files -Server $Server -Database $Database -LogFolder $LogFolder -NavIde $NavIde -WarningVariable warnings -ErrorVariable errors -OutVariable outputs 
+	Compile-NAVApplicationObjectFiles -Files $Files -Server $Server -Database $Database -LogFolder $LogFolder -NavIde $NavIde
 } else {
-	Compile-NAVApplicationObject -Server $Server -Database $Database -Filter 'Compiled=0' -LogFolder $LogFolder -NavIde $NavIde -WarningVariable warnings -ErrorVariable errors -OutVariable outputs
+	Compile-NAVApplicationObject -Server $Server -Database $Database -Filter 'Compiled=0' -LogFolder $LogFolder -NavIde $NavIde 
 }
 $ProgressPreference="Continue"
-
-foreach ($line in $outputs) {
-    Write-TfsMessage -message $line
-}
-
-foreach ($line in $warnings) {
-    Write-TfsWarning -message $line
-}
-
-foreach ($line in $errors) {
-    Write-TfsError -message $line
-}
