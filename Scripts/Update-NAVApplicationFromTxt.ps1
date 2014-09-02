@@ -80,15 +80,17 @@ Process{
             Write-Verbose "$($FileObject.ObjectType) $($FileObject.Id) skipped..."
         } else {
             $Object=@{"Type"=$Type;"ID"=$Id;"FileName"=$FileObject}
-            $UpdatedObjects += $Object
-            if ($All) {
-                Write-Host "$($FileObject.ObjectType) $($FileObject.Id) forced..."
-            } else {
-                if (($NAVObject -eq $null) -or ($NAVObject -eq '')) {
-                    Write-Host "$($FileObject.ObjectType) $($FileObject.Id) is new..."
-                } else
-                {
-                    Write-Host "$($FileObject.ObjectType) $($FileObject.Id) differs: Modified=$($FileObject.Modified -eq $NAVObject.Modified) Version=$($FileObject.VersionList -eq $NAVObject.'Version List') Time=$($FileObject.Time.TrimStart(' ') -eq $NAVObject.Time.ToString('H:mm:ss')) Date=$($FileObject.Date -eq $NAVObject.Date.ToString('dd.MM.yy'))"
+            if ($Id -gt 0) {
+                $UpdatedObjects += $Object
+                if ($All) {
+                    Write-Host "$($FileObject.ObjectType) $($FileObject.Id) forced..."
+                } else {
+                    if (($NAVObject -eq $null) -or ($NAVObject -eq '')) {
+                        Write-Host "$($FileObject.ObjectType) $($FileObject.Id) is new..."
+                    } else
+                    {
+                        Write-Host "$($FileObject.ObjectType) $($FileObject.Id) differs: Modified=$($FileObject.Modified -eq $NAVObject.Modified) Version=$($FileObject.VersionList -eq $NAVObject.'Version List') Time=$($FileObject.Time.TrimStart(' ') -eq $NAVObject.Time.ToString('H:mm:ss')) Date=$($FileObject.Date -eq $NAVObject.Date.ToString('dd.MM.yy'))"
+                    }
                 }
             }
         }
