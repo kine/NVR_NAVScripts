@@ -29,6 +29,7 @@ Begin {
         $env:PSModulePath = $env:PSModulePath + ";$PSScriptRoot"
     }
     Import-NAVModelTool
+    Import-Module NVR_NAVScripts -Force
 }
 
 Process {
@@ -51,6 +52,10 @@ Process {
 
     foreach ($NAVObject in $NAVObjects)
     {
+        if (!$NAVObject.Type) 
+        {
+            Continue
+        }
         $i++
         $NowTime = Get-Date
         $TimeSpan = New-TimeSpan $StartTime $NowTime

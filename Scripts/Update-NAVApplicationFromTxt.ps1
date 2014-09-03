@@ -53,6 +53,10 @@ Process{
 
     foreach ($FileObject in $FileObjects)
     {
+        if (!$FileObject.Id) 
+        {
+            Continue
+        }
         $i++
         $NowTime = Get-Date
         $TimeSpan = New-TimeSpan $StartTime $NowTime
@@ -144,6 +148,11 @@ Process{
 
         foreach ($NAVObject in $NAVObjects)
         {
+            if (!$NAVObject.ID) 
+            {
+                Continue
+            }
+
             $i++
             $NowTime = Get-Date
             $TimeSpan = New-TimeSpan $StartTime $NowTime
