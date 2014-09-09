@@ -458,6 +458,16 @@ Function Remove-NAVLocalApplication
     Write-Progress -Activity 'Remove NAV Application' -Completed
 }
 
+function Set-ServicePortSharing
+{
+    param (
+        [String]$Name
+    )
+    #Enable and start Port Sharing
+    Get-Service -Name NetTcpPortSharing | Set-Service -StartupType Manual -Status Running
+    #turn on Port Sharing on the new service
+    sc.exe config "$Name" depend= NetTcpPortSharing/HTTP > null
+}
 <#
 .Synopsis
    Short description
@@ -504,6 +514,9 @@ Function New-NAVLocalApplication
 
     Write-Progress -Activity 'Creating new server instance...'
     New-NAVServerInstance -DatabaseServer $Server -DatabaseName $Database -ServerInstance $ServiceInstance -ManagementServicesPort 7045 | Out-Null
+    
+    Set-ServicePortSharing -Name $("MicrosoftDynamicsNavServer`$$ServiceInstance")
+
     Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServiceInstance")
     Write-Verbose "Server instance created"
 
@@ -539,3 +552,4 @@ Export-ModuleMember -Function Compile-NAVApplicationObject
 Export-ModuleMember -Function Export-NAVApplicationObject
 Export-ModuleMember -Function New-NAVLocalApplication
 Export-ModuleMember -Function Remove-NAVLocalApplication
+Export-ModuleMember -Function Set-ServicePortSharing
