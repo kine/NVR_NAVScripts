@@ -106,9 +106,27 @@ function MergeVersionLists($mergeresult)
             Write-Progress -Id 50 -Status "Processing $i of $count" -Activity 'Mergin GIT repositories...' -CurrentOperation "Merging version lists" -percentComplete ($i / $mergeresult.Count*100)
             $ProgressPreference = "SilentlyContinue"
             $newversion = Merge-NAVVersionListString -source $_.Modified.VersionList -target $_.Target.VersionList -mode SourceFirst
+            $newmodified = "No"
+            if ($_.Modified.Modified -or $_.Target.Modified) {
+                $newmodified = "Yes"
+            }
+
+            #($_.Target.Date,$_.Modified.Date) | Measure-Object -Maximum).Maximum
+            if ((Get-Date $_.Target.Date) -gt $(Get-Date $_.Modified.Date)) {
+              $newdate = $_.Target.Date
+              $newtime= $_.Target.Time
+            } else {
+              if ((Get-Date $_.Target.Date) -eq (Get-Date $_.Modified.Date)) {
+                  $newdate = $_.Modified.Date
+                  $newtime = (($_.Target.Time,$_.Modified.Time) | Measure-Object -Maximum).Maximum
+              } else {
+                  $newdate = $_.Modified.Date
+                  $newtime = $_.Modified.Time
+              }
+            }
         
             #if ($newversion -ne $_.Target.VersionList) {
-                Set-NAVApplicationObjectProperty -target $_.Result.FileName -VersionListProperty $newversion
+                Set-NAVApplicationObjectProperty -target $_.Result.FileName -VersionListProperty $newversion -ModifiedProperty $newmodified -DateTimeProperty "$newdate $newtime"
             #}
             $ProgressPreference = "Continue"
         }
@@ -211,7 +229,7 @@ if (!$remerge) {
 
 Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Merging NAV Object files..."
 
-$mergeresult = Merge-NAVApplicationObject -Original $commonfolder$sourcefilespath -Modified $sourcefolder$sourcefilespath -Target $targetfolder$sourcefilespath -Result $resultfolder$sourcefilespath -Force -DateTimeProperty FromTarget -ModifiedProperty FromTarget -DocumentationConflict ModifiedFirst
+$mergeresult = Merge-NAVApplicationObject -Original $commonfolder$sourcefilespath -Modified $sourcefolder$sourcefilespath -Target $targetfolder$sourcefilespath -Result $resultfolder$sourcefilespath -Force -DateTimeProperty FromModified -ModifiedProperty FromModified -DocumentationConflict ModifiedFirst
 $mergeresult | Export-Clixml $resultfolder'\mergeresult.xml'
 
 $merged = $mergeresult | Where-Object {$_.MergeResult -eq 'Merged'}
