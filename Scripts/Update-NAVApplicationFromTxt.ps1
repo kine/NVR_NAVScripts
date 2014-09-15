@@ -29,7 +29,10 @@ param (
     [switch]$MarkToDelete,
     #If set, script will not check for deleted objects
     [Parameter(ValueFromPipelinebyPropertyName=$True)]
-    [switch]$SkipDeleteCheck
+    [switch]$SkipDeleteCheck,
+    #Logfile path used to write the log files for each imported file
+    [Parameter(ValueFromPipelinebyPropertyName=$True)]
+    [String]$LogFolder
 )
 
 Begin {
@@ -114,7 +117,7 @@ Process{
         $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
 
         Write-Progress -Status "Importing $i of $count" -Activity 'Importing objects...' -CurrentOperation $object.FileName.FileName -percentComplete ($percent*100) -SecondsRemaining $remtime
-        Import-NAVApplicationObjectFiles -Files $object.FileName.FileName -Server $Server -Database $Database -NavIde (Get-NAVIde)
+        Import-NAVApplicationObjectFiles -Files $object.FileName.FileName -Server $Server -Database $Database -NavIde (Get-NAVIde) -LogFolder $LogFolder
     }
 
     Write-Host ''

@@ -7,7 +7,10 @@
     [String]$Server,
     #SQL Database to update
     [Parameter(Mandatory=$true,ValueFromPipelinebyPropertyName=$True)]
-    [String]$Database
+    [String]$Database,
+    #LogFolder
+    [Parameter(Mandatory=$true,ValueFromPipelinebyPropertyName=$True)]
+    [String]$LogFolder
 )
 
 try 
@@ -15,7 +18,7 @@ try
     Import-Module CommonPSFunctions
 
     $ProgressPreference="SilentlyContinue"
-    . 'c:\Program Files\WindowsPowerShell\Modules\Update-NAVApplicationFromTxt.ps1' -Files $Files -Server $Server -Database $Database -WarningVariable warnings -ErrorVariable errors -OutVariable outputs
+    . 'c:\Program Files\WindowsPowerShell\Modules\Update-NAVApplicationFromTxt.ps1' -Files $Files -Server $Server -Database $Database -WarningVariable warnings -ErrorVariable errors -OutVariable outputs -LogFolder
     $ProgressPreference="Continue"
 } catch
 {

@@ -530,7 +530,7 @@ Function New-NAVLocalApplication
 
     if ($BaseFob -gt '') {
         Write-Progress -Activity 'Importing FOB File...'
-        Import-NAVApplicationObjectFiles -Files $BaseFob -Server $Server -Database $Database 
+        Import-NAVApplicationObjectFiles -Files $BaseFob -Server $Server -Database $Database -LogFolder $TargetPath
         Write-Verbose "FOB Objects imported"
     }
 }
