@@ -1,4 +1,4 @@
-﻿<Activity mc:Ignorable="sads sap sap2010" x:Class="TfsBuild.Process" this:Process.BuildNumberFormat="[&quot;$(BuildDefinitionName)_$(Date:yyyyMMdd)$(Rev:.r)&quot;]" this:Process.CleanRepository="[True]" this:Process.AdvancedBuildSettings="[New Microsoft.TeamFoundation.Build.Common.BuildParameter(&quot; { &quot;&quot;MSBuildArguments&quot;&quot;: &quot;&quot;&quot;&quot;, &quot;&quot;MSBuildPlatform&quot;&quot;: &quot;&quot;Auto&quot;&quot;, &quot;&quot;PreActionScriptPath&quot;&quot;: &quot;&quot;&quot;&quot;, &quot;&quot;PreActionScriptArguments&quot;&quot;: &quot;&quot;&quot;&quot;, &quot;&quot;PostActionScriptPath&quot;&quot;: &quot;&quot;&quot;&quot;, &quot;&quot;PostActionScriptArguments&quot;&quot;: &quot;&quot;&quot;&quot;, &quot;&quot;RunCodeAnalysis&quot;&quot;: &quot;&quot;AsConfigured&quot;&quot; } &quot;)]" this:Process.AgentSettings="[New Microsoft.TeamFoundation.Build.Common.BuildParameter(&quot; { &quot;&quot;MaxExecutionTime&quot;&quot;: &quot;&quot;00:00:00&quot;&quot;, &quot;&quot;MaxWaitTime&quot;&quot;: &quot;&quot;04:00:00&quot;&quot;, &quot;&quot;Name&quot;&quot;: &quot;&quot;*&quot;&quot;, &quot;&quot;Tags&quot;&quot;: [], &quot;&quot;TagComparison&quot;&quot;: &quot;&quot;MatchExactly&quot;&quot; } &quot;)]" this:Process.CleanBuild="[True]" this:Process.OutputLocation="[&quot;SingleFolder&quot;]" this:Process.CreateWorkItem="[True]" this:Process.UpdateAssociatedWorkItems="[True]" this:Process.SupportedReasons="Manual, IndividualCI, BatchedCI, Schedule, ScheduleForced, UserCreated" this:Process.BuildProcessVersion="12.0" this:Process.NavTestCodeunit="0" this:Process.NAVCompileOnlyNotCompiled="False" this:Process.NAVImportLastBuild="False" this:Process.DropServer="True" this:Process.SQLServer="localhost" this:Process.DatabaseName="NAVBuild" this:Process.InstanceName="NAVBuild"
+﻿<Activity mc:Ignorable="sads sap sap2010" x:Class="TfsBuild.Process" this:Process.BuildNumberFormat="[&quot;$(BuildDefinitionName)_$(Date:yyyyMMdd)$(Rev:.r)&quot;]" this:Process.CleanRepository="[True]" this:Process.AdvancedBuildSettings="[New Microsoft.TeamFoundation.Build.Common.BuildParameter(&quot; { &quot;&quot;MSBuildArguments&quot;&quot;: &quot;&quot;&quot;&quot;, &quot;&quot;MSBuildPlatform&quot;&quot;: &quot;&quot;Auto&quot;&quot;, &quot;&quot;PreActionScriptPath&quot;&quot;: &quot;&quot;&quot;&quot;, &quot;&quot;PreActionScriptArguments&quot;&quot;: &quot;&quot;&quot;&quot;, &quot;&quot;PostActionScriptPath&quot;&quot;: &quot;&quot;&quot;&quot;, &quot;&quot;PostActionScriptArguments&quot;&quot;: &quot;&quot;&quot;&quot;, &quot;&quot;RunCodeAnalysis&quot;&quot;: &quot;&quot;AsConfigured&quot;&quot; } &quot;)]" this:Process.AgentSettings="[New Microsoft.TeamFoundation.Build.Common.BuildParameter(&quot; { &quot;&quot;MaxExecutionTime&quot;&quot;: &quot;&quot;00:00:00&quot;&quot;, &quot;&quot;MaxWaitTime&quot;&quot;: &quot;&quot;04:00:00&quot;&quot;, &quot;&quot;Name&quot;&quot;: &quot;&quot;*&quot;&quot;, &quot;&quot;Tags&quot;&quot;: [], &quot;&quot;TagComparison&quot;&quot;: &quot;&quot;MatchExactly&quot;&quot; } &quot;)]" this:Process.CleanBuild="[True]" this:Process.OutputLocation="[&quot;SingleFolder&quot;]" this:Process.CreateWorkItem="[True]" this:Process.UpdateAssociatedWorkItems="[True]" this:Process.SupportedReasons="Manual, IndividualCI, BatchedCI, Schedule, ScheduleForced, UserCreated" this:Process.BuildProcessVersion="12.0" this:Process.NavTestCodeunit="0" this:Process.NAVCompileOnlyNotCompiled="False" this:Process.NAVImportLastBuild="False" this:Process.DropServer="True" this:Process.SQLServer="localhost" this:Process.DatabaseName="NAVBuild" this:Process.InstanceName="NAVBuild" this:Process.NAVObjectFolder="\Objects\*.TXT"
  xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
  xmlns:mtba="clr-namespace:Microsoft.TeamFoundation.Build.Activities;assembly=Microsoft.TeamFoundation.Build.Activities"
@@ -50,6 +50,7 @@
     <x:Property Name="SQLServer" Type="InArgument(x:String)" />
     <x:Property Name="DatabaseName" Type="InArgument(x:String)" />
     <x:Property Name="InstanceName" Type="InArgument(x:String)" />
+    <x:Property Name="NAVObjectFolder" Type="InArgument(x:String)" />
   </x:Members>
   <this:Process.CheckoutOverride>
     <InArgument x:TypeArguments="x:String" />
@@ -113,6 +114,11 @@
       <mtbw:ProcessParameterMetadata Category="#001 MS Dynamics NAV" DisplayName="10. SQL Server" ParameterName="SQLServer" Required="True" />
       <mtbw:ProcessParameterMetadata Category="#001 MS Dynamics NAV" DisplayName="11. SQL Server Database Name" ParameterName="DatabaseName" Required="True" />
       <mtbw:ProcessParameterMetadata Category="#001 MS Dynamics NAV" DisplayName="12. Server Instance Name" ParameterName="InstanceName" Required="True" />
+      <mtbw:ProcessParameterMetadata Category="#001 MS Dynamics NAV" Description="Folder and filter for NAV objects in the repository" DisplayName="13. Object Files" Editor="Microsoft.TeamFoundation.Build.Controls.GitLocalFileBrowserEditor, Microsoft.TeamFoundation.Build.Controls" ParameterName="NAVObjectFolder" Required="True" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Never" Category="#900 Misc" DisplayName="NewParameter1" ParameterName="FOBToImport" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Never" Category="#900 Misc" DisplayName="NewParameter2" ParameterName="GetLastFileResult" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Never" Category="#900 Misc" DisplayName="NewParameter3" ParameterName="NAVLastBuildFile" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Never" Category="#900 Misc" DisplayName="NewParameter4" ParameterName="NavTestResult" />
     </mtbw:ProcessParameterMetadataCollection>
   </this:Process.Metadata>
   <mva:VisualBasic.Settings>
@@ -182,7 +188,7 @@
     <mtbwa:AgentScope DataToIgnore="" DisplayName="Run on agent" sap2010:WorkflowViewState.IdRef="AgentScope_1" MaxExecutionTime="[AgentSettings.GetValue(Of TimeSpan)(&quot;MaxExecutionTime&quot;, New System.TimeSpan(0,0,0))]" MaxWaitTime="[AgentSettings.GetValue(Of TimeSpan)(&quot;MaxWaitTime&quot;, New System.TimeSpan(4,0,0))]" ReservationSpec="[AgentSettings.CreateAgentReservationSpec()]" mva:VisualBasic.Settings="Assembly references and imported namespaces serialized as XML namespaces">
       <mtbwa:AgentScope.Variables>
         <Variable x:TypeArguments="sma:PSObject[]" Name="PowershellResultVar" />
-        <Variable x:TypeArguments="scg:IEnumerable(x:String)" Name="ObjectFiles" />
+        <Variable x:TypeArguments="scg:IEnumerable(x:String)" Name="ObjectFiles2" />
         <Variable x:TypeArguments="x:Boolean" Default="False" Name="NAVError" />
       </mtbwa:AgentScope.Variables>
       <mtbac:InitializeEnvironment BinariesFolder="bin" DisplayName="Initialize environment" sap2010:WorkflowViewState.IdRef="InitializeEnvironment_1" SourceFolder="src" TestResultsFolder="tst" />
@@ -228,7 +234,7 @@
                     </If.Else>
                   </If>
                   <tas:InvokePowerShellCommand Arguments="[String.Format(&quot;-BaseFob &quot;&quot;{0}&quot;&quot; -LicenseFile &quot;&quot;{1}&quot;&quot; -DbBackupFile &quot;&quot;{2}&quot;&quot; -TargetPath &quot;&quot;{3}&quot;&quot; -Server {4} -Database &quot;&quot;{5}&quot;&quot; -Instance &quot;&quot;{6}&quot;&quot;&quot;, FOBToImport, LicenseFile, BackupFile, BuildDir, SQLServer, DatabaseName, InstanceName)]" DisplayName="Prepare NAV Server" sap2010:WorkflowViewState.IdRef="InvokePowerShellCommand_3" Script="c:\Program Files\WindowsPowerShell\Modules\TFSBuild\New-NAVServer.ps1" />
-                  <tas:InvokePowerShellCommand Arguments="[String.Format(&quot;-Files &quot;&quot;{0}\src\Objects\*.txt&quot;&quot; -Server {1} -Database &quot;&quot;{2}&quot;&quot;&quot;, BuildDir, SQLServer, DatabaseName)]" DisplayName="Import txt files" sap2010:WorkflowViewState.IdRef="InvokePowerShellCommand_7" Result="[PowershellResultVar]" Script="c:\Program Files\WindowsPowerShell\Modules\TFSBuild\Import-TxtFiles.ps1" />
+                  <tas:InvokePowerShellCommand Arguments="[String.Format(&quot;-Files &quot;&quot;{0}\src{3}&quot;&quot; -Server {1} -Database &quot;&quot;{2}&quot;&quot; -LogFolder &quot;&quot;{4}&quot;&quot;&quot;, BuildDir, SQLServer, DatabaseName, NAVObjectFolder, BuildDir)]" DisplayName="Import txt files" sap2010:WorkflowViewState.IdRef="InvokePowerShellCommand_7" Result="[PowershellResultVar]" Script="c:\Program Files\WindowsPowerShell\Modules\TFSBuild\Import-TxtFiles.ps1" />
                   <ForEach x:TypeArguments="sma:PSObject" DisplayName="Write output of import" sap2010:WorkflowViewState.IdRef="ForEach`1_2" Values="[PowershellResultVar]">
                     <ActivityAction x:TypeArguments="sma:PSObject">
                       <ActivityAction.Argument>
@@ -350,7 +356,7 @@
         </TryCatch.Finally>
       </TryCatch>
     </mtbwa:AgentScope>
-    <sads:DebugSymbol.Symbol>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</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>d0dFOlxHaXRcQnVpbGRQcm9jZXNzVGVtcGxhdGVzXFRlbXBsYXRlc1xUZW1wbGF0ZXNcR2l0VGVtcGxhdGVOQVYuMTIueGFtbJkBAe8BAb4GAREBkw0BmQ0BEAHDAQHKAQEPAdsKAeIKAQ4Bsw0BuA0BDQGiCgG9CgEMAZwOAaUOAQsB2wYB4wkBCgHRDQHbDQEJAcAMAcIMAQgBiwsBkgsBBwH9CQGECgEGAesMAfEMAQUBxA4B0w4BBAH3DQGADgEDAWUBpAEBArYBA+gCDgIBAboBBboBsgEDAcIBuwEFuwGbAgMBvgG8AQXmAhgCAQK6AUW6AVoDAcMBuwGJArsBmAIDAcABuwGfAbsBgQIDAb8BvAHwAbwBzAICAQa8AYIBvAHjAQIBBbwB3QK8AYsDAgEEwAE3wAE+AgEDwgEHwgHFAQMBugHDAQfDAbwBAwG0AcQBB8QB4QEDAbABxQEH5QISAgEHwgGlAcIBqgEDAb0BwgEzwgE4AwG8AcIBvQHCAcIBAwG7AcMBJsMBOQMBuAHDAUHDAVUDAbYBwwGHAcMBjQEDAbUBxAHBAcQB3gEDAbIBxAF1xAF7AwGxAccBC9ACFgIBEeACC+MCFgIBDdgCD9sCGgIBCMsBDcsB0QEDAawBzAENzgIYAgEWzwINzwKuAQIBEuECDeECogECAQ/iAg3iAoABAgEO2QIR2QK1AQIBCtoCEdoCgwECAQnLAcIBywHOAQMBrgHLAaoBywG6AQMBrQHOARG7AhwCASHIAhHMAhYCARjDAhXDAkwCARfPApgBzwKrAQIBFM8CS88CUQIBE+ECaOECbgIBENkCZtkCeAIBC9MBE+sBGAMBmQHsARPsAdYEAwGPAe0BE+0B5wMDAYUB7gEThwIdAgFwiAITjwIYAgFZkAITqQIdAgFEqgITqgKtAgIBQKsCE6sC7wICATisAhOzAh0CATK0AhO4AhgCAS25AhO5ApgBAgEqugITugLGAwIBIsgCH8gCLQIBGcoCFcoCigMCARvTASHTATcDAZoB1QEX3wEiAwGhAeIBF+kBIAMBnAHsAYwE7AHTBAMBmAHsATrsAacDAwGQAe0BmwPtAeQDAwGOAe0BOu0BmQIDAYgB7QH8Au0BkwMDAYYB7gGVAe4BrAEDAYQB8wEXhQIgAgFxiAIhiAI+AgFaigIXigLMBAIBZo0CF40CxQQCAVyQApoBkAKxAQIBWJUCF6cCIAIBRaoCoAKqAqoCAgFCqgKwAaoCmAICAUGrAqcCqwLsAgIBP6sCOqsCqgECATurAo4CqwKfAgIBOawCjgGsAp8BAgE3sQIXsQK5AgIBM7QCIbQCNAIBLrYCF7YChQECATC5AjS5Aj4CASu6AvMCugLDAwIBKboCOroCkwICASPKAr0CygKHAwIBIMoCPMoC2QECARzWARnWAZMDAwGmAdcBGd4BIgMBogHnAULnAUsDAZ8B5AFD5AFQAwGdAfMBVPMBdQIBcvcBGfcB0gIDAYEB+AEZ+AHRAgIBfvkBGYQCJAIBdvUBG/UBuwICAXOKAu8DigLJBAIBb4oCPooC4wICAWmKAtADigLnAwIBZ40C6AONAsIEAgFljQI+jQLjAgIBX40CyQONAuADAgFdlQJUlQJ1AgFGmQIZmQLSAgIBVZoCGZoC0QICAVKbAhmmAiQCAUqXAhuXArwCAgFHsQK/AbEC0gECATWxAnGxArYBAgE0tgIotgJYAgEx1gHOAtYBkAMDAasB1gFA1gHIAQMBqQHWAbEC1gHGAgMBpwHcAUTcAWIDAaUB2QFF2QFSAwGjAfcBzQH3AesBAwGDAfcBf/cBxAEDAYIB+AHMAfgB6gEDAYAB+AF++AHDAQIBf/oBG/oBjwECAXz7ARv7AW4CAXv8ARuDAiQCAXf1AcMB9QHUAQIBdfUBdfUBugECAXSZAs0BmQLrAQIBV5kCf5kCxAECAVaaAswBmgLqAQIBVJoCfpoCwwECAVOcAhucAo8BAgFQnQIbnQJuAgFPngIbpQIkAgFLlwLEAZcC1QECAUmXAnaXArsBAgFI+gFu+gGMAQIBfYECR4ECSwIBev4BSP4BUgIBeJwCbpwCjAECAVGjAkejAksCAU6gAkigAlICAUw=</sads:DebugSymbol.Symbol>
   </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
@@ -386,7 +392,7 @@
       <sap2010:ViewStateData Id="WriteBuildError_1" sap:VirtualizedContainerService.HintSize="242,22" />
       <sap2010:ViewStateData Id="SetBuildProperties_1" sap:VirtualizedContainerService.HintSize="242,22" />
       <sap2010:ViewStateData Id="Assign_3" sap:VirtualizedContainerService.HintSize="242,60" />
-      <sap2010:ViewStateData Id="Sequence_8" sap:VirtualizedContainerService.HintSize="264,308">
+      <sap2010:ViewStateData Id="Sequence_8" sap:VirtualizedContainerService.HintSize="264,305">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -394,7 +400,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Switch`1_1" sap:VirtualizedContainerService.HintSize="476,536">
+      <sap2010:ViewStateData Id="Switch`1_1" sap:VirtualizedContainerService.HintSize="476,179">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -402,7 +408,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="ForEach`1_2" sap:VirtualizedContainerService.HintSize="531,684" />
+      <sap2010:ViewStateData Id="ForEach`1_2" sap:VirtualizedContainerService.HintSize="531,327" />
       <sap2010:ViewStateData Id="InvokePowerShellCommand_9" sap:VirtualizedContainerService.HintSize="200,22" />
       <sap2010:ViewStateData Id="InvokePowerShellCommand_1" sap:VirtualizedContainerService.HintSize="200,22" />
       <sap2010:ViewStateData Id="If_1" sap:VirtualizedContainerService.HintSize="531,208" />
@@ -412,14 +418,14 @@
       <sap2010:ViewStateData Id="WriteBuildError_2" sap:VirtualizedContainerService.HintSize="242,22" />
       <sap2010:ViewStateData Id="SetBuildProperties_2" sap:VirtualizedContainerService.HintSize="242,22" />
       <sap2010:ViewStateData Id="Assign_4" sap:VirtualizedContainerService.HintSize="242,60" />
-      <sap2010:ViewStateData Id="Sequence_9" sap:VirtualizedContainerService.HintSize="264,308">
+      <sap2010:ViewStateData Id="Sequence_9" sap:VirtualizedContainerService.HintSize="264,305">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="Switch`1_2" sap:VirtualizedContainerService.HintSize="476,536">
+      <sap2010:ViewStateData Id="Switch`1_2" sap:VirtualizedContainerService.HintSize="476,182">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -427,7 +433,7 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="ForEach`1_4" sap:VirtualizedContainerService.HintSize="531,684">
+      <sap2010:ViewStateData Id="ForEach`1_4" sap:VirtualizedContainerService.HintSize="531,330">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -450,7 +456,7 @@
       <sap2010:ViewStateData Id="If_4" sap:VirtualizedContainerService.HintSize="531,208" />
       <sap2010:ViewStateData Id="CreateDirectory_1" sap:VirtualizedContainerService.HintSize="531,22" />
       <sap2010:ViewStateData Id="InvokePowerShellCommand_5" sap:VirtualizedContainerService.HintSize="531,22" />
-      <sap2010:ViewStateData Id="Sequence_4" sap:VirtualizedContainerService.HintSize="553,2925">
+      <sap2010:ViewStateData Id="Sequence_4" sap:VirtualizedContainerService.HintSize="553,2214">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -468,9 +474,9 @@
       </sap2010:ViewStateData>
       <sap2010:ViewStateData Id="InvokePowerShellCommand_6" sap:VirtualizedContainerService.HintSize="200,22" />
       <sap2010:ViewStateData Id="If_3" sap:VirtualizedContainerService.HintSize="464,208" />
-      <sap2010:ViewStateData Id="TryCatch_2" sap:VirtualizedContainerService.HintSize="571,3152" />
+      <sap2010:ViewStateData Id="TryCatch_2" sap:VirtualizedContainerService.HintSize="571,2441" />
       <sap2010:ViewStateData Id="RunPublishSymbols_1" sap:VirtualizedContainerService.HintSize="571,22" />
-      <sap2010:ViewStateData Id="Sequence_1" sap:VirtualizedContainerService.HintSize="593,3400">
+      <sap2010:ViewStateData Id="Sequence_1" sap:VirtualizedContainerService.HintSize="593,2689">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
@@ -503,16 +509,16 @@
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="TryCatch_1" sap:VirtualizedContainerService.HintSize="611,3627" />
-      <sap2010:ViewStateData Id="AgentScope_1" sap:VirtualizedContainerService.HintSize="633,3937" />
-      <sap2010:ViewStateData Id="Sequence_3" sap:VirtualizedContainerService.HintSize="655,4185">
+      <sap2010:ViewStateData Id="TryCatch_1" sap:VirtualizedContainerService.HintSize="611,2916" />
+      <sap2010:ViewStateData Id="AgentScope_1" sap:VirtualizedContainerService.HintSize="633,3226" />
+      <sap2010:ViewStateData Id="Sequence_3" sap:VirtualizedContainerService.HintSize="655,3474">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="TfsBuild.Process_1" sap:VirtualizedContainerService.HintSize="695,4265" />
+      <sap2010:ViewStateData Id="TfsBuild.Process_1" sap:VirtualizedContainerService.HintSize="695,3554" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>
