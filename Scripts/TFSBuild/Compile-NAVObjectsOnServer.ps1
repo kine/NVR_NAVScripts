@@ -10,6 +10,8 @@ Param (
 Import-Module NVR_NAVScripts -Force -DisableNameChecking
 $ProgressPreference="SilentlyContinue"
 Compile-NAVApplicationObject -Server $Server -Database $Database -Filter 'Type=Table;Id=2000000000..' -LogFolder $LogFolder -NavIde $NavIde 
+#Preventing the error about "Must be compiled..."
+Compile-NAVApplicationObject -Server $Server -Database $Database -Filter 'Type=MenuSuite;Compiled=0' -LogFolder $LogFolder -NavIde $NavIde 
 
 if ($CompileAll -eq 1) {
 	Compile-NAVApplicationObjectFiles -Files $Files -Server $Server -Database $Database -LogFolder $LogFolder -NavIde $NavIde
