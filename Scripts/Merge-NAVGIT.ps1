@@ -9,7 +9,9 @@ Param (
     [switch]$remerge
 )
 Import-Module NVR_NAVScripts -WarningAction SilentlyContinue
-Import-Module 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\Microsoft.Dynamics.Nav.Model.Tools.psd1' -WarningAction SilentlyContinue
+Import-NAVModelTool
+#Import-Module 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\Microsoft.Dynamics.Nav.Model.Tools.psd1' -WarningAction SilentlyContinue
+
 
 $mergetool = "C:\Program Files (x86)\Araxis\Araxis Merge v6.5\merge.exe"
 #$mergetool = "C:\Program Files (x86)\KDiff3\kdiff3.exe"

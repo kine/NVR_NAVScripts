@@ -1,25 +1,39 @@
-﻿function Import-NAVAdminTool
+﻿function Get-NAVIde
 {
-    Import-Module -Global 'C:\Program Files\Microsoft Dynamics NAV\71\Service\Microsoft.Dynamics.Nav.Management.dll' -DisableNameChecking
+    if ($ENV:NAVIdePath -eq '') {
+      return 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\finsql.exe'
+    }
+    return (Join-Path $ENV:NAVIdePath 'finsql.exe')
+}
+
+function Get-NAVIdePath
+{
+    if ($ENV:NAVIdePath -eq '') {
+      return 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client'
+    }
+    return $ENV:NAVIdePath
+}
+
+function Get-NAVAdminPath
+{
+    if ($ENV:NAVServicePath -eq '') {
+      return 'c:\Program Files\Microsoft Dynamics NAV\71\Service'
+    }
+    return $ENV:NAVServicePath
+}
+
+function Import-NAVAdminTool
+{
+    Import-Module -Global (Join-Path (Get-NAVAdminPath) 'Microsoft.Dynamics.Nav.Management.dll') -DisableNameChecking
     Write-Verbose 'NAV admin tool imported'
 }
 
 function Import-NAVModelTool
 {
-    Import-Module -Global 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\Microsoft.Dynamics.Nav.Model.Tools.psd1' -DisableNameChecking #-force -WarningAction SilentlyContinue | Out-Null
+    Import-Module -Global (Join-Path (Get-NAVIdePath) 'Microsoft.Dynamics.Nav.Model.Tools.psd1') -DisableNameChecking #-force -WarningAction SilentlyContinue | Out-Null
     Write-Verbose 'NAV model tool imported'
 }
 
-function Get-NAVIde
-{
-    return 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\finsql.exe'
-}
-
-function Get-NAVAdminPath
-{
-    return 'c:\Program Files\Microsoft Dynamics NAV\71\Service'
-}
- 
 function Write-TfsMessage
 {
     [CmdletBinding()]
