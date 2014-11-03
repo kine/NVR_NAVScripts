@@ -7,4 +7,4 @@ param
 $file = Get-ChildItem -Path $Folder -Filter $Filter -Recurse | Sort-Object -Property CreationTime -Descending | Select-Object -First 1
 
 
-Write-Output $file.Name
+Write-Output $file.FullName
