@@ -309,7 +309,7 @@ function Compile-NAVApplicationObjectFilesMulti
     foreach ($Range in $Ranges) {
         $LogFile = "$LogFolder\$Range.log"
         $Filter ="Id=$Range"
-        $jobs += Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile -AsJob -SynchronizeSchemaChanges Force
+        $jobs += Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile -AsJob
     }
     Receive-Job -Job $jobs -Wait
 }
