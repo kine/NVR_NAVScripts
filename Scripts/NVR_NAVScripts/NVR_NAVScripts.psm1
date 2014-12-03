@@ -5,6 +5,8 @@
 Import-NAVAdminTool
 Import-NAVModelTool
 
+. (Join-Path $PSScriptRoot "MSNAV80_CustomFunctions.ps1")
+
 Add-Type -Language CSharp -TypeDefinition @"
   public enum VersionListMergeMode
   {
@@ -201,6 +203,7 @@ function Import-NAVApplicationObjectFiles
 
 function Compile-NAVApplicationObjectFiles
 {
+    [CmdletBinding()]
     Param(
     [String]$Files,
     [String]$Server,
@@ -262,6 +265,53 @@ function Compile-NAVApplicationObjectFiles
             Write-Error "Error when compiling $($FileProperty.FileName): $errortext"
         }
     }
+}
+
+function Compile-NAVApplicationObjectFilesMulti
+{
+    [CmdletBinding()]
+    Param(
+    [String]$Files,
+    [String]$Server,
+    [String]$Database,
+    [String]$LogFolder,
+    [String]$NavIde='',
+    [String]$ClientFolder='',
+    [String]$AsJob
+    )
+    
+    $CPUs =  (Get-WmiObject -Class Win32_Processor -Property 'NumberOfLogicalProcessors' | Select-Object -Property 'NumberOfLogicalProcessors').NumberOfLogicalProcessors
+    if ($NavIde -eq '') {
+        $NavIde = $sourceclientfolder+'\finsql.exe';
+    }
+
+    #$finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
+
+    $TextFiles = gci "$Files"
+    $i=0
+    $jobs = @()
+
+    $FilesProperty=Get-NAVApplicationObjectProperty -Source $Files
+    $FilesSorted = $FilesProperty | Sort-Object -Property Id
+    $CountOfObjects = $FilesProperty.Count
+    $Ranges=@()
+    $Step=$CountOfObjects/$CPUs
+    $Last = 0
+    for ($i=0;$i -lt $CPUs;$i++) {
+        $Ranges += "$($Last+1)..$($FilesSorted[$i*$Step+$Step-1].Id)"
+        $Last = $FilesSorted[$i*$Step+$Step-1].Id
+    }
+
+    Write-Host "Ranges: $Ranges"
+
+    $StartTime = Get-Date
+    #foreach ($FileProperty in $FilesProperty){
+    foreach ($Range in $Ranges) {
+        $LogFile = "$LogFolder\$Range.log"
+        $Filter ="Id=$Range"
+        $jobs += Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile -AsJob -SynchronizeSchemaChanges Force
+    }
+    Receive-Job -Job $jobs -Wait
 }
 
 function Compile-NAVApplicationObject
@@ -412,9 +462,9 @@ function Merge-NAVDatabaseObjects($sourceserver,$sourcedb,$sourcefilefolder,$sou
 #>
     if ($targetserver) {
         Write-Host 'Importing Objects...'
-        Import-NAVApplicationObject -path $targetfilefolder'.txt' -Server $targetserver -Database $targetdb -Confirm
+        Import-NAVApplicationObject2 -Path $targetfilefolder'.txt' -DatabaseServer $targetserver -DatabaseName $targetdb -Confirm
         Write-Host 'Compiling Objects...'
-        $compileoutput = Compile-NAVApplicationObject -Server $targetserver -Database $targetdb
+        $compileoutput = Compile-NAVApplicationObject2 -DatabaseServer $targetserver -DatabaseName $targetdb -Recompile
     }
     #return $mergeresult
 }
@@ -548,6 +598,7 @@ Export-ModuleMember -Function Merge-NAVDatabaseObjects
 Export-ModuleMember -Function Get-NAVDatabaseObjects
 Export-ModuleMember -Function Import-NAVApplicationObjectFiles
 Export-ModuleMember -Function Compile-NAVApplicationObjectFiles
+Export-ModuleMember -Function Compile-NAVApplicationObjectFilesMulti
 Export-ModuleMember -Function Compile-NAVApplicationObject
 Export-ModuleMember -Function Export-NAVApplicationObject
 Export-ModuleMember -Function New-NAVLocalApplication
