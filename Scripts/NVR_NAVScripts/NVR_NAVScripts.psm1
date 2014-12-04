@@ -277,7 +277,7 @@ function Compile-NAVApplicationObjectFilesMulti
     [String]$LogFolder,
     [String]$NavIde='',
     [String]$ClientFolder='',
-    [String]$AsJob
+    [switch]$AsJob
     )
     
     $CPUs =  (Get-WmiObject -Class Win32_Processor -Property 'NumberOfLogicalProcessors' | Select-Object -Property 'NumberOfLogicalProcessors').NumberOfLogicalProcessors
@@ -309,9 +309,17 @@ function Compile-NAVApplicationObjectFilesMulti
     foreach ($Range in $Ranges) {
         $LogFile = "$LogFolder\$Range.log"
         $Filter ="Id=$Range"
-        $jobs += Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile -AsJob
+        if ($AsJob -eq $true) {
+            Write-Host "Compiling $Filter as Job..."
+            $jobs += Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile -AsJob
+        } else {
+            Write-Host "Compiling $Filter..."
+            Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile
+        }
     }
-    Receive-Job -Job $jobs -Wait
+    if ($AsJob -eq $true) {
+        Receive-Job -Job $jobs -Wait
+    }
 }
 
 function Compile-NAVApplicationObject

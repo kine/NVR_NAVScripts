@@ -1,6 +1,7 @@
 ﻿function Get-NavIdeMajorVersion
 {
-    $IdeFileVersion= (Get-Command $NavIde).FileVersionInfo.FileVersion
+    $IdeFile = Get-NavIde
+    $IdeFileVersion= (Get-Command $IdeFile).FileVersionInfo.FileVersion
     return ($IdeFileVersion.Split('.')[0])
 }
 
@@ -145,6 +146,14 @@ function GetNavServerInfo
     $navServerInfo
 }
 
+function TestNavIde
+{
+    if (-not (Get-NavIde) -or (((Get-NavIde)) -and -not (Test-Path (Get-NavIde))))
+    {
+        throw '(Get-NavIde) was not correctly set. Please assign the path to finsql.exe to (Get-NavIde) ((Get-NavIde) = path).'
+    }
+}
+
 function RunNavIdeCommand
 {
     [CmdletBinding()]
@@ -176,7 +185,7 @@ ntauthentication=No`,username="$Username"`,password="$Password"`,$databaseInfo
     }
 
     $finSqlCommand = @"
-& "$NavIde" --% $Command`,LogFile="$logFile"`,${databaseInfo}${NavServerInfo} | Out-Null
+& "(Get-NavIde)" --% $Command`,LogFile="$logFile"`,${databaseInfo}${NavServerInfo} | Out-Null
 "@ 
 
     Write-Verbose "Running command: $finSqlCommand"
@@ -517,7 +526,7 @@ function Compile-NAVApplicationObject2
         {
             Param($ScriptPath,$NavIde,$DatabaseName,$DatabaseServer,$LogPath,$Filter,$Recompile,$SynchronizeSchemaChanges,$Username,$Password,$NavServerName,$NavServerInstance,$NavServerManagementPort,$VerbosePreference)
 
-            #Import-Module "$ScriptPath\Microsoft.Dynamics.Nav.Ide.psm1" -ArgumentList $NavIde -Force -DisableNameChecking
+            Import-Module (Join-Path $env:NavServicePath "Microsoft.Dynamics.Nav.Ide.psm1") -ArgumentList $NavIde -Force -DisableNameChecking
 
             $args = @{
                 DatabaseName = $DatabaseName
@@ -544,7 +553,7 @@ function Compile-NAVApplicationObject2
             Compile-NAVApplicationObject @args -Verbose:$VerbosePreference
         }
 
-        $job = Start-Job $scriptBlock -ArgumentList $PSScriptRoot,$NavIde,$DatabaseName,$DatabaseServer,$LogPath,$Filter,$Recompile,$SynchronizeSchemaChanges,$Username,$Password,$NavServerName,$NavServerInstance,$NavServerManagementPort,$VerbosePreference
+        $job = Start-Job $scriptBlock -ArgumentList $PSScriptRoot,Get-NavIde,$DatabaseName,$DatabaseServer,$LogPath,$Filter,$Recompile,$SynchronizeSchemaChanges,$Username,$Password,$NavServerName,$NavServerInstance,$NavServerManagementPort,$VerbosePreference
         return $job
     }
     else
