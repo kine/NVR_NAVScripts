@@ -285,6 +285,96 @@ Function Get-NAVObjectTypeNameFromId
     Return $Type
 }
 
+<#
+.Synopsis
+    Get the content of blob in Byte[] and returns the content as Data and MagicConstant
+.DESCRIPTION
+    Get the content of blob in Byte[] and returns the content as Data and MagicConstant (first 4 bytes).
+    Can be used to read data from the blob stored by Microsoft Dynamics NAV
+#>
+function Get-NAVBlobToString
+{
+    [CmdletBinding()]
+    [OutputType([PSObject])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                    ValueFromPipelineByPropertyName=$true,
+                    Position=0)]
+        [byte[]]$CompressedByteArray
+    )
+
+    try {
+        $ms = New-Object System.IO.MemoryStream
+        #Write-Host "Magic constant: $($CompressedByteArray[0]) $($CompressedByteArray[1]) $($CompressedByteArray[2]) $($CompressedByteArray[3])"
+        $ms.Write($CompressedByteArray,4,$CompressedByteArray.Length-4) | Out-Null
+        $ms.Seek(0,0) | Out-Null
+
+        $cs = New-Object System.IO.Compression.DeflateStream($ms, [System.IO.Compression.CompressionMode]::Decompress)
+        $sr = New-Object System.IO.StreamReader($cs)
+
+        $t = $sr.ReadToEnd()
+        
+
+    } catch {
+    } finally {
+        $sr.Close()| Out-Null
+        $cs.Close()| Out-Null
+        $ms.Close()| Out-Null
+    }
+    return @{MagicConstant=$CompressedByteArray[0,1,2,3];Data=$t}
+}
+
+<#
+.Synopsis
+    Create NAVBlob data from string and MagicConstant
+.DESCRIPTION
+    Create NAVBlob data from string and MagicConstant. Can be used to prepare data for storin into BLOB field
+    used by Microsoft Dynamics NAV to store data like profiles, images, notes etc.
+    
+#>
+function Get-StringToNAVBlob
+{
+    [CmdletBinding()]
+    [OutputType([byte[]])]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                    ValueFromPipelineByPropertyName=$true,
+                    Position=0)]
+        [byte[]]$MagicConstant,
+        [Parameter(Mandatory=$true,
+                    ValueFromPipelineByPropertyName=$true,
+                    Position=1)]
+        [String]$Data
+    )
+    
+
+    try {
+        $ms = New-Object System.IO.MemoryStream
+
+        $cs = New-Object System.IO.Compression.DeflateStream($ms, [System.IO.Compression.CompressionMode]::Compress)
+        $sw = New-Object System.IO.StreamWriter($cs)
+        
+
+        $sw.Write($Data)
+        $sw.Close();
+
+        [byte[]]$result = $ms.ToArray()
+
+    } catch {
+    } finally {
+        $sw.Close()| Out-Null
+        $cs.Close()| Out-Null
+        $ms.Close()| Out-Null
+    }
+    $result = $MagicConstant+$result
+    return $result
+}
+
+
 Export-ModuleMember -Function Import-NAVAdminTool
 Export-ModuleMember -Function Import-NAVModelTool
 Export-ModuleMember -Function Get-MyEmail
@@ -299,3 +389,5 @@ Export-ModuleMember -Function Get-SQLCommandResult
 Export-ModuleMember -Function Write-TfsMessage
 Export-ModuleMember -Function Write-TfsError
 Export-ModuleMember -Function Write-TfsWarning
+Export-ModuleMember -Function Get-NAVBlobToString
+Export-ModuleMember -Function Get-StringToNAVBlob
