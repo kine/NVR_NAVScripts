@@ -31,7 +31,9 @@ Begin
 Process
 {
     foreach ($entry in $translations) {
-        $strings.Add($entry.value,$entry.newvalue)
+        if (!$strings.ContainsKey($entry.value)) {
+            $strings.Add($entry.value,$entry.newvalue)
+        }
     }
 }
 End {
@@ -54,7 +56,7 @@ End {
                         Write-Output $output
                     } else {
                         if (($strings[$caption.value] -gt "") -and ($strings[$caption.value] -ne $caption.value)) {
-                            Write-Host "Setting new value $($strings[$caption.value]) for $($caption.value)..."
+                            Write-Verbose "Setting new value $($strings[$caption.value]) for $($caption.value)..."
                             $caption.value = $strings[$caption.value]
                             $changed = $true
                         }
