@@ -183,9 +183,9 @@ ServerName="$DatabaseServer"`,Database="$DatabaseName"
 ntauthentication=No`,username="$Username"`,password="$Password"`,$databaseInfo
 "@
     }
-
+    $NavIde=Get-NavIde
     $finSqlCommand = @"
-& "(Get-NavIde)" --% $Command`,LogFile="$logFile"`,${databaseInfo}${NavServerInfo} | Out-Null
+& "$NavIde" --% $Command`,LogFile="$logFile"`,${databaseInfo}${NavServerInfo} | Out-Null
 "@ 
 
     Write-Verbose "Running command: $finSqlCommand"
