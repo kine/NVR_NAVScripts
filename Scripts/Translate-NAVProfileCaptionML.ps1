@@ -1,4 +1,16 @@
-﻿[CmdletBinding()]
+﻿<#
+.Synopsis
+   Read the Profile metadata and translate all CaptionML based on input array of value pairs "value","newvalue"
+.DESCRIPTION
+   Read the Profile metadata and translate all CaptionML based on input array of value pairs "value","newvalue". 
+   First it reads the input and store it to Hash table, from which the traslation is done. If CaptionML is found in the "value" somewhere, the
+   "newvalue" replace it. Result is stored back to the Profile Metadata table
+.EXAMPLE
+   Import-Csv -Path ToTranslate.csv | Translate-NAVProfileCaptionML.ps1 -Server localhost -Database mydb
+.EXAMPLE
+   Import-Csv -Path ToTranslate.csv -Encoding UTF8 -Delimiter ";" | Translate-NAVProfileCaptionML.ps1 -Server localhost -Database mydb -Filter MYPROFILE
+#>
+[CmdletBinding()]
 param (
         [parameter(ValueFromPipeline=$true)]
         $translations,

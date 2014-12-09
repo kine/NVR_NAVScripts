@@ -1,4 +1,14 @@
-﻿[CmdletBinding()]
+﻿<#
+.Synopsis
+   Read the Profile metadata and export all CaptionML strings for translation
+.DESCRIPTION
+   Read the Profile metadata and export all CaptionML strings for translation. Result is in outputed as an array of value pairs "value","newvalue"
+.EXAMPLE
+   Export-NAVProfileCaptionML.ps1 -Server localhost -Database mydb | Export-Csv -Path ToTranslate.csv
+.EXAMPLE
+   Export-NAVProfileCaptionML.ps1 -Server localhost -Database mydb -Filter MYPROFILE | Export-Csv -Path ToTranslate.csv -Encoding UTF8 -Delimiter ";"
+#>
+[CmdletBinding()]
 param (
         [Parameter(Mandatory=$true,
                    ValueFromPipelineByPropertyName=$true,
