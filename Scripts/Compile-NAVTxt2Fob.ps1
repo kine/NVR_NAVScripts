@@ -91,7 +91,7 @@ Process {
         }
 
         if (!$ContinueFromTxt) {
-            New-NAVLocalApplication -Server $Server -Database $Database -BaseFob $BaseFob -License $LicenseFile -DbBackupFile $DbBackupFile -ServiceInstance merge
+            New-NAVLocalApplication -Server $Server -Database $Database -BaseFob $BaseFob -License $LicenseFile -DbBackupFile $DbBackupFile -ServiceInstance merge -TargetPath $DbFolder
         }
 
         $ScriptStartTime = Get-Date
