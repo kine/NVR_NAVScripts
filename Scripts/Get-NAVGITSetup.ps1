@@ -37,7 +37,8 @@ Begin {
     $setup = ConvertFrom-Xml $xml
 
     $env:NAVIdePath = "$($setup.NavIdePath)"
+    [Environment]::SetEnvironmentVariable("NAVIdePath", "$($setup.NavIdePath)", "Machine")
     $env:NAVServicePath = "$($setup.NAVServicePath)"
-
+    [Environment]::SetEnvironmentVariable("NAVServicePath", "$($setup.NAVServicePath)", "Machine")
     $setup
 }

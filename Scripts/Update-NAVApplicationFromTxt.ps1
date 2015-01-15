@@ -39,7 +39,7 @@ Begin {
     if (!($env:PSModulePath -like "*;$PSScriptRoot*")) {
         $env:PSModulePath = $env:PSModulePath + ";$PSScriptRoot"
     }
-    Import-Module NVR_NAVScripts
+    Import-Module NVR_NAVScripts -DisableNameChecking
     Import-NAVModelTool
 }
 Process{

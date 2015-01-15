@@ -586,11 +586,14 @@ Function New-NAVLocalApplication
     Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServiceInstance")
     Write-Verbose "Server instance restarted"
 
+    Sync-NAVTenant -ServerInstance $ServiceInstance -Force
+
     if ($BaseFob -gt '') {
         Write-Progress -Activity 'Importing FOB File...'
         Import-NAVApplicationObjectFiles -Files $BaseFob -Server $Server -Database $Database -LogFolder $TargetPath
         Write-Verbose "FOB Objects imported"
     }
+    Sync-NAVTenant -ServerInstance $ServiceInstance -Force
 }
 $client = split-path (Get-NAVIde)
 $NavIde = Get-NAVIde
