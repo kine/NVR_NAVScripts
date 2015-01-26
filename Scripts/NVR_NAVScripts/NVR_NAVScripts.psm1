@@ -547,7 +547,7 @@ Function New-NAVLocalApplication
         [Parameter(Mandatory=$true)]
         [String]$Database,
 
-        #FOB file imported before the txt files are imported. Could update the objects stored in the DB Backup file to newer version.
+        #FOB files imported before the txt files are imported. Could update the objects stored in the DB Backup file to newer version.
         [Parameter(Mandatory=$true)]
         [string] $BaseFob,
 
@@ -589,9 +589,14 @@ Function New-NAVLocalApplication
     Sync-NAVTenant -ServerInstance $ServiceInstance -Force
 
     if ($BaseFob -gt '') {
-        Write-Progress -Activity 'Importing FOB File...'
-        Import-NAVApplicationObjectFiles -Files $BaseFob -Server $Server -Database $Database -LogFolder $TargetPath
-        Write-Verbose "FOB Objects imported"
+        $BaseFobs = $BaseFob.Split(';')
+        foreach ($fob in $BaseFobs) {
+           if ($fob -gt '') {
+                Write-Progress -Activity 'Importing FOB File $fob...'
+                Import-NAVApplicationObjectFiles -Files $BaseFob -Server $Server -Database $Database -LogFolder $TargetPath
+                Write-Verbose "FOB Objects from %fob imported"
+            }
+        }
     }
     Sync-NAVTenant -ServerInstance $ServiceInstance -Force
 }
