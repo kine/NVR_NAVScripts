@@ -592,8 +592,8 @@ Function New-NAVLocalApplication
         $BaseFobs = $BaseFob.Split(';')
         foreach ($fob in $BaseFobs) {
            if ($fob -gt '') {
-                Write-Progress -Activity 'Importing FOB File $fob...'
-                Import-NAVApplicationObjectFiles -Files $BaseFob -Server $Server -Database $Database -LogFolder $TargetPath
+                Write-Progress -Activity "Importing FOB File $fob..."
+                Import-NAVApplicationObjectFiles -Files $fob -Server $Server -Database $Database -LogFolder $TargetPath
                 Write-Verbose "FOB Objects from %fob imported"
             }
         }
