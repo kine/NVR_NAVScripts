@@ -19,6 +19,8 @@ param (
     #If set, all objects will be updated instead just different
     [Parameter(ValueFromPipelinebyPropertyName=$True)]
     [switch]$All,
+    [Parameter(ValueFromPipelinebyPropertyName=$True)]
+    [switch]$AllInOne,
     #If set, objects, which should be deleted, will be removed from the path
     [Parameter(ValueFromPipelinebyPropertyName=$True)]
     [switch]$DeleteFiles
@@ -75,7 +77,8 @@ Process {
              ($FileObject.VersionList -eq $NAVObject.'Version List') -and
              ($FileObject.Time.TrimStart(' ') -eq $NAVObject.Time.ToString('H:mm:ss')) -and
              ($FileObject.Date -eq $NAVObject.Date.ToString('dd.MM.yy')) -and
-             (!$All)
+             (!$All) -and
+             (!$AllInOne)
             )
         {
             Write-Verbose "$($FileObject.ObjectType) $($FileObject.Id) skipped..."
@@ -91,8 +94,8 @@ Process {
             $Filter= "Type=$($NAVObject.Type);ID=$($NAVObject.Id)"
             $Object=@{"Type"=$Type;"ID"=$Id;"Filter"=$Filter;"TargetFilename"=$TargetFileName}
             $UpdatedObjects += $Object
-            if ($All) {
-                Write-Host "$($FileObject.ObjectType) $($FileObject.Id) forced..."
+            if (($All) -or ($AllInOne)) {
+                Write-Verbose "$($FileObject.ObjectType) $($FileObject.Id) forced..."
             } else {
                 if ($FileObject -eq $null) {
                     Write-Host "$Type $Id not exists as file, exporting..."
@@ -106,20 +109,30 @@ Process {
     $i =0
     $count = $UpdatedObjects.Count
     $StartTime = Get-Date
-    foreach ($updateobject in $UpdatedObjects) {
-        $i++
-        $NowTime = Get-Date
-        $TimeSpan = New-TimeSpan $StartTime $NowTime
-        $percent = $i / $count
-        $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
+    if ($AllInOne) {
+       Write-Progress -Status "Exporting all of $count" -Activity 'Exporting objects...' -CurrentOperation $updateobject.Filter -percentComplete ($i / $count*100) -SecondsRemaining $remtime
+       Write-Host "Exporting all files..."
+       Export-NAVApplicationObject -Filter "Compiled=0|1" -Server $Server -Database $Database -LogFolder 'LOG' -Path (Join-Path $Path "all.txt") -NavIde (Get-NAVIde)
+       Split-NAVApplicationObjectFile -Source (Join-Path $Path "all.txt") -Destination $Path -Force
+       Remove-Item (Join-Path $Path "all.txt")
+       Write-Host ''
+       Write-Host "Exported all files..."
+    }else {
+        foreach ($updateobject in $UpdatedObjects) {
+            $i++
+            $NowTime = Get-Date
+            $TimeSpan = New-TimeSpan $StartTime $NowTime
+            $percent = $i / $count
+            $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
 
-        Write-Progress -Status "Exporting $i of $count" -Activity 'Exporting objects...' -CurrentOperation $updateobject.Filter -percentComplete ($i / $count*100) -SecondsRemaining $remtime
-        Write-Host "Exporting $($updateobject.Filter)..."
-        Export-NAVApplicationObject -Filter $updateobject.Filter -Server $Server -Database $Database -LogFolder 'LOG' -Path $updateobject.TargetFileName -NavIde (Get-NAVIde)
+            Write-Progress -Status "Exporting $i of $count" -Activity 'Exporting objects...' -CurrentOperation $updateobject.Filter -percentComplete ($i / $count*100) -SecondsRemaining $remtime
+            Write-Host "Exporting $($updateobject.Filter)..."
+            Export-NAVApplicationObject -Filter $updateobject.Filter -Server $Server -Database $Database -LogFolder 'LOG' -Path $updateobject.TargetFileName -NavIde (Get-NAVIde)
+        }
+
+        Write-Host ''
+        Write-Host "Exported $($UpdatedObjects.Count) files..."
     }
-
-    Write-Host ''
-    Write-Host "Exported $($UpdatedObjects.Count) files..."
 
     $i=0
     $count = $FileObjects.Count
@@ -147,4 +160,5 @@ Process {
 }
 
 End {
+    Remove-Item 'LOG' -Force
 }

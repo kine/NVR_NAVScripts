@@ -28,7 +28,7 @@ Begin {
         foreach ($Object in @($XML.Object)) {
             $PSObject = New-Object PSObject
             foreach ($Property in @($Object.Property)) {
-                $PSObject | Add-Member NoteProperty $Property.Name $Property.InnerText
+                $PSObject | Add-Member NoteProperty $Property.Name $ExecutionContext.InvokeCommand.ExpandString($Property.InnerText)
             }
             $PSObject
         }
@@ -37,8 +37,14 @@ Begin {
     $setup = ConvertFrom-Xml $xml
 
     $env:NAVIdePath = "$($setup.NavIdePath)"
-    [Environment]::SetEnvironmentVariable("NAVIdePath", "$($setup.NavIdePath)", "Machine")
+    try {
+        [Environment]::SetEnvironmentVariable("NAVIdePath", "$($setup.NavIdePath)", "Machine")
+    } catch {
+    }
     $env:NAVServicePath = "$($setup.NAVServicePath)"
-    [Environment]::SetEnvironmentVariable("NAVServicePath", "$($setup.NAVServicePath)", "Machine")
+    try {
+        [Environment]::SetEnvironmentVariable("NAVServicePath", "$($setup.NAVServicePath)", "Machine")
+    } catch {
+    }
     $setup
 }

@@ -6,4 +6,4 @@ param(
 Import-Module NVR_NAVScripts -DisableNameChecking
 Import-Module CommonPSFunctions -DisableNameChecking
 Import-NAVAdminTool -DisableNameChecking
-Remove-NAVLocalApplication -Server $Server -Database $Database -ServiceInstance $Instance
+Remove-NAVLocalApplication -Server $Server -Database $Database -ServerInstance $Instance

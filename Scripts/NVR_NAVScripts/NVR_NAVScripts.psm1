@@ -142,6 +142,7 @@ function Get-NAVDatabaseObjects($sourceserver,$sourcedb,$sourcefilefolder,$sourc
 
 function Import-NAVApplicationObjectFiles
 {
+    [CmdletBinding()]
     Param(
     [String]$Files,
     [String]$Server,
@@ -492,26 +493,26 @@ Function Remove-NAVLocalApplication
 {
     param (
         #SQL Server address
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$True)]
         [String]$Server,
 
         #SQL Database to update
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$True)]
         [String]$Database,
 
         #Service Instance name to create
-        [Parameter(Mandatory=$true)]
-        [string] $ServiceInstance
+        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$True)]
+        [string] $ServerInstance
     )
 
-    Write-Progress -Activity 'Remove NAV Application' -CurrentOperation "Removing server instance..." -PercentComplete 50
-    Stop-Service -Name ("MicrosoftDynamicsNavServer`$$ServiceInstance") -Force
-    Remove-NAVServerInstance -ServerInstance $ServiceInstance -Force
-    Write-Verbose "Server instance removed"
+    Write-Progress -Activity 'Remove NAV Application' -CurrentOperation "Removing server instance $ServerInstance..." -PercentComplete 50
+    Stop-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance") -Force
+    Remove-NAVServerInstance -ServerInstance $ServerInstance -Force
+    Write-Verbose "Server instance $ServerInstance removed"
 
-    Write-Progress -Activity 'Remove NAV Application' -CurrentOperation "Removing SQL DB..." -PercentComplete 90
+    Write-Progress -Activity 'Remove NAV Application' -CurrentOperation "Removing SQL DB $Database on server $Server ..." -PercentComplete 90
     Remove-SQLDatabase -Server $Server -Database $Database
-    Write-Verbose "SQL Database removed"
+    Write-Verbose "SQL Database $Dataase on $Server removed"
 
     Write-Progress -Activity 'Remove NAV Application' -Completed
 }
@@ -538,55 +539,56 @@ function Set-ServicePortSharing
 #>
 Function New-NAVLocalApplication
 {
+    [CmdletBinding()]
     param (
         #SQL Server address
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$True)]
         [String]$Server,
 
         #SQL Database to update
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$True)]
         [String]$Database,
 
         #FOB files imported before the txt files are imported. Could update the objects stored in the DB Backup file to newer version.
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$True)]
         [string] $BaseFob,
 
         #FLF file used to start the NAV Service tier. Must have enough permissions to import the txt files.
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$True)]
         [string] $LicenseFile,
 
         #File of the NAV SQL backup for creating new NAV database. Used as base for importing the objects.
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$True)]
         [string] $DbBackupFile,
 
         #Service Instance name to create
-        [Parameter(Mandatory=$true)]
-        [string] $ServiceInstance,
+        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$True)]
+        [string] $ServerInstance,
 
         [string] $TargetPath
     )
 
-    Write-Progress -Activity 'Creating new database...'
+    Write-Progress -Activity 'Creating new database $Database on $Server...'
     New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -DataFilesDestinationPath $TargetPath -LogFilesDestinationPath $TargetPath | Out-Null
     Write-Verbose "Database Restored"
 
-    Write-Progress -Activity 'Creating new server instance...'
-    New-NAVServerInstance -DatabaseServer $Server -DatabaseName $Database -ServerInstance $ServiceInstance -ManagementServicesPort 7045 | Out-Null
+    Write-Progress -Activity 'Creating new server instance $ServerInstance...'
+    New-NAVServerInstance -DatabaseServer $Server -DatabaseName $Database -ServerInstance $ServerInstance -ManagementServicesPort 7045 | Out-Null
     
-    Set-ServicePortSharing -Name $("MicrosoftDynamicsNavServer`$$ServiceInstance")
+    Set-ServicePortSharing -Name $("MicrosoftDynamicsNavServer`$$ServerInstance")
 
-    Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServiceInstance")
+    Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
     Write-Verbose "Server instance created"
 
-    Write-Progress -Activity 'Importing License...'
-    Import-NAVServerLicense -LicenseFile $LicenseFile -Database NavDatabase -ServerInstance $ServiceInstance -WarningAction SilentlyContinue 
+    Write-Progress -Activity 'Importing License $LicenseFile...'
+    Import-NAVServerLicense -LicenseFile $LicenseFile -Database NavDatabase -ServerInstance $ServerInstance -WarningAction SilentlyContinue 
     Write-Verbose "License imported"
 
-    Stop-Service -Name ("MicrosoftDynamicsNavServer`$$ServiceInstance")
-    Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServiceInstance")
+    Stop-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
+    Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
     Write-Verbose "Server instance restarted"
 
-    Sync-NAVTenant -ServerInstance $ServiceInstance -Force
+    Sync-NAVTenant -ServerInstance $ServerInstance -Force
 
     if ($BaseFob -gt '') {
         $BaseFobs = $BaseFob.Split(';')
@@ -598,7 +600,7 @@ Function New-NAVLocalApplication
             }
         }
     }
-    Sync-NAVTenant -ServerInstance $ServiceInstance -Force
+    Sync-NAVTenant -ServerInstance $ServerInstance -Force
 }
 $client = split-path (Get-NAVIde)
 $NavIde = Get-NAVIde

@@ -100,7 +100,7 @@ function Import-NAVApplicationObject2
             {
                 # Log file name is based on the name of the imported file.
                 $logFile = "$LogPath\$((Get-Item $file).BaseName).log"
-                if (Get-NavIdeMajorVersion -ge 8) {
+                if ((Get-NavIdeMajorVersion) -ge 8) {
                     $command = "Command=ImportObjects`,ImportAction=$ImportAction`,SynchronizeSchemaChanges=$SynchronizeSchemaChanges`,File=`"$file`"" 
                 } else {
                     $command = "Command=ImportObjects`,ImportAction=$ImportAction``,File=`"$file`"" 

@@ -194,6 +194,7 @@
       <mtbac:InitializeEnvironment BinariesFolder="bin" DisplayName="Initialize environment" sap2010:WorkflowViewState.IdRef="InitializeEnvironment_1" SourceFolder="src" TestResultsFolder="tst" />
       <mtbag:GitPull CleanRepository="[CleanRepository]" Commit="[CheckoutOverride]" DisplayName="Pull sources from Git repo" Enabled="True" sap2010:WorkflowViewState.IdRef="GitPull_1" />
       <mtba:AssociateChanges DisplayName="Associate the changesets that occurred since the last good build" Enabled="True" sap2010:WorkflowViewState.IdRef="AssociateChanges_1" UpdateWorkItems="[UpdateAssociatedWorkItems]" />
+      <mtbag:GitAssociateCommitsAndWorkItems AssociateWorkItems="[True]" UpdateWorkItems="[True]" sap2010:WorkflowViewState.IdRef="GitAssociateCommitsAndWorkItems_2" />
       <TryCatch DisplayName="Try" sap2010:WorkflowViewState.IdRef="TryCatch_1" mtbwt:BuildTrackingParticipant.Importance="Low">
         <TryCatch.Try>
           <Sequence DisplayName="Compile, Test and Publish" sap2010:WorkflowViewState.IdRef="Sequence_1">
@@ -366,7 +367,7 @@
         </TryCatch.Finally>
       </TryCatch>
     </mtbwa:AgentScope>
-    <sads:DebugSymbol.Symbol>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</sads:DebugSymbol.Symbol>
+    <sads:DebugSymbol.Symbol>dw1DOlxFbXB0eS54YW1sAA==</sads:DebugSymbol.Symbol>
   </Sequence>
   <sap2010:WorkflowViewState.ViewStateManager>
     <sap2010:ViewStateManager>
@@ -375,6 +376,7 @@
       <sap2010:ViewStateData Id="InitializeEnvironment_1" sap:VirtualizedContainerService.HintSize="663,22" />
       <sap2010:ViewStateData Id="GitPull_1" sap:VirtualizedContainerService.HintSize="663,22" />
       <sap2010:ViewStateData Id="AssociateChanges_1" sap:VirtualizedContainerService.HintSize="663,22" />
+      <sap2010:ViewStateData Id="GitAssociateCommitsAndWorkItems_2" sap:VirtualizedContainerService.HintSize="663,22" />
       <sap2010:ViewStateData Id="GetEnvironmentVariable`1_1" sap:VirtualizedContainerService.HintSize="616,22" />
       <sap2010:ViewStateData Id="InvokePowerShellCommand_10" sap:VirtualizedContainerService.HintSize="294,22" />
       <sap2010:ViewStateData Id="Assign_1" sap:VirtualizedContainerService.HintSize="242,60" />
@@ -529,15 +531,15 @@
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
       <sap2010:ViewStateData Id="TryCatch_1" sap:VirtualizedContainerService.HintSize="663,3253" />
-      <sap2010:ViewStateData Id="AgentScope_1" sap:VirtualizedContainerService.HintSize="685,3563" />
-      <sap2010:ViewStateData Id="Sequence_3" sap:VirtualizedContainerService.HintSize="707,3811">
+      <sap2010:ViewStateData Id="AgentScope_1" sap:VirtualizedContainerService.HintSize="685,3625" />
+      <sap2010:ViewStateData Id="Sequence_3" sap:VirtualizedContainerService.HintSize="707,3873">
         <sap:WorkflowViewStateService.ViewState>
           <scg:Dictionary x:TypeArguments="x:String, x:Object">
             <x:Boolean x:Key="IsExpanded">True</x:Boolean>
           </scg:Dictionary>
         </sap:WorkflowViewStateService.ViewState>
       </sap2010:ViewStateData>
-      <sap2010:ViewStateData Id="TfsBuild.Process_1" sap:VirtualizedContainerService.HintSize="747,4051" />
+      <sap2010:ViewStateData Id="TfsBuild.Process_1" sap:VirtualizedContainerService.HintSize="747,3953" />
     </sap2010:ViewStateManager>
   </sap2010:WorkflowViewState.ViewStateManager>
 </Activity>

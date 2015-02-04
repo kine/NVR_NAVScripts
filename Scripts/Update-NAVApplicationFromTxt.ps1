@@ -90,7 +90,7 @@ Process{
             if ($Id -gt 0) {
                 $UpdatedObjects += $Object
                 if ($All) {
-                    Write-Host "$($FileObject.ObjectType) $($FileObject.Id) forced..."
+                    Write-Verbose "$($FileObject.ObjectType) $($FileObject.Id) forced..."
                 } else {
                     if (($NAVObject -eq $null) -or ($NAVObject -eq '')) {
                         Write-Host "$($FileObject.ObjectType) $($FileObject.Id) is new..."
