@@ -14,4 +14,9 @@ if (Test-Path $TargetPath\src\setup.xml) {
 Import-Module CommonPSFunctions -DisableNameChecking
 Import-Module NVR_NAVScripts -DisableNameChecking
 Import-NAVAdminTool
-New-NAVLocalApplication -Server $Server -Database $Database -BaseFob $BaseFob -License $LicenseFile -DbBackupFile $DbBackupFile -ServerInstance $Instance -TargetPath $TargetPath
+
+if (Get-NAVServerInstance -ServerInstance $Instance) {
+    Write-Host "Server instance $Instance already exists, skipping the initialization of environment..."
+} else {
+    New-NAVLocalApplication -Server $Server -Database $Database -BaseFob $BaseFob -License $LicenseFile -DbBackupFile $DbBackupFile -ServerInstance $Instance -TargetPath $TargetPath
+}
