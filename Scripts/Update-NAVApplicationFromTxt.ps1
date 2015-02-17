@@ -1,57 +1,59 @@
 ﻿<#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
+    .Synopsis
+    Short description
+    .DESCRIPTION
+    Long description
+    .EXAMPLE
+    Example of how to use this cmdlet
+    .EXAMPLE
+    Another example of how to use this cmdlet
 #>
 param (
     #Object files from which to update. Should be complete set of objects
-    [Parameter(Mandatory=$true,ValueFromPipelinebyPropertyName=$True)]
+    [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
     [String]$Files,
     #SQL Server address
-    [Parameter(Mandatory=$true,ValueFromPipelinebyPropertyName=$True)]
+    [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
     [String]$Server,
     #SQL Database to update
-    [Parameter(Mandatory=$true,ValueFromPipelinebyPropertyName=$True)]
+    [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
     [String]$Database,
     #If set, all objects will be updated and compiled instead just different
-    [Parameter(ValueFromPipelinebyPropertyName=$True)]
+    [Parameter(ValueFromPipelinebyPropertyName = $true)]
     [switch]$All,
     #If set, objects will be compiled after they are imported
-    [Parameter(ValueFromPipelinebyPropertyName=$True)]
+    [Parameter(ValueFromPipelinebyPropertyName = $true)]
     [switch]$Compile,
     #If set, objects, which should be deleted, will be marked #TODELETE in version list
-    [Parameter(ValueFromPipelinebyPropertyName=$True)]
+    [Parameter(ValueFromPipelinebyPropertyName = $true)]
     [switch]$MarkToDelete,
     #If set, script will not check for deleted objects
-    [Parameter(ValueFromPipelinebyPropertyName=$True)]
+    [Parameter(ValueFromPipelinebyPropertyName = $true)]
     [switch]$SkipDeleteCheck,
     #Logfile path used to write the log files for each imported file
-    [Parameter(ValueFromPipelinebyPropertyName=$True)]
+    [Parameter(ValueFromPipelinebyPropertyName = $true)]
     [String]$LogFolder
 )
 
 Begin {
-    if (!($env:PSModulePath -like "*;$PSScriptRoot*")) {
+    if (!($env:PSModulePath -like "*;$PSScriptRoot*")) 
+    {
         $env:PSModulePath = $env:PSModulePath + ";$PSScriptRoot"
     }
-    Import-Module NVR_NAVScripts -DisableNameChecking
+    Import-Module -Name NVR_NAVScripts -DisableNameChecking
     Import-NAVModelTool
 }
 Process{
-    if ($NavIde -eq "") {
-      $NavIde = Get-NAVIde
+    if ($NavIde -eq '') 
+    {
+        $NavIde = Get-NAVIde
     }
-    $FileObjects=Get-NAVApplicationObjectProperty -Source $Files
-    $FileObjectsHash=$null
-    $FileObjectsHash=@{}
-    $i=0
+    $FileObjects = Get-NAVApplicationObjectProperty -Source $Files
+    $FileObjectsHash = $null
+    $FileObjectsHash = @{}
+    $i = 0
     $count = $FileObjects.Count
-    $UpdatedObjects=New-Object System.Collections.ArrayList
+    $UpdatedObjects = New-Object -TypeName System.Collections.ArrayList
     $StartTime = Get-Date
 
     foreach ($FileObject in $FileObjects)
@@ -64,67 +66,84 @@ Process{
         $NowTime = Get-Date
         $TimeSpan = New-TimeSpan $StartTime $NowTime
         $percent = $i / $count
-        if ($percent -gt 1) {
+        if ($percent -gt 1) 
+        {
             $percent = 1
         }
         $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
 
-        if (($i % 10) -eq 0) {
-            Write-Progress -Status "Processing $i of $count" -Activity 'Comparing objects...' -percentComplete ($percent*100) -SecondsRemaining $remtime
+        if (($i % 10) -eq 0) 
+        {
+            Write-Progress -Status "Processing $i of $count" -Activity 'Comparing objects...' -PercentComplete ($percent*100) -SecondsRemaining $remtime
         }
-        $Type= Get-NAVObjectTypeIdFromName -TypeName $FileObject.ObjectType
+        $Type = Get-NAVObjectTypeIdFromName -TypeName $FileObject.ObjectType
         $Id = $FileObject.Id
         $FileObjectsHash.Add("$Type-$Id",$true)
-        $NAVObject=Get-SQLCommandResult -Server $Server -Database $Database -Command "select [Type],[ID],[Version List],[Modified],[Name],[Date],[Time] from Object where [Type]=$Type and [ID]=$Id"
+        $NAVObject = Get-SQLCommandResult -Server $Server -Database $Database -Command "select [Type],[ID],[Version List],[Modified],[Name],[Date],[Time] from Object where [Type]=$Type and [ID]=$Id"
         #$NAVObject = $NAVObjects | ? (($_.Type -eq $Type) -and ($_.Id -eq $FileObject.Id))
         if (($FileObject.Modified -eq $NAVObject.Modified) -and
-             ($FileObject.VersionList -eq $NAVObject.'Version List') -and
-             ($FileObject.Time.TrimStart(' ') -eq $NAVObject.Time.ToString('H:mm:ss')) -and
-             ($FileObject.Date -eq $NAVObject.Date.ToString('dd.MM.yy')) -and
-             (!$All)
-            )
+            ($FileObject.VersionList -eq $NAVObject.'Version List') -and
+            ($FileObject.Time.TrimStart(' ') -eq $NAVObject.Time.ToString('H:mm:ss')) -and
+            ($FileObject.Date -eq $NAVObject.Date.ToString('dd.MM.yy')) -and
+            (!$All)
+        )
         {
-            Write-Verbose "$($FileObject.ObjectType) $($FileObject.Id) skipped..."
-        } else {
-            $Object=@{"Type"=$Type;"ID"=$Id;"FileName"=$FileObject}
-            if ($Id -gt 0) {
+            Write-Verbose -Message "$($FileObject.ObjectType) $($FileObject.Id) skipped..."
+        }
+        else 
+        {
+            $Object = @{
+                'Type'   = $Type
+                'ID'     = $Id
+                'FileName' = $FileObject
+            }
+            if ($Id -gt 0) 
+            {
                 $UpdatedObjects += $Object
-                if ($All) {
-                    Write-Verbose "$($FileObject.ObjectType) $($FileObject.Id) forced..."
-                } else {
-                    if (($NAVObject -eq $null) -or ($NAVObject -eq '')) {
-                        Write-Host "$($FileObject.ObjectType) $($FileObject.Id) is new..."
-                    } else
+                if ($All) 
+                {
+                    Write-Verbose -Message "$($FileObject.ObjectType) $($FileObject.Id) forced..."
+                }
+                else 
+                {
+                    if (($NAVObject -eq $null) -or ($NAVObject -eq '')) 
                     {
-                        Write-Host "$($FileObject.ObjectType) $($FileObject.Id) differs: Modified=$($FileObject.Modified -eq $NAVObject.Modified) Version=$($FileObject.VersionList -eq $NAVObject.'Version List') Time=$($FileObject.Time.TrimStart(' ') -eq $NAVObject.Time.ToString('H:mm:ss')) Date=$($FileObject.Date -eq $NAVObject.Date.ToString('dd.MM.yy'))"
+                        Write-Host -Object "$($FileObject.ObjectType) $($FileObject.Id) is new..."
+                    }
+                    else
+                    {
+                        Write-Host -Object "$($FileObject.ObjectType) $($FileObject.Id) differs: Modified=$($FileObject.Modified -eq $NAVObject.Modified) Version=$($FileObject.VersionList -eq $NAVObject.'Version List') Time=$($FileObject.Time.TrimStart(' ') -eq $NAVObject.Time.ToString('H:mm:ss')) Date=$($FileObject.Date -eq $NAVObject.Date.ToString('dd.MM.yy'))"
                     }
                 }
             }
         }
     }
 
-    $i =0
+    $i = 0
     $count = $UpdatedObjects.Count
     $StartTime = Get-Date
-    foreach ($object in $UpdatedObjects) {
+    foreach ($Object in $UpdatedObjects) 
+    {
         $i++
         $NowTime = Get-Date
         $TimeSpan = New-TimeSpan $StartTime $NowTime
         $percent = $i / $count
-        if ($percent -gt 1) {
+        if ($percent -gt 1) 
+        {
             $percent = 1
         }
         $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
 
-        Write-Progress -Status "Importing $i of $count" -Activity 'Importing objects...' -CurrentOperation $object.FileName.FileName -percentComplete ($percent*100) -SecondsRemaining $remtime
-        Import-NAVApplicationObjectFiles -Files $object.FileName.FileName -Server $Server -Database $Database -NavIde (Get-NAVIde) -LogFolder $LogFolder
+        Write-Progress -Status "Importing $i of $count" -Activity 'Importing objects...' -CurrentOperation $Object.FileName.FileName -PercentComplete ($percent*100) -SecondsRemaining $remtime
+        Import-NAVApplicationObjectFiles -files $Object.FileName.FileName -Server $Server -Database $Database -NavIde (Get-NAVIde) -LogFolder $LogFolder
     }
 
-    Write-Host ''
-    Write-Host "Updated $($UpdatedObjects.Count) objects..."
+    Write-Host -Object ''
+    Write-Host -Object "Updated $($UpdatedObjects.Count) objects..."
 
-    if ($Compile) {
-        $i=0
+    if ($Compile) 
+    {
+        $i = 0
         $count = $UpdatedObjects.Count
         $StartTime = Get-Date
 
@@ -136,16 +155,17 @@ Process{
             $percent = $i / $count
             $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
 
-            Write-Progress -Status "Processing $i of $count" -Activity 'Compiling objects...' -percentComplete ($i / $count*100) -SecondsRemaining $remtime
+            Write-Progress -Status "Processing $i of $count" -Activity 'Compiling objects...' -PercentComplete ($i / $count*100) -SecondsRemaining $remtime
 
             Compile-NAVApplicationObject -Filter "Type=$($UpdatedObject.Type);Id=$($UpdatedObject.ID)" -Server $Server -Database $Database -NavIde (Get-NAVIde)
         }
-        Write-Host "Compiled $($UpdatedObjects.Count) objects..."
+        Write-Host -Object "Compiled $($UpdatedObjects.Count) objects..."
     }
 
-    if (!$SkipDeleteCheck) {
-        $NAVObjects=Get-SQLCommandResult -Server $Server -Database $Database -Command 'select [Type],[ID],[Version List],[Modified],[Name],[Date],[Time] from Object where [Type]>0'
-        $i=0
+    if (!$SkipDeleteCheck) 
+    {
+        $NAVObjects = Get-SQLCommandResult -Server $Server -Database $Database -Command 'select [Type],[ID],[Version List],[Modified],[Name],[Date],[Time] from Object where [Type]>0'
+        $i = 0
         $count = $NAVObjects.Count
         $StartTime = Get-Date
 
@@ -162,15 +182,17 @@ Process{
             $percent = $i / $count
             $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
 
-            Write-Progress -Status "Processing $i of $count" -Activity 'Checking deleted objects...' -percentComplete ($i / $count*100) -SecondsRemaining $remtime
-            $Type= Get-NAVObjectTypeNameFromId -TypeId $NAVObject.Type
+            Write-Progress -Status "Processing $i of $count" -Activity 'Checking deleted objects...' -PercentComplete ($i / $count*100) -SecondsRemaining $remtime
+            $Type = Get-NAVObjectTypeNameFromId -TypeId $NAVObject.Type
             #$FileObject = $FileObjects | Where-Object {($_.ObjectType -eq $Type) -and ($_.Id -eq $NAVObject.ID)}
             $Exists = $FileObjectsHash["$($NAVObject.Type)-$($NAVObject.ID)"]
-            if (!$Exists) {
-                Write-Warning "$Type $($NAVObject.ID) Should be removed from the database!"
-                if ($MarkToDelete) {
-                    $Result=Get-SQLCommandResult -Server $Server -Database $Database -Command "update Object set [Version List] = '#TODELETE '+ [Version List] where [Type]=$($NAVObject.Type) and [ID]=$($NAVObject.ID)"
-               }
+            if (!$Exists) 
+            {
+                Write-Warning -Message "$Type $($NAVObject.ID) Should be removed from the database!"
+                if ($MarkToDelete) 
+                {
+                    $Result = Get-SQLCommandResult -Server $Server -Database $Database -Command "update Object set [Version List] = '#TODELETE '+ [Version List] where [Type]=$($NAVObject.Type) and [ID]=$($NAVObject.ID)"
+                }
             }
         }
     }

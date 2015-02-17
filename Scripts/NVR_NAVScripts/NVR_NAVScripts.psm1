@@ -5,7 +5,7 @@
 Import-NAVAdminTool
 Import-NAVModelTool
 
-. (Join-Path $PSScriptRoot "MSNAV80_CustomFunctions.ps1")
+. (Join-Path -Path $PSScriptRoot -ChildPath 'MSNAV80_CustomFunctions.ps1')
 
 Add-Type -Language CSharp -TypeDefinition @"
   public enum VersionListMergeMode
@@ -15,154 +15,259 @@ Add-Type -Language CSharp -TypeDefinition @"
   }
 "@
 
-function Get-VersionListModuleShortcut([string] $part)
+function Get-VersionListModuleShortcut
 {
-    $index = $part.IndexOfAny("0123456789");
-    if ($index -ge 1) {
-      $result = @{'shortcut' = $part.Substring(0,$index);'version' = $part.Substring($index)};
-    } else {
-      $result = @{'shortcut' = $part;'version' = ''};
-    }
-    return $result;
-}
+     param
+     (
+         [System.String]
+         $part
+     )
 
-function Get-VersionListHash([string] $versionlist)
-{
-  $hash = @{}
-  $versionlistarray=$versionlist.Split(",");
-  foreach ($element in $versionlistarray) {
-    $moduleinfo = Get-VersionListModuleShortcut($element);
-    $hash.Add($moduleinfo.shortcut,$moduleinfo.version);
-  }
-  return $hash;
-}
-
-function Merge-NAVVersionListString([string] $source,[string] $target,[string] $newversion,[VersionListMergeMode] $mode=[VersionListMergeMode]::SourceFirst) 
-{
-  if ($mode -eq [VersionListMergeMode]::TargetFirst) {
-    $temp = $source;
-    $source = $target;
-    $target = $temp;
-  }
-  $result = "";
-  $sourcearray=$source.Split(",");
-  $targetarray=$target.Split(",");
-  $sourcehash=Get-VersionListHash($source);
-  $targethash=Get-VersionListHash($target);
-  $newmoduleinfo=Get-VersionListModuleShortcut($newversion);
-  foreach ($module in $sourcearray) {
-    $actualversion = "";
-    $moduleinfo = Get-VersionListModuleShortcut($module);
-    if ($sourcehash[$moduleinfo.shortcut] -ge $targethash[$moduleinfo.shortcut]) {
-      $actualversion = $sourcehash[$moduleinfo.shortcut];
-    } else {
-      $actualversion = $targethash[$moduleinfo.shortcut];
-    }
-    if ($moduleinfo.shortcut -eq $newmoduleinfo.shortcut) {
-      $actualversion = $newmoduleinfo.version;
-    }
-    if ($result.Length -gt 0) {
-      $result = $result + ",";
-    }
-    $result = $result + $moduleinfo.shortcut + $actualversion;
-  }
-  foreach ($module in $targetarray) {
-    $moduleinfo = Get-VersionListModuleShortcut($module);
-    if (!$sourcehash.ContainsKey($moduleinfo.shortcut)) {
-        if ($result.Length -gt 0) {
-          $result = $result + ",";
-        }
-        if ($moduleinfo.shortcut -eq $newmoduleinfo.shortcut) {
-          $result = $result + $newversion;
-        } else {
-          $result = $result + $module;
+    $index = $part.IndexOfAny('0123456789')
+    if ($index -ge 1) 
+    {
+        $result = @{
+            'shortcut' = $part.Substring(0,$index)
+            'version' = $part.Substring($index)
         }
     }
-  }
-  return $result;
-}
-
-function ClearFolder($path)
-{
-    Remove-Item $path'\*' -Exclude ".*" -Recurse -Include "*.txt","*.conflict"
-}
-
-function Set-NAVModifiedObject($path)
-{
-    #Write-Host $input
-    foreach ($modifiedfile in $input) {
-        #Write-Host $modifiedfile.filename
-        $filename = $path+"\"+$modifiedfile.filename
-        #Write-Host $filename
-        If (Test-Path ($filename)) {
-            Set-NAVApplicationObjectProperty -target $filename -ModifiedProperty Yes
+    else 
+    {
+        $result = @{
+            'shortcut' = $part
+            'version' = ''
         }
-    }
-}
-
-function Get-NAVModifiedObject($source)
-{
-    $result=@();
-    $files = Get-ChildItem $source -Filter *.txt
-    ForEach ($file in $files) {
-        $lineno=0
-        $content = Get-Content $file.FullName
-        $objectproperties = Get-NAVApplicationObjectProperty -Source $file.FullName
-        $resultfile = @{'filename'=$file.Name;'value'=$objectproperties.Modified}
-        $object = New-Object PSObject -Property $resultfile
-        $result += $object
-
     }
     return $result
 }
 
-function Merge-NAVObjectVersionList($modifiedfilename,$targetfilename,$resultfilename,$newversion)
+function Get-VersionListHash
 {
+     param
+     (
+         [System.String]
+         $versionlist
+     )
+
+    $hash = @{}
+    $versionlistarray = $versionlist.Split(',')
+    foreach ($element in $versionlistarray) 
+    {
+        $moduleinfo = Get-VersionListModuleShortcut($element)
+        $hash.Add($moduleinfo.shortcut,$moduleinfo.version)
+    }
+    return $hash
+}
+
+function Merge-NAVVersionListString 
+{
+     param
+     (
+         [System.String]
+         $source,
+
+         [System.String]
+         $target,
+
+         [System.String]
+         $newversion,
+
+         [System.Object]
+         $mode = [VersionListMergeMode]::SourceFirst
+     )
+
+    if ($mode -eq [VersionListMergeMode]::TargetFirst) 
+    {
+        $temp = $source
+        $source = $target
+        $target = $temp
+    }
+    $result = ''
+    $sourcearray = $source.Split(',')
+    $targetarray = $target.Split(',')
+    $sourcehash = Get-VersionListHash($source)
+    $targethash = Get-VersionListHash($target)
+    $newmoduleinfo = Get-VersionListModuleShortcut($newversion)
+    foreach ($module in $sourcearray) 
+    {
+        $actualversion = ''
+        $moduleinfo = Get-VersionListModuleShortcut($module)
+        if ($sourcehash[$moduleinfo.shortcut] -ge $targethash[$moduleinfo.shortcut]) 
+        {
+            $actualversion = $sourcehash[$moduleinfo.shortcut]
+        }
+        else 
+        {
+            $actualversion = $targethash[$moduleinfo.shortcut]
+        }
+        if ($moduleinfo.shortcut -eq $newmoduleinfo.shortcut) 
+        {
+            $actualversion = $newmoduleinfo.version
+        }
+        if ($result.Length -gt 0) 
+        {
+            $result = $result + ','
+        }
+        $result = $result + $moduleinfo.shortcut + $actualversion
+    }
+    foreach ($module in $targetarray) 
+    {
+        $moduleinfo = Get-VersionListModuleShortcut($module)
+        if (!$sourcehash.ContainsKey($moduleinfo.shortcut)) 
+        {
+            if ($result.Length -gt 0) 
+            {
+                $result = $result + ','
+            }
+            if ($moduleinfo.shortcut -eq $newmoduleinfo.shortcut) 
+            {
+                $result = $result + $newversion
+            }
+            else 
+            {
+                $result = $result + $module
+            }
+        }
+    }
+    return $result
+}
+
+function ClearFolder
+{
+     param
+     (
+         [System.Object]
+         $path
+     )
+
+    Remove-Item -Path $path'\*' -Exclude '.*' -Recurse -Include '*.txt', '*.conflict'
+}
+
+function Set-NAVModifiedObject
+{
+     param
+     (
+         [System.Object]
+         $path
+     )
+
+    #Write-Host $input
+    foreach ($modifiedfile in $input) 
+    {
+        #Write-Host $modifiedfile.filename
+        $filename = $path+'\'+$modifiedfile.filename
+        #Write-Host $filename
+        If (Test-Path ($filename)) 
+        {
+            Set-NAVApplicationObjectProperty -TargetPath $filename -ModifiedProperty Yes
+        }
+    }
+}
+
+function Get-NAVModifiedObject
+{
+     param
+     (
+         [System.Object]
+         $source
+     )
+
+    $result = @()
+    $files = Get-ChildItem $source -Filter *.txt
+    ForEach ($file in $files) 
+    {
+        $lineno = 0
+        $content = Get-Content -Path $file.FullName
+        $objectproperties = Get-NAVApplicationObjectProperty -Source $file.FullName
+        $resultfile = @{
+            'filename' = $file.Name
+            'value'  = $objectproperties.Modified
+        }
+        $object = New-Object -TypeName PSObject -Property $resultfile
+        $result += $object
+    }
+    return $result
+}
+
+function Merge-NAVObjectVersionList
+{
+     param
+     (
+         [System.Object]
+         $modifiedfilename,
+
+         [System.Object]
+         $targetfilename,
+
+         [System.Object]
+         $resultfilename,
+
+         [System.Object]
+         $newversion
+     )
+
     $ProgressPreference = 'SilentlyContinue'
-    $modifiedproperty=Get-NAVApplicationObjectProperty -Source $modifiedfilename 
-    $sourceproperty = Get-NAVApplicationObjectProperty -Source $targetfilename;
+    $modifiedproperty = Get-NAVApplicationObjectProperty -Source $modifiedfilename 
+    $sourceproperty = Get-NAVApplicationObjectProperty -Source $targetfilename
     #$targetproperty = Get-NAVApplicationObjectProperty -Source $resultfilename;
 
     $targetversionlist = Merge-NAVVersionListString -source $sourceproperty.VersionList -target $modifiedproperty.VersionList -mode SourceFirst -newversion $newversion
     #Write-Host 'Updating version list on '$filename' from '$sourceversionlist' and '$modifiedversionlist' to '$targetversionlist
-    Set-NAVApplicationObjectProperty -Target $resultfilename -VersionListProperty $targetversionlist
+    Set-NAVApplicationObjectProperty -TargetPath $resultfilename -VersionListProperty $targetversionlist
     $ProgressPreference = 'Continue'
 }
 
-function Get-NAVDatabaseObjects($sourceserver,$sourcedb,$sourcefilefolder,$sourceclientfolder)
+function Get-NAVDatabaseObjects
 {
-    ClearFolder($sourcefilefolder);
-    $NavIde = $sourceclientfolder+'\finsql.exe';
-    Write-Host 'Exporting Objects from '$sourceserver'\'$sourcedb'...';
-    $exportresult = Export-NAVApplicationObject -Server $sourceserver -Database $sourcedb -Path $sourcefilefolder'.txt'
-    Write-Host 'Splitting Objects...';
+     param
+     (
+         [System.Object]
+         $sourceserver,
+
+         [System.Object]
+         $sourcedb,
+
+         [System.Object]
+         $sourcefilefolder,
+
+         [System.Object]
+         $sourceclientfolder
+     )
+
+    ClearFolder($sourcefilefolder)
+    $NavIde = $sourceclientfolder+'\finsql.exe'
+    Write-Host 'Exporting Objects from '$sourceserver'\'$sourcedb'...'
+    $exportresult = Export-NAVApplicationObject -Server $sourceserver -Database $sourcedb -path $sourcefilefolder'.txt'
+    Write-Host -Object 'Splitting Objects...'
     $splitresult = Split-NAVApplicationObjectFile -Source $sourcefilefolder'.txt' -Destination $sourcefilefolder -Force
-    Remove-Item $sourcefilefolder'.txt'
+    Remove-Item -Path $sourcefilefolder'.txt'
 }
 
 function Import-NAVApplicationObjectFiles
 {
     [CmdletBinding()]
     Param(
-    [String]$Files,
-    [String]$Server,
-    [String]$Database,
-    [String]$LogFolder,
-    [String]$NavIde='',
-    [String]$ClientFolder=''
+        [String]$files,
+        [String]$Server,
+        [String]$Database,
+        [String]$LogFolder,
+        [String]$NavIde = '',
+        [String]$ClientFolder = ''
     )
-    if ($NavIde -eq '') {
+    if ($NavIde -eq '') 
+    {
         $NavIde = Get-NAVIde
     }
 
     $finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
 
-    $TextFiles = gci "$Files"
-    $i=0
+    $TextFiles = Get-ChildItem -Path "$files"
+    $i = 0
 
     $StartTime = Get-Date
 
-    foreach ($TextFile in $TextFiles){
+    foreach ($TextFile in $TextFiles)
+    {
         $NowTime = Get-Date
         $TimeSpan = New-TimeSpan $StartTime $NowTime
         $Command = $importfinsqlcommand + $TextFile
@@ -171,7 +276,8 @@ function Import-NAVApplicationObjectFiles
         $percent = $i / $TextFiles.Count
         $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
         $percent = $percent * 100
-        if ($TextFiles.Count -gt 1) {
+        if ($TextFiles.Count -gt 1) 
+        {
             Write-Progress -Activity 'Importing object file...' -CurrentOperation $TextFile -PercentComplete $percent -SecondsRemaining $remtime
         }
         #Write-Debug $Command
@@ -180,24 +286,25 @@ function Import-NAVApplicationObjectFiles
         & $NavIde $params | Write-Output
         #cmd /c $importfinsqlcommand
 
-        if (Test-Path "$LogFolder\navcommandresult.txt")
+        if (Test-Path -Path "$LogFolder\navcommandresult.txt")
         {
-            Write-Verbose "Processed $TextFile ."
-            Remove-Item "$LogFolder\navcommandresult.txt"
+            Write-Verbose -Message "Processed $TextFile ."
+            Remove-Item -Path "$LogFolder\navcommandresult.txt"
         }
         else
         {
-            Write-Error "Crashed when importing $TextFile !"
+            Write-Error -Message "Crashed when importing $TextFile !"
         }
 
-        If (Test-Path "$LogFile") {
-            $logcontent=Get-Content -Path $LogFile 
+        If (Test-Path -Path "$LogFile") 
+        {
+            $logcontent = Get-Content -Path $LogFile 
             #if ($logcontent.Count -gt 1) {
             #    $ErrorText=$logcontent
             #} else {
             #    $ErrorText=$logcontent
             #}
-            Write-Error "Error when importing $TextFile : $logcontent"
+            Write-Error -Message "Error when importing $TextFile : $logcontent"
         }
     }
 }
@@ -206,26 +313,28 @@ function Compile-NAVApplicationObjectFiles
 {
     [CmdletBinding()]
     Param(
-    [String]$Files,
-    [String]$Server,
-    [String]$Database,
-    [String]$LogFolder,
-    [String]$NavIde='',
-    [String]$ClientFolder=''
+        [String]$files,
+        [String]$Server,
+        [String]$Database,
+        [String]$LogFolder,
+        [String]$NavIde = '',
+        [String]$ClientFolder = ''
 
     )
-    if ($NavIde -eq '') {
-        $NavIde = $sourceclientfolder+'\finsql.exe';
+    if ($NavIde -eq '') 
+    {
+        $NavIde = $sourceclientfolder+'\finsql.exe'
     }
 
     #$finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
 
-    $TextFiles = gci "$Files"
-    $i=0
+    $TextFiles = Get-ChildItem -Path "$files"
+    $i = 0
 
-    $FilesProperty=Get-NAVApplicationObjectProperty -Source $Files
+    $FilesProperty = Get-NAVApplicationObjectProperty -Source $files
     $StartTime = Get-Date
-    foreach ($FileProperty in $FilesProperty){
+    foreach ($FileProperty in $FilesProperty)
+    {
         $NowTime = Get-Date
         $TimeSpan = New-TimeSpan $StartTime $NowTime
         #$Command = $importfinsqlcommand + $TextFile
@@ -234,36 +343,41 @@ function Compile-NAVApplicationObjectFiles
         $percent = $i / $FilesProperty.Count
         $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
         $percent = $percent * 100
-        if ($FilesProperty.Count -gt 1) {
+        if ($FilesProperty.Count -gt 1) 
+        {
             Write-Progress -Activity 'Compiling object file...' -CurrentOperation $FileProperty.FileName -PercentComplete $percent -SecondsRemaining $remtime
         }
         #Write-Debug $Command
 
         $Type = $FileProperty.ObjectType
         $Id = $FileProperty.Id
-        $Filter ="Type=$Type;Id=$Id"
+        $Filter = "Type=$Type;Id=$Id"
         $params = "Command=CompileObjects`,Filter=`"$Filter`"`,ServerName=$Server`,Database=`"$Database`"`,LogFile=`"$LogFile`""
         & $NavIde $params | Write-Output
         #cmd /c $importfinsqlcommand
 
-        if (Test-Path "$LogFolder\navcommandresult.txt")
+        if (Test-Path -Path "$LogFolder\navcommandresult.txt")
         {
-            Write-Verbose "Processed $($FileProperty.FileName) ."
-            Remove-Item "$LogFolder\navcommandresult.txt"
+            Write-Verbose -Message "Processed $($FileProperty.FileName) ."
+            Remove-Item -Path "$LogFolder\navcommandresult.txt"
         }
         else
         {
-            Write-Error "Crashed when compiling $($FileProperty.FileName) !"
+            Write-Error -Message "Crashed when compiling $($FileProperty.FileName) !"
         }
 
-        If (Test-Path "$LogFile") {
-            $logcontent=Get-Content -Path $LogFile 
-            if ($logcontent.Count -gt 1) {
-                $errortext=$logcontent[0]
-            } else {
-                $errortext=$logcontent
+        If (Test-Path -Path "$LogFile") 
+        {
+            $logcontent = Get-Content -Path $LogFile 
+            if ($logcontent.Count -gt 1) 
+            {
+                $errortext = $logcontent[0]
             }
-            Write-Error "Error when compiling $($FileProperty.FileName): $errortext"
+            else 
+            {
+                $errortext = $logcontent
+            }
+            Write-Error -Message "Error when compiling $($FileProperty.FileName): $errortext"
         }
     }
 }
@@ -272,53 +386,60 @@ function Compile-NAVApplicationObjectFilesMulti
 {
     [CmdletBinding()]
     Param(
-    [String]$Files,
-    [String]$Server,
-    [String]$Database,
-    [String]$LogFolder,
-    [String]$NavIde='',
-    [String]$ClientFolder='',
-    [switch]$AsJob
+        [String]$files,
+        [String]$Server,
+        [String]$Database,
+        [String]$LogFolder,
+        [String]$NavIde = '',
+        [String]$ClientFolder = '',
+        [switch]$AsJob
     )
     
-    $CPUs =  (Get-WmiObject -Class Win32_Processor -Property 'NumberOfLogicalProcessors' | Select-Object -Property 'NumberOfLogicalProcessors').NumberOfLogicalProcessors
-    if ($NavIde -eq '') {
-        $NavIde = $sourceclientfolder+'\finsql.exe';
+    $CPUs = (Get-WmiObject -Class Win32_Processor -Property 'NumberOfLogicalProcessors' | Select-Object -Property 'NumberOfLogicalProcessors').NumberOfLogicalProcessors
+    if ($NavIde -eq '') 
+    {
+        $NavIde = $sourceclientfolder+'\finsql.exe'
     }
 
     #$finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
 
-    $TextFiles = gci "$Files"
-    $i=0
+    $TextFiles = Get-ChildItem -Path "$files"
+    $i = 0
     $jobs = @()
 
-    $FilesProperty=Get-NAVApplicationObjectProperty -Source $Files
+    $FilesProperty = Get-NAVApplicationObjectProperty -Source $files
     $FilesSorted = $FilesProperty | Sort-Object -Property Id
     $CountOfObjects = $FilesProperty.Count
-    $Ranges=@()
-    $Step=$CountOfObjects/$CPUs
+    $Ranges = @()
+    $Step = $CountOfObjects/$CPUs
     $Last = 0
-    for ($i=0;$i -lt $CPUs;$i++) {
+    for ($i = 0;$i -lt $CPUs;$i++) 
+    {
         $Ranges += "$($Last+1)..$($FilesSorted[$i*$Step+$Step-1].Id)"
         $Last = $FilesSorted[$i*$Step+$Step-1].Id
     }
 
-    Write-Host "Ranges: $Ranges"
+    Write-Host -Object "Ranges: $Ranges"
 
     $StartTime = Get-Date
     #foreach ($FileProperty in $FilesProperty){
-    foreach ($Range in $Ranges) {
+    foreach ($Range in $Ranges) 
+    {
         $LogFile = "$LogFolder\$Range.log"
-        $Filter ="Id=$Range"
-        if ($AsJob -eq $true) {
-            Write-Host "Compiling $Filter as Job..."
+        $Filter = "Id=$Range"
+        if ($AsJob -eq $true) 
+        {
+            Write-Host -Object "Compiling $Filter as Job..."
             $jobs += Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile -AsJob
-        } else {
-            Write-Host "Compiling $Filter..."
+        }
+        else 
+        {
+            Write-Host -Object "Compiling $Filter..."
             Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile
         }
     }
-    if ($AsJob -eq $true) {
+    if ($AsJob -eq $true) 
+    {
         Receive-Job -Job $jobs -Wait
     }
 }
@@ -326,16 +447,17 @@ function Compile-NAVApplicationObjectFilesMulti
 function Compile-NAVApplicationObject
 {
     Param(
-    [String]$Filter,
-    [String]$Server,
-    [String]$Database,
-    [String]$LogFolder,
-    [String]$NavIde='',
-    [String]$ClientFolder=''
+        [String]$Filter,
+        [String]$Server,
+        [String]$Database,
+        [String]$LogFolder,
+        [String]$NavIde = '',
+        [String]$ClientFolder = ''
 
     )
-    if ($NavIde -eq '') {
-        $NavIde = Get-NavIde
+    if ($NavIde -eq '') 
+    {
+        $NavIde = Get-NAVIde
     }
 
     #$finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
@@ -346,133 +468,198 @@ function Compile-NAVApplicationObject
     $params = "Command=CompileObjects`,Filter=`"$Filter`"`,ServerName=$Server`,Database=`"$Database`"`,LogFile=`"$LogFile`""
     & $NavIde $params | Write-Output
 
-    if (Test-Path "$LogFolder\navcommandresult.txt")
+    if (Test-Path -Path "$LogFolder\navcommandresult.txt")
     {
-        Write-Verbose "Processed $Filter."
-        Remove-Item "$LogFolder\navcommandresult.txt"
+        Write-Verbose -Message "Processed $Filter."
+        Remove-Item -Path "$LogFolder\navcommandresult.txt"
     }
     else
     {
-        Write-Error "Crashed when compiling $Filter !"
+        Write-Error -Message "Crashed when compiling $Filter !"
     }
 
-    If (Test-Path "$LogFile") {
-        $logcontent=Get-Content -Path $LogFile 
+    If (Test-Path -Path "$LogFile") 
+    {
+        $logcontent = Get-Content -Path $LogFile 
         #if ($logcontent.Count -gt 1) {
         #    $errortext=$logcontent[0]
         #} else {
         #    $errortext=$logcontent
         #}
-        Write-Error "Error when compiling $Filter : $logcontent"
+        Write-Error -Message "Error when compiling $Filter : $logcontent"
     }
 }
 
 function Export-NAVApplicationObject
 {
     Param(
-    [String]$Filter,
-    [String]$Server,
-    [String]$Database,
-    [String]$LogFolder,
-    [String]$Path,
-    [String]$NavIde='',
-    [String]$ClientFolder=''
+        [String]$Filter,
+        [String]$Server,
+        [String]$Database,
+        [String]$LogFolder,
+        [String]$path,
+        [String]$NavIde = '',
+        [String]$ClientFolder = ''
 
     )
-    if ($NavIde -eq '') {
-        $NavIde = $sourceclientfolder+'\finsql.exe';
+    if ($NavIde -eq '') 
+    {
+        $NavIde = $sourceclientfolder+'\finsql.exe'
     }
 
     #Write-Progress -Activity 'Exporting objects...' 
     #Write-Debug $Command
-    $logFile = (Join-Path $LogFolder naverrorlog.txt)
+    $LogFile = (Join-Path -Path $LogFolder -ChildPath naverrorlog.txt)
 
-    $params = "Command=ExportObjects`,Filter=`"$Filter`"`,ServerName=$Server`,Database=`"$Database`"`,LogFile=`"$logFile`"`,File=`"$Path`""
+    $params = "Command=ExportObjects`,Filter=`"$Filter`"`,ServerName=$Server`,Database=`"$Database`"`,LogFile=`"$LogFile`"`,File=`"$path`""
     & $NavIde $params | Write-Output
 
-    if (Test-Path "$LogFolder\navcommandresult.txt")
+    if (Test-Path -Path "$LogFolder\navcommandresult.txt")
     {
-        Write-Verbose "Processed $Filter to $Path."
-        Remove-Item "$LogFolder\navcommandresult.txt"
+        Write-Verbose -Message "Processed $Filter to $path."
+        Remove-Item -Path "$LogFolder\navcommandresult.txt"
     }
     else
     {
-        Write-Error "Crashed when exportin $Filter into $Path!"
+        Write-Error -Message "Crashed when exportin $Filter into $path!"
     }
 
-    If (Test-Path "$LogFile") {
-        $logcontent=Get-Content -Path $LogFile 
-        if ($logcontent.Count -gt 1) {
-            $errortext=$logcontent[0]
-        } else {
-            $errortext=$logcontent
+    If (Test-Path -Path "$LogFile") 
+    {
+        $logcontent = Get-Content -Path $LogFile 
+        if ($logcontent.Count -gt 1) 
+        {
+            $errortext = $logcontent[0]
         }
-        Write-Error "Error when Exporting $Filter to $Path : $errortext"
+        else 
+        {
+            $errortext = $logcontent
+        }
+        Write-Error -Message "Error when Exporting $Filter to $path : $errortext"
     }
 }
 
 
-function Merge-NAVDatabaseObjects($sourceserver,$sourcedb,$sourcefilefolder,$sourceclientfolder,
-                                  $modifiedserver,$modifieddb,$modifiedfilefolder,$modifiedclientfolder,
-                                  $targetserver,$targetdb,$targetfilefolder,$targetclientfolder,
-                                  $commonversionsource,$newversion)
+function Merge-NAVDatabaseObjects
 {
-    Write-Host 'Clearing target folder...';
-    ClearFolder($targetfilefolder);
+     param
+     (
+         [System.Object]
+         $sourceserver,
 
-    if ($sourceserver) {
+         [System.Object]
+         $sourcedb,
+
+         [System.Object]
+         $sourcefilefolder,
+
+         [System.Object]
+         $sourceclientfolder,
+
+         [System.Object]
+         $modifiedserver,
+
+         [System.Object]
+         $modifieddb,
+
+         [System.Object]
+         $modifiedfilefolder,
+
+         [System.Object]
+         $modifiedclientfolder,
+
+         [System.Object]
+         $targetserver,
+
+         [System.Object]
+         $targetdb,
+
+         [System.Object]
+         $targetfilefolder,
+
+         [System.Object]
+         $targetclientfolder,
+
+         [System.Object]
+         $commonversionsource,
+
+         [System.Object]
+         $newversion
+     )
+
+    Write-Host -Object 'Clearing target folder...'
+    ClearFolder($targetfilefolder)
+
+    if ($sourceserver) 
+    {
         Get-NAVDatabaseObjects -sourceserver $sourceserver -sourcedb $sourcedb -sourcefilefolder $sourcefilefolder -sourceclientfolder $sourceclientfolder
     }
 
-    if ($modifiedserver) {
+    if ($modifiedserver) 
+    {
         Get-NAVDatabaseObjects -sourceserver $modifiedserver -sourcedb $modifieddb -sourcefilefolder $modifiedfilefolder -sourceclientfolder $modifiedclientfolder
     }
 
     $modifiedwithflag = Get-NAVModifiedObject -Source $modifiedfilefolder
-    Write-Host 'Merging Objects...';
+    Write-Host -Object 'Merging Objects...'
 
-#<#
-    $mergeresult = Merge-NAVApplicationObject -Original $commonversionsource -Modified $sourcefilefolder -Target $modifiedfilefolder -Result $targetfilefolder -PassThru -Force -DateTimeProperty FromTarget
-    $merged = $mergeresult | Where-Object {$_.MergeResult -eq 'Merged'}
+    #<#
+    $mergeresult = Merge-NAVApplicationObject -OriginalPath $commonversionsource -Modified $sourcefilefolder -TargetPath $modifiedfilefolder -ResultPath $targetfilefolder -PassThru -Force -DateTimeProperty FromTarget
+    $merged = $mergeresult | Where-Object -FilterScript {
+        $_.MergeResult -eq 'Merged'
+    }
     Write-Host 'Merged:    '$merged.Count
-    $inserted = $mergeresult | Where-Object {$_.MergeResult -eq 'Inserted'}
+    $inserted = $mergeresult | Where-Object -FilterScript {
+        $_.MergeResult -eq 'Inserted'
+    }
     Write-Host 'Inserted:  '$inserted.Count
-    $deleted = $mergeresult | Where-Object {$_.MergeResult -EQ 'Deleted'}
+    $deleted = $mergeresult | Where-Object -FilterScript {
+        $_.MergeResult -EQ 'Deleted'
+    }
     Write-Host 'Deleted:   '$deleted.Count
-    $conflicts =$mergeresult | Where-Object {$_.MergeResult -EQ 'Conflict'}
-    $identical = $mergeresult | Where-Object {$_.MergeResult -eq 'Identical'}
+    $conflicts = $mergeresult | Where-Object -FilterScript {
+        $_.MergeResult -EQ 'Conflict'
+    }
+    $identical = $mergeresult | Where-Object -FilterScript {
+        $_.MergeResult -eq 'Identical'
+    }
 
     Write-Host 'Conflicts: '$conflicts.Count
-    Write-Host ''
-    Write-Host 'Merging version list on merged files...'
-    foreach ($merge in $merged) {
-        $merge |ft
-        if ($merge.Result.Filename -gt "") {
-          $file = Get-ChildItem $merge.Result;
-          $filename = $file.Name;
-          Merge-NAVObjectVersionList -modifiedfilename $sourcefilefolder'\'$filename -targetfilename $modifiedfilefolder'\'$filename -resultfilename $merge.Result.FileName -newversion $newversion
+    Write-Host -Object ''
+    Write-Host -Object 'Merging version list on merged files...'
+    foreach ($merge in $merged) 
+    {
+        $merge |Format-Table
+        if ($merge.Result.Filename -gt '') 
+        {
+            $file = Get-ChildItem -Path $merge.Result
+            $filename = $file.Name
+            Merge-NAVObjectVersionList -modifiedfilename $sourcefilefolder'\'$filename -targetfilename $modifiedfilefolder'\'$filename -resultfilename $merge.Result.FileName -newversion $newversion
         }
     }
 
-    if ($deleted.Count -gt 0) {
-        Write-Host '********Delete these objects in target DB:'
-        foreach ($delobject in $deleted) {
+    if ($deleted.Count -gt 0) 
+    {
+        Write-Host -Object '********Delete these objects in target DB:'
+        foreach ($delobject in $deleted) 
+        {
             Write-Host $delobject.ObjectType $delobject.Id
             #Set-NAVApplicationObjectProperty -Target $delobject.Result -VersionListProperty 'DELETE'
         }
     }
-#>
-    write-Host 'Deleting Identical objects...'
-    Remove-Item $identical.Result
-    write-Host 'Restoring Modfied flags...'
+    #>
+    Write-Host -Object 'Deleting Identical objects...'
+    Remove-Item -Path $identical.Result
+    Write-Host -Object 'Restoring Modfied flags...'
     $modifiedwithflag | Set-NAVModifiedObject -path $targetfilefolder
-    Write-Host 'Joining Objects...'
+    Write-Host -Object 'Joining Objects...'
     $joinresult = Join-NAVApplicationObjectFile -Source $targetfilefolder -Destination $targetfilefolder'.txt' -Force
-#>
-    if ($targetserver) {
-        Write-Host 'Importing Objects...'
+    #>
+    if ($targetserver) 
+    {
+        Write-Host -Object 'Importing Objects...'
         Import-NAVApplicationObject2 -Path $targetfilefolder'.txt' -DatabaseServer $targetserver -DatabaseName $targetdb -Confirm
-        Write-Host 'Compiling Objects...'
+        Write-Host -Object 'Compiling Objects...'
         $compileoutput = Compile-NAVApplicationObject2 -DatabaseServer $targetserver -DatabaseName $targetdb -Recompile
     }
     #return $mergeresult
@@ -480,39 +667,39 @@ function Merge-NAVDatabaseObjects($sourceserver,$sourcedb,$sourcefilefolder,$sou
 
 
 <#
-.Synopsis
+    .Synopsis
     Short description
-.DESCRIPTION
+    .DESCRIPTION
     Long description
-.EXAMPLE
+    .EXAMPLE
     Example of how to use this cmdlet
-.EXAMPLE
+    .EXAMPLE
     Another example of how to use this cmdlet
 #>
 Function Remove-NAVLocalApplication
 {
     param (
         #SQL Server address
-        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$True)]
+        [Parameter(Mandatory = $true,ValueFromPipelineByPropertyName = $true)]
         [String]$Server,
 
         #SQL Database to update
-        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$True)]
+        [Parameter(Mandatory = $true,ValueFromPipelineByPropertyName = $true)]
         [String]$Database,
 
         #Service Instance name to create
-        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$True)]
+        [Parameter(Mandatory = $true,ValueFromPipelineByPropertyName = $true)]
         [string] $ServerInstance
     )
 
     Write-Progress -Activity 'Remove NAV Application' -CurrentOperation "Removing server instance $ServerInstance..." -PercentComplete 50
     Stop-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance") -Force
     Remove-NAVServerInstance -ServerInstance $ServerInstance -Force
-    Write-Verbose "Server instance $ServerInstance removed"
+    Write-Verbose -Message "Server instance $ServerInstance removed"
 
     Write-Progress -Activity 'Remove NAV Application' -CurrentOperation "Removing SQL DB $Database on server $Server ..." -PercentComplete 90
     Remove-SQLDatabase -Server $Server -Database $Database
-    Write-Verbose "SQL Database $Dataase on $Server removed"
+    Write-Verbose -Message "SQL Database $Dataase on $Server removed"
 
     Write-Progress -Activity 'Remove NAV Application' -Completed
 }
@@ -528,81 +715,84 @@ function Set-ServicePortSharing
     sc.exe config "$Name" depend= NetTcpPortSharing/HTTP > null
 }
 <#
-.Synopsis
-   Short description
-.DESCRIPTION
-   Long description
-.EXAMPLE
-   Example of how to use this cmdlet
-.EXAMPLE
-   Another example of how to use this cmdlet
+    .Synopsis
+    Short description
+    .DESCRIPTION
+    Long description
+    .EXAMPLE
+    Example of how to use this cmdlet
+    .EXAMPLE
+    Another example of how to use this cmdlet
 #>
 Function New-NAVLocalApplication
 {
     [CmdletBinding()]
     param (
         #SQL Server address
-        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$True)]
+        [Parameter(Mandatory = $true,ValueFromPipelineByPropertyName = $true)]
         [String]$Server,
 
         #SQL Database to update
-        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$True)]
+        [Parameter(Mandatory = $true,ValueFromPipelineByPropertyName = $true)]
         [String]$Database,
 
         #FOB files imported before the txt files are imported. Could update the objects stored in the DB Backup file to newer version.
-        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$True)]
+        [Parameter(Mandatory = $true,ValueFromPipelineByPropertyName = $true)]
         [string] $BaseFob,
 
         #FLF file used to start the NAV Service tier. Must have enough permissions to import the txt files.
-        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$True)]
+        [Parameter(Mandatory = $true,ValueFromPipelineByPropertyName = $true)]
         [string] $LicenseFile,
 
         #File of the NAV SQL backup for creating new NAV database. Used as base for importing the objects.
-        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$True)]
+        [Parameter(Mandatory = $true,ValueFromPipelineByPropertyName = $true)]
         [string] $DbBackupFile,
 
         #Service Instance name to create
-        [Parameter(Mandatory=$true,ValueFromPipelineByPropertyName=$True)]
+        [Parameter(Mandatory = $true,ValueFromPipelineByPropertyName = $true)]
         [string] $ServerInstance,
 
         [string] $TargetPath
     )
 
     Write-Progress -Activity 'Creating new database $Database on $Server...'
-    New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -DataFilesDestinationPath $TargetPath -LogFilesDestinationPath $TargetPath | Out-Null
-    Write-Verbose "Database Restored"
+    $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -DataFilesDestinationPath $TargetPath -LogFilesDestinationPath $TargetPath
+    Write-Verbose -Message 'Database Restored'
 
     Write-Progress -Activity 'Creating new server instance $ServerInstance...'
-    New-NAVServerInstance -DatabaseServer $Server -DatabaseName $Database -ServerInstance $ServerInstance -ManagementServicesPort 7045 | Out-Null
+    $null = New-NAVServerInstance -DatabaseServer $Server -DatabaseName $Database -ServerInstance $ServerInstance -ManagementServicesPort 7045
     
     Set-ServicePortSharing -Name $("MicrosoftDynamicsNavServer`$$ServerInstance")
 
     Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
-    Write-Verbose "Server instance created"
+    Write-Verbose -Message 'Server instance created'
 
     Write-Progress -Activity 'Importing License $LicenseFile...'
     Import-NAVServerLicense -LicenseFile $LicenseFile -Database NavDatabase -ServerInstance $ServerInstance -WarningAction SilentlyContinue 
-    Write-Verbose "License imported"
+    Write-Verbose -Message 'License imported'
 
     Stop-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
     Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
-    Write-Verbose "Server instance restarted"
+    Write-Verbose -Message 'Server instance restarted'
 
     Sync-NAVTenant -ServerInstance $ServerInstance -Force
 
-    if ($BaseFob -gt '') {
+    if ($BaseFob -gt '') 
+    {
         $BaseFobs = $BaseFob.Split(';')
-        foreach ($fob in $BaseFobs) {
-           if ($fob -gt '') {
+        foreach ($fob in $BaseFobs) 
+        {
+            if ($fob -gt '') 
+            {
                 Write-Progress -Activity "Importing FOB File $fob..."
-                Import-NAVApplicationObjectFiles -Files $fob -Server $Server -Database $Database -LogFolder $TargetPath
-                Write-Verbose "FOB Objects from %fob imported"
+                Import-NAVApplicationObjectFiles -files $fob -Server $Server -Database $Database -LogFolder $TargetPath
+                Write-Verbose -Message 'FOB Objects from %fob imported'
             }
         }
     }
     Sync-NAVTenant -ServerInstance $ServerInstance -Force
 }
-$client = split-path (Get-NAVIde)
+$client = Split-Path (Get-NAVIde)
 $NavIde = Get-NAVIde
 
 #$result=Merge-NAVDatabaseObjects -sourceserver devel -sourcedb NVR2013R2_CSY -sourcefilefolder source -sourceclientfolder $client `
