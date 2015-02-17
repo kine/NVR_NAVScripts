@@ -18,7 +18,7 @@ try
     Import-Module CommonPSFunctions
 
     $ProgressPreference="SilentlyContinue"
-    . 'c:\Program Files\WindowsPowerShell\Modules\Update-NAVApplicationFromTxt.ps1' -Files $Files -Server $Server -Database $Database -WarningVariable warnings -ErrorVariable errors -OutVariable outputs -LogFolder $LogFolder
+    . 'c:\Program Files\WindowsPowerShell\Modules\Update-NAVApplicationFromTxt.ps1' -Files $Files -Server $Server -Database $Database -LogFolder $LogFolder
     $ProgressPreference="Continue"
 } catch
 {
@@ -26,16 +26,4 @@ try
     Write-Error "Exception: $($_.Exception.Message)"
 }
 finally {
-
-    foreach ($line in $outputs) {
-        Write-TfsMessage -message $line
-    }
-
-    foreach ($line in $warnings) {
-        Write-TfsWarning -message $line
-    }
-
-    foreach ($line in $errors) {
-        Write-TfsError -message $line
-    }
 }
