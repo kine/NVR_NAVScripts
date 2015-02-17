@@ -32,7 +32,11 @@ param (
     [switch]$SkipDeleteCheck,
     #Logfile path used to write the log files for each imported file
     [Parameter(ValueFromPipelinebyPropertyName = $true)]
-    [String]$LogFolder
+    [String]$LogFolder,
+    #Disable progress dialog
+    [Parameter(ValueFromPipelinebyPropertyName = $true)]
+    [switch]$NoProgress
+
 )
 
 Begin {
@@ -74,7 +78,10 @@ Process{
 
         if (($i % 10) -eq 0) 
         {
-            Write-Progress -Status "Processing $i of $count" -Activity 'Comparing objects...' -PercentComplete ($percent*100) -SecondsRemaining $remtime
+            if (-not $NoProgress) 
+            {
+                Write-Progress -Status "Processing $i of $count" -Activity 'Comparing objects...' -PercentComplete ($percent*100) -SecondsRemaining $remtime
+            }
         }
         $Type = Get-NAVObjectTypeIdFromName -TypeName $FileObject.ObjectType
         $Id = $FileObject.Id
@@ -92,14 +99,14 @@ Process{
         }
         else 
         {
-            $Object = @{
+            $ObjToImport = @{
                 'Type'   = $Type
                 'ID'     = $Id
                 'FileName' = $FileObject
             }
             if ($Id -gt 0) 
             {
-                $UpdatedObjects += $Object
+                $UpdatedObjects += $ObjToImport
                 if ($All) 
                 {
                     Write-Verbose -Message "$($FileObject.ObjectType) $($FileObject.Id) forced..."
@@ -122,7 +129,7 @@ Process{
     $i = 0
     $count = $UpdatedObjects.Count
     $StartTime = Get-Date
-    foreach ($Object in $UpdatedObjects) 
+    foreach ($ObjToImport in $UpdatedObjects) 
     {
         $i++
         $NowTime = Get-Date
@@ -134,8 +141,15 @@ Process{
         }
         $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
 
-        Write-Progress -Status "Importing $i of $count" -Activity 'Importing objects...' -CurrentOperation $Object.FileName.FileName -PercentComplete ($percent*100) -SecondsRemaining $remtime
-        Import-NAVApplicationObjectFiles -files $Object.FileName.FileName -Server $Server -Database $Database -NavIde (Get-NAVIde) -LogFolder $LogFolder
+        if (-not $NoProgress) 
+        {
+            Write-Progress -Status "Importing $i of $count" -Activity 'Importing objects...' -CurrentOperation $ObjToImport.FileName.FileName -PercentComplete ($percent*100) -SecondsRemaining $remtime
+        }
+        if (($ObjToImport.Type -eq 7) -and ($ObjToImport.Id -lt 1050)){
+            Write-Host "Menusuite with ID < 1050 skipped... (Id=$($ObjToImport.Id))"
+        } else {
+            Import-NAVApplicationObjectFiles -files $ObjToImport.FileName.FileName -Server $Server -Database $Database -NavIde (Get-NAVIde) -LogFolder $LogFolder
+        }
     }
 
     Write-Host -Object ''
@@ -155,9 +169,12 @@ Process{
             $percent = $i / $count
             $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
 
-            Write-Progress -Status "Processing $i of $count" -Activity 'Compiling objects...' -PercentComplete ($i / $count*100) -SecondsRemaining $remtime
+            if (-not $NoProgress) 
+            {
+                Write-Progress -Status "Processing $i of $count" -Activity 'Compiling objects...' -PercentComplete ($i / $count*100) -SecondsRemaining $remtime
+            }
 
-            Compile-NAVApplicationObject -Filter "Type=$($UpdatedObject.Type);Id=$($UpdatedObject.ID)" -Server $Server -Database $Database -NavIde (Get-NAVIde)
+            NVR_NAVScripts\Compile-NAVApplicationObject -Filter "Type=$($UpdatedObject.Type);Id=$($UpdatedObject.ID)" -Server $Server -Database $Database -NavIde (Get-NAVIde)
         }
         Write-Host -Object "Compiled $($UpdatedObjects.Count) objects..."
     }
@@ -182,7 +199,10 @@ Process{
             $percent = $i / $count
             $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
 
-            Write-Progress -Status "Processing $i of $count" -Activity 'Checking deleted objects...' -PercentComplete ($i / $count*100) -SecondsRemaining $remtime
+            if (-not $NoProgress) 
+            {
+                Write-Progress -Status "Processing $i of $count" -Activity 'Checking deleted objects...' -PercentComplete ($i / $count*100) -SecondsRemaining $remtime
+            }
             $Type = Get-NAVObjectTypeNameFromId -TypeId $NAVObject.Type
             #$FileObject = $FileObjects | Where-Object {($_.ObjectType -eq $Type) -and ($_.Id -eq $NAVObject.ID)}
             $Exists = $FileObjectsHash["$($NAVObject.Type)-$($NAVObject.ID)"]
