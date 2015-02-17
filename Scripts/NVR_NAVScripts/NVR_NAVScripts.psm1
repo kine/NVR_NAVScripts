@@ -447,11 +447,17 @@ function Compile-NAVApplicationObjectFilesMulti
 function Compile-NAVApplicationObject
 {
     Param(
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
         [String]$Filter,
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
         [String]$Server,
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
         [String]$Database,
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
         [String]$LogFolder,
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
         [String]$NavIde = '',
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
         [String]$ClientFolder = ''
 
     )
@@ -493,12 +499,19 @@ function Compile-NAVApplicationObject
 function Export-NAVApplicationObject
 {
     Param(
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
         [String]$Filter,
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
         [String]$Server,
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
         [String]$Database,
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
         [String]$LogFolder,
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
         [String]$path,
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
         [String]$NavIde = '',
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
         [String]$ClientFolder = ''
 
     )
