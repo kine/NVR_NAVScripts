@@ -17,11 +17,11 @@ Add-Type -Language CSharp -TypeDefinition @"
 
 function Get-VersionListModuleShortcut
 {
-     param
-     (
-         [System.String]
-         $part
-     )
+    param
+    (
+        [System.String]
+        $part
+    )
 
     $index = $part.IndexOfAny('0123456789')
     if ($index -ge 1) 
@@ -43,11 +43,11 @@ function Get-VersionListModuleShortcut
 
 function Get-VersionListHash
 {
-     param
-     (
-         [System.String]
-         $versionlist
-     )
+    param
+    (
+        [System.String]
+        $versionlist
+    )
 
     $hash = @{}
     $versionlistarray = $versionlist.Split(',')
@@ -61,20 +61,20 @@ function Get-VersionListHash
 
 function Merge-NAVVersionListString 
 {
-     param
-     (
-         [System.String]
-         $source,
+    param
+    (
+        [System.String]
+        $source,
 
-         [System.String]
-         $target,
+        [System.String]
+        $target,
 
-         [System.String]
-         $newversion,
+        [System.String]
+        $newversion,
 
-         [System.Object]
-         $mode = [VersionListMergeMode]::SourceFirst
-     )
+        [String]
+        $mode = [VersionListMergeMode]::SourceFirst
+    )
 
     if ($mode -eq [VersionListMergeMode]::TargetFirst) 
     {
@@ -134,22 +134,22 @@ function Merge-NAVVersionListString
 
 function ClearFolder
 {
-     param
-     (
-         [System.Object]
-         $path
-     )
+    param
+    (
+        [String]
+        $path
+    )
 
     Remove-Item -Path $path'\*' -Exclude '.*' -Recurse -Include '*.txt', '*.conflict'
 }
 
 function Set-NAVModifiedObject
 {
-     param
-     (
-         [System.Object]
-         $path
-     )
+    param
+    (
+        [String]
+        $path
+    )
 
     #Write-Host $input
     foreach ($modifiedfile in $input) 
@@ -166,11 +166,11 @@ function Set-NAVModifiedObject
 
 function Get-NAVModifiedObject
 {
-     param
-     (
-         [System.Object]
-         $source
-     )
+    param
+    (
+        [String]
+        $source
+    )
 
     $result = @()
     $files = Get-ChildItem $source -Filter *.txt
@@ -191,20 +191,20 @@ function Get-NAVModifiedObject
 
 function Merge-NAVObjectVersionList
 {
-     param
-     (
-         [System.Object]
-         $modifiedfilename,
+    param
+    (
+        [String]
+        $modifiedfilename,
 
-         [System.Object]
-         $targetfilename,
+        [String]
+        $targetfilename,
 
-         [System.Object]
-         $resultfilename,
+        [String]
+        $resultfilename,
 
-         [System.Object]
-         $newversion
-     )
+        [String]
+        $newversion
+    )
 
     $ProgressPreference = 'SilentlyContinue'
     $modifiedproperty = Get-NAVApplicationObjectProperty -Source $modifiedfilename 
@@ -219,20 +219,20 @@ function Merge-NAVObjectVersionList
 
 function Get-NAVDatabaseObjects
 {
-     param
-     (
-         [System.Object]
-         $sourceserver,
+    param
+    (
+        [String]
+        $sourceserver,
 
-         [System.Object]
-         $sourcedb,
+        [String]
+        $sourcedb,
 
-         [System.Object]
-         $sourcefilefolder,
+        [String]
+        $sourcefilefolder,
 
-         [System.Object]
-         $sourceclientfolder
-     )
+        [String]
+        $sourceclientfolder
+    )
 
     ClearFolder($sourcefilefolder)
     $NavIde = $sourceclientfolder+'\finsql.exe'
@@ -542,50 +542,50 @@ function Export-NAVApplicationObject
 
 function Merge-NAVDatabaseObjects
 {
-     param
-     (
-         [System.Object]
-         $sourceserver,
+    param
+    (
+        [String]
+        $sourceserver,
 
-         [System.Object]
-         $sourcedb,
+        [String]
+        $sourcedb,
 
-         [System.Object]
-         $sourcefilefolder,
+        [String]
+        $sourcefilefolder,
 
-         [System.Object]
-         $sourceclientfolder,
+        [String]
+        $sourceclientfolder,
 
-         [System.Object]
-         $modifiedserver,
+        [String]
+        $modifiedserver,
 
-         [System.Object]
-         $modifieddb,
+        [String]
+        $modifieddb,
 
-         [System.Object]
-         $modifiedfilefolder,
+        [String]
+        $modifiedfilefolder,
 
-         [System.Object]
-         $modifiedclientfolder,
+        [String]
+        $modifiedclientfolder,
 
-         [System.Object]
-         $targetserver,
+        [String]
+        $targetserver,
 
-         [System.Object]
-         $targetdb,
+        [String]
+        $targetdb,
 
-         [System.Object]
-         $targetfilefolder,
+        [String]
+        $targetfilefolder,
 
-         [System.Object]
-         $targetclientfolder,
+        [String]
+        $targetclientfolder,
 
-         [System.Object]
-         $commonversionsource,
+        [String]
+        $commonversionsource,
 
-         [System.Object]
-         $newversion
-     )
+        [String]
+        $newversion
+    )
 
     Write-Host -Object 'Clearing target folder...'
     ClearFolder($targetfilefolder)
@@ -714,6 +714,7 @@ function Set-ServicePortSharing
     #turn on Port Sharing on the new service
     sc.exe config "$Name" depend= NetTcpPortSharing/HTTP > null
 }
+
 <#
     .Synopsis
     Short description
