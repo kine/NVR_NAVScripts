@@ -766,15 +766,29 @@ Function New-NAVLocalApplication
         [Parameter(Mandatory = $true,ValueFromPipelineByPropertyName = $true)]
         [string] $ServerInstance,
 
+        #Path to place DB files
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
         [string] $TargetPath
     )
-
-    Write-Progress -Activity 'Creating new database $Database on $Server...'
-    $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -DataFilesDestinationPath $TargetPath -LogFilesDestinationPath $TargetPath
+    Import-NAVAdminTool
+    
+    Write-Progress -Activity "Creating new database $Database on $Server..."
+    Write-Host -Object "Creating new database $Database on $Server..."
+        
+    if ($TargetPath) 
+    {
+        $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -DataFilesDestinationPath ( [IO.Path]::Combine($TargetPath,($Database+'.mdf'))) -LogFilesDestinationPath ( [IO.Path]::Combine($TargetPath,($Database+'.ldf'))) -ErrorAction Stop
+    }
+    else 
+    {
+        $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -ErrorAction Stop
+    }
+    
     Write-Verbose -Message 'Database Restored'
 
     Write-Progress -Activity 'Creating new server instance $ServerInstance...'
-    $null = New-NAVServerInstance -DatabaseServer $Server -DatabaseName $Database -ServerInstance $ServerInstance -ManagementServicesPort 7045
+    Write-Host -Object "Creating new server instance $ServerInstance..."
+    $null = New-NAVServerInstance -DatabaseServer $Server -DatabaseName $Database -ServerInstance $ServerInstance -ManagementServicesPort 7045 -DatabaseInstance ''
     
     Set-ServicePortSharing -Name $("MicrosoftDynamicsNavServer`$$ServerInstance")
 
@@ -799,8 +813,8 @@ Function New-NAVLocalApplication
             if ($fob -gt '') 
             {
                 Write-Progress -Activity "Importing FOB File $fob..."
-                Import-NAVApplicationObjectFiles -files $fob -Server $Server -Database $Database -LogFolder $TargetPath
-                Write-Verbose -Message 'FOB Objects from %fob imported'
+                Import-NAVApplicationObjectFiles -files $fob -Server $Server -Database $Database -LogFolder (Join-Path $env:TEMP 'NVR_NAVScripts')
+                Write-Host -Message 'FOB Objects from %fob imported'
             }
         }
     }
