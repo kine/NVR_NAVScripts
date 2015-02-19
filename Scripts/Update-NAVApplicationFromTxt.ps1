@@ -40,13 +40,24 @@ param (
 )
 
 Begin {
+    function Invoke-PostImportCompilation
+    {
+        Param(
+            $Object
+        )
+        if (($Object.Type -eq 1) -and ($Object.Id -gt 2000000004))
+        {
+            NVR_NAVScripts\Compile-NAVApplicationObject -Filter "Type=$($Object.Type);Id=$($Object.ID)" -Server $Server -Database $Database -NavIde (Get-NAVIde)
+        }
+    }
+
     if (!($env:PSModulePath -like "*;$PSScriptRoot*")) 
     {
         $env:PSModulePath = $env:PSModulePath + ";$PSScriptRoot"
     }
     Import-Module -Name NVR_NAVScripts -DisableNameChecking
     Import-NAVModelTool
-}
+}    
 Process{
     if ($NavIde -eq '') 
     {
@@ -145,11 +156,14 @@ Process{
         {
             Write-Progress -Status "Importing $i of $count" -Activity 'Importing objects...' -CurrentOperation $ObjToImport.FileName.FileName -PercentComplete ($percent*100) -SecondsRemaining $remtime
         }
-        if (($ObjToImport.Type -eq 7) -and ($ObjToImport.Id -lt 1050)){
-            Write-Host "Menusuite with ID < 1050 skipped... (Id=$($ObjToImport.Id))"
-        } else {
+        if (($ObjToImport.Type -eq 7) -and ($ObjToImport.Id -lt 1050))
+        {
+            Write-Host -Object "Menusuite with ID < 1050 skipped... (Id=$($ObjToImport.Id))"
+        } else 
+        {
             Import-NAVApplicationObjectFiles -files $ObjToImport.FileName.FileName -Server $Server -Database $Database -NavIde (Get-NAVIde) -LogFolder $LogFolder
         }
+        Invoke-PostImportCompilation -Object $ObjectToImport
     }
 
     Write-Host -Object ''
