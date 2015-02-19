@@ -304,7 +304,7 @@ function Export-NAVApplicationObject2
         $skipUnlicensed = "Yes"
     }
 
-    if (Get-NavIdeMajorVersion -ge 8) {
+    if ((Get-NavIdeMajorVersion) -ge 8) {
         $command = "Command=ExportObjects`,ExportTxtSkipUnlicensed=$skipUnlicensed`,File=`"$Path`"" 
     } else {
         $command = "Command=ExportObjects`,File=`"$Path`"" 
@@ -403,7 +403,7 @@ function Delete-NAVApplicationObject2
         "Delete application objects from $DatabaseName database.",
         'Confirm'))
     {
-        if (Get-NavIdeMajorVersion -ge 8) {
+        if ((Get-NavIdeMajorVersion) -ge 8) {
             $command = "Command=DeleteObjects`,SynchronizeSchemaChanges=$SynchronizeSchemaChanges"
         } else {
             Write-Error "DeleteObjects command not supported!"
@@ -514,7 +514,7 @@ function Compile-NAVApplicationObject2
     
     if (-not $Recompile)
     {
-        $Filter += ';Compiled=No'
+        $Filter += ';Compiled=0'
         $Filter = $Filter.TrimStart(';')
     }
 
@@ -526,7 +526,7 @@ function Compile-NAVApplicationObject2
         {
             Param($ScriptPath,$NavIde,$DatabaseName,$DatabaseServer,$LogPath,$Filter,$Recompile,$SynchronizeSchemaChanges,$Username,$Password,$NavServerName,$NavServerInstance,$NavServerManagementPort,$VerbosePreference)
 
-            Import-Module (Join-Path $env:NavServicePath "Microsoft.Dynamics.Nav.Ide.psm1") -ArgumentList $NavIde -Force -DisableNameChecking
+            Import-NAVModelTool
 
             $args = @{
                 DatabaseName = $DatabaseName
@@ -550,7 +550,7 @@ function Compile-NAVApplicationObject2
                 $args.Add("NavServerManagementPort",$NavServerManagementPort)
             }
 
-            Compile-NAVApplicationObject @args -Verbose:$VerbosePreference
+            Compile-NAVApplicationObject2 @args -Verbose:$VerbosePreference
         }
 
         $job = Start-Job $scriptBlock -ArgumentList $PSScriptRoot,Get-NavIde,$DatabaseName,$DatabaseServer,$LogPath,$Filter,$Recompile,$SynchronizeSchemaChanges,$Username,$Password,$NavServerName,$NavServerInstance,$NavServerManagementPort,$VerbosePreference
@@ -562,7 +562,7 @@ function Compile-NAVApplicationObject2
         {
             $logFile = (Join-Path $LogPath naverrorlog.txt)
             $navServerInfo = GetNavServerInfo $NavServerName $NavServerInstance $NavServerManagementPort     
-            if (Get-NavIdeMajorVersion -ge 8) {
+            if ((Get-NavIdeMajorVersion) -ge 8) {
                 $command = "Command=CompileObjects`,SynchronizeSchemaChanges=$SynchronizeSchemaChanges"
             } else {
                 $command = "Command=CompileObjects"
@@ -644,7 +644,7 @@ function Create-NAVDatabase2
 
     $logFile = (Join-Path $LogPath naverrorlog.txt)
 
-    if (Get-NavIdeMajorVersion -ge 8) {
+    if ((Get-NavIdeMajorVersion) -ge 8) {
        $command = "Command=CreateDatabase`,Collation=$Collation"
     } else {
        $command = "Command=CreateDatabase"

@@ -368,16 +368,7 @@ function Compile-NAVApplicationObjectFiles
 
         If (Test-Path -Path "$LogFile") 
         {
-            $logcontent = Get-Content -Path $LogFile 
-            if ($logcontent.Count -gt 1) 
-            {
-                $errortext = $logcontent[0]
-            }
-            else 
-            {
-                $errortext = $logcontent
-            }
-            Write-Error -Message "Error when compiling $($FileProperty.FileName): $errortext"
+            Convert-NAVLogFileToErrors $LogFile
         }
     }
 }
@@ -486,11 +477,94 @@ function Compile-NAVApplicationObject
 
     If (Test-Path -Path "$LogFile") 
     {
-        $logcontent = Get-Content -Path $LogFile -Raw | Select-String -Pattern '\[.*\].*'
-        foreach ($line in $logcontent) 
+        Convert-NAVLogFileToErrors $LogFile
+    }
+}
+
+function Compile-NAVApplicationObjectMulti
+{
+    Param(
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
+        [String]$Filter,
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
+        [String]$Server,
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
+        [String]$Database,
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
+        [String]$LogFolder,
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
+        [String]$NavIde = '',
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
+        [String]$ClientFolder = '',
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
+        [Switch]$AsJob
+    )
+    
+    $CPUs = (Get-WmiObject -Class Win32_Processor -Property 'NumberOfLogicalProcessors' | Select-Object -Property 'NumberOfLogicalProcessors').NumberOfLogicalProcessors
+    if ($NavIde -eq '') 
+    {
+        $NavIde = Get-NAVIde
+    }
+
+    #$finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
+
+    $i = 0
+    $jobs = @()
+
+    $ObjectProperty = Get-SQLCommandResult -Server $Server -Database $Database -Command "Select Type,ID from Object order by ID"
+    $CountOfObjects = $ObjectProperty.Count
+    $Ranges = @()
+    $Step = $CountOfObjects/$CPUs
+    $Last = 0
+    for ($i = 0;$i -lt $CPUs;$i++) 
+    {
+        $Ranges += "$($Last+1)..$($ObjectProperty[$i*$Step+$Step-1].ID)"
+        $Last = $ObjectProperty[$i*$Step+$Step-1].ID
+    }
+
+    Write-Host -Object "Ranges: $Ranges"
+
+    $StartTime = Get-Date
+    #foreach ($FileProperty in $FilesProperty){
+    foreach ($Range in $Ranges) 
+    {
+        $LogFile = "$LogFolder\$Range.log"
+        $Filter = "ID=$Range"
+        if ($AsJob -eq $true) 
         {
-            Write-Error $line
+            Write-Host -Object "Compiling $Filter as Job..."
+            $jobs += Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile -AsJob
         }
+        else 
+        {
+            Write-Host -Object "Compiling $Filter..."
+            Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile
+        }
+    }
+    if ($AsJob -eq $true) 
+    {
+        Receive-Job -Job $jobs -Wait
+    }
+}
+
+function Convert-NAVLogFileToErrors
+{
+    Param(
+        $LogFile
+    )
+    $lines = Get-Content $LogFile
+    $message =@()
+
+    foreach ($line in $lines) {
+        if ($line -match '\[.+\].+') {
+            if ($message) {
+                Write-Error $message
+            }
+        }
+        $message+=$line
+    }
+    if ($message) {
+        Write-Error $message
     }
 }
 function Export-NAVApplicationObject
@@ -841,6 +915,7 @@ Export-ModuleMember -Function Import-NAVApplicationObjectFiles
 Export-ModuleMember -Function Compile-NAVApplicationObjectFiles
 Export-ModuleMember -Function Compile-NAVApplicationObjectFilesMulti
 Export-ModuleMember -Function Compile-NAVApplicationObject
+Export-ModuleMember -Function Compile-NAVApplicationObjectMulti
 Export-ModuleMember -Function Export-NAVApplicationObject
 Export-ModuleMember -Function New-NAVLocalApplication
 Export-ModuleMember -Function Remove-NAVLocalApplication
