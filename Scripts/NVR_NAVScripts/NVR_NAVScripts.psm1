@@ -486,16 +486,13 @@ function Compile-NAVApplicationObject
 
     If (Test-Path -Path "$LogFile") 
     {
-        $logcontent = Get-Content -Path $LogFile 
-        #if ($logcontent.Count -gt 1) {
-        #    $errortext=$logcontent[0]
-        #} else {
-        #    $errortext=$logcontent
-        #}
-        Write-Error -Message "Error when compiling $Filter : $logcontent"
+        $logcontent = Get-Content -Path $LogFile -Raw | Select-String -Pattern '\[.*\].*'
+        foreach ($line in $logcontent) 
+        {
+            Write-Error $line
+        }
     }
 }
-
 function Export-NAVApplicationObject
 {
     Param(
