@@ -776,9 +776,11 @@ Function New-NAVLocalApplication
     {
         try 
         {
+            Write-Host -Object "Trying to restore under new file names in folder $TargetPath..."
             $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -DataFilesDestinationPath ( [IO.Path]::Combine($TargetPath,($Database+'.mdf'))) -LogFilesDestinationPath ( [IO.Path]::Combine($TargetPath,($Database+'.ldf'))) 
         } catch 
         {
+            Write-Host -Object "Trying to restore under folder $TargetPath..."
             $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -DataFilesDestinationPath $TargetPath -LogFilesDestinationPath $TargetPath -ErrorAction Stop
         }
     }
