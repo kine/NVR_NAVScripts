@@ -497,7 +497,8 @@ function Compile-NAVApplicationObjectMulti
         [Parameter(ValueFromPipelinebyPropertyName = $true)]
         [String]$ClientFolder = '',
         [Parameter(ValueFromPipelinebyPropertyName = $true)]
-        [Switch]$AsJob
+        [Switch]$AsJob,
+        [int]$ParallelismLimit = 5
     )
     
     $CPUs = (Get-WmiObject -Class Win32_Processor -Property 'NumberOfLogicalProcessors' | Select-Object -Property 'NumberOfLogicalProcessors').NumberOfLogicalProcessors
@@ -511,10 +512,17 @@ function Compile-NAVApplicationObjectMulti
     $i = 0
     $jobs = @()
 
-    $ObjectProperty = Get-SQLCommandResult -Server $Server -Database $Database -Command "Select Type,ID from Object order by ID"
+    $ObjectProperty = Get-SQLCommandResult -Server $Server -Database $Database -Command 'Select Type,ID from Object order by ID'
     $CountOfObjects = $ObjectProperty.Count
     $Ranges = @()
     $Step = $CountOfObjects/$CPUs
+    
+    if ($Step -lt $ParallelismLimit) 
+    {
+        $CPUs = $CountOfObjects / $ParallelismLimit   
+        $Step = $CountOfObjects/$CPUs
+    }
+    
     $Last = 0
     for ($i = 0;$i -lt $CPUs;$i++) 
     {
@@ -553,20 +561,25 @@ function Convert-NAVLogFileToErrors
         $LogFile
     )
     $lines = Get-Content $LogFile
-    $message =''
-    foreach ($line in $lines) {
-        if ($line -match '\[.+\].+') {
-            if ($message) {
+    $message = ''
+    foreach ($line in $lines) 
+    {
+        if ($line -match '\[.+\].+') 
+        {
+            if ($message) 
+            {
                 Write-Error $message
             }
-            $message=''
+            $message = ''
         }
-        if ($message) {
-            $message+="`r`n"
+        if ($message) 
+        {
+            $message += "`r`n"
         }
-        $message+=($line)
+        $message += ($line)
     }
-    if ($message) {
+    if ($message) 
+    {
         Write-Error $message
     }
 }
@@ -851,12 +864,14 @@ Function New-NAVLocalApplication
         
     if ($TargetPath) 
     {
-        $backupinfo=Get-SQLCommandResult -Server $Server -Database master -Command "RESTORE FILELISTONLY FROM DISK = `'$DbBackupFile`' WITH FILE = 1"
+        $backupinfo = Get-SQLCommandResult -Server $Server -Database master -Command "RESTORE FILELISTONLY FROM DISK = `'$DbBackupFile`' WITH FILE = 1"
         if ($backupinfo.Count -gt 2)
         {
             Write-Host -Object "Trying to restore under folder $TargetPath..."
             $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -DataFilesDestinationPath $TargetPath -LogFilesDestinationPath $TargetPath -ErrorAction Stop
-        } else {
+        }
+        else 
+        {
             Write-Host -Object "Trying to restore under new file names in folder $TargetPath..."
             $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -DataFilesDestinationPath ( [IO.Path]::Combine($TargetPath,($Database+'.mdf'))) -LogFilesDestinationPath ( [IO.Path]::Combine($TargetPath,($Database+'.ldf'))) 
         }
@@ -895,7 +910,7 @@ Function New-NAVLocalApplication
             if ($fob -gt '') 
             {
                 Write-Progress -Activity "Importing FOB File $fob..."
-                Import-NAVApplicationObjectFiles -files $fob -Server $Server -Database $Database -LogFolder (Join-Path $env:TEMP 'NVR_NAVScripts')
+                Import-NAVApplicationObjectFiles -files $fob -Server $Server -Database $Database -LogFolder (Join-Path -Path $env:TEMP -ChildPath 'NVR_NAVScripts')
                 Write-Host -Message "FOB Objects from $fob imported"
             }
         }
