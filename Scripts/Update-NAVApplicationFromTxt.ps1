@@ -63,6 +63,13 @@ Process{
     {
         $NavIde = Get-NAVIde
     }
+    Get-Module -All | Write-Output
+    Push-Location
+    cd env:
+    dir | ft | Write-Output
+    Pop-Location
+
+
     $FileObjects = Get-NAVApplicationObjectProperty -Source $Files
     $FileObjectsHash = $null
     $FileObjectsHash = @{}

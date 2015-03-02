@@ -553,15 +553,18 @@ function Convert-NAVLogFileToErrors
         $LogFile
     )
     $lines = Get-Content $LogFile
-    $message =@()
-
+    $message =''
     foreach ($line in $lines) {
         if ($line -match '\[.+\].+') {
             if ($message) {
                 Write-Error $message
             }
+            $message=''
         }
-        $message+=$line
+        if ($message) {
+            $message+="`r`n"
+        }
+        $message+=($line)
     }
     if ($message) {
         Write-Error $message
@@ -882,7 +885,7 @@ Function New-NAVLocalApplication
     Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
     Write-Verbose -Message 'Server instance restarted'
 
-    Sync-NAVTenant -ServerInstance $ServerInstance -Force
+    #Sync-NAVTenant -ServerInstance $ServerInstance -Force
 
     if ($BaseFob -gt '') 
     {
@@ -893,7 +896,7 @@ Function New-NAVLocalApplication
             {
                 Write-Progress -Activity "Importing FOB File $fob..."
                 Import-NAVApplicationObjectFiles -files $fob -Server $Server -Database $Database -LogFolder (Join-Path $env:TEMP 'NVR_NAVScripts')
-                Write-Host -Message 'FOB Objects from %fob imported'
+                Write-Host -Message "FOB Objects from $fob imported"
             }
         }
     }
