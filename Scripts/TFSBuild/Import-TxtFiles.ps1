@@ -15,7 +15,7 @@
 
 try 
 {
-    Import-Module CommonPSFunctions
+    Import-Module CommonPSFunctions -Force
 
     $ProgressPreference="SilentlyContinue"
     . 'c:\Program Files\WindowsPowerShell\Modules\Update-NAVApplicationFromTxt.ps1' -Files $Files -Server $Server -Database $Database -LogFolder $LogFolder
