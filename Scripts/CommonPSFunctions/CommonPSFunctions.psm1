@@ -176,7 +176,9 @@ function Remove-SQLDatabase
     $null = [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SMO')
     $srv = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Server -ArgumentList ($Server)
     $srv.KillAllprocesses("$Database")
-    $srv.databases[$Database].drop()
+    if ($srv.databases[$Database]) {
+        $srv.databases[$Database].drop()
+    }
 }
 
 <#
