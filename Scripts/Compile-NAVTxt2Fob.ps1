@@ -110,7 +110,7 @@ Process {
         Compile-NAVApplicationObject -Server $Server -Database $Database -Filter 'Type=Table;Id=2000000000..' -LogFolder $LogFolder -NavIde $NavIde
         Write-Verbose -Message 'System Objects compiled'
         Write-Progress -Activity 'Compiling objects...'
-        Compile-NAVApplicationObjectFiles -files $FileName -Server $Server -Database $Database -LogFolder $LogFolder -NavIde $NavIde
+        Compile-NAVApplicationObjectFilesMulti -files $FileName -Server $Server -Database $Database -LogFolder $LogFolder -NavIde $NavIde -AsJob
         Write-Verbose -Message 'Objects compiled'
 
         $ScriptEndTime = Get-Date
