@@ -377,12 +377,19 @@ function Compile-NAVApplicationObjectFilesMulti
 {
     [CmdletBinding()]
     Param(
-        [String]$files,
+        [Parameter(ValueFromPipelinebyPropertyName = $True)]
+        [String]$Files,
+        [Parameter(ValueFromPipelinebyPropertyName = $True)]
         [String]$Server,
+        [Parameter(ValueFromPipelinebyPropertyName = $True)]
         [String]$Database,
+        [Parameter(ValueFromPipelinebyPropertyName = $True)]
         [String]$LogFolder,
+        [Parameter(ValueFromPipelinebyPropertyName = $True)]
         [String]$NavIde = '',
+        [Parameter(ValueFromPipelinebyPropertyName = $True)]
         [String]$ClientFolder = '',
+        [Parameter(ValueFromPipelinebyPropertyName = $True)]
         [switch]$AsJob
     )
     
@@ -394,11 +401,11 @@ function Compile-NAVApplicationObjectFilesMulti
 
     #$finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
 
-    $TextFiles = Get-ChildItem -Path "$files"
+    $TextFiles = Get-ChildItem -Path "$Files"
     $i = 0
     $jobs = @()
 
-    $FilesProperty = Get-NAVApplicationObjectProperty -Source $files
+    $FilesProperty = Get-NAVApplicationObjectProperty -Source $Files
     $FilesSorted = $FilesProperty | Sort-Object -Property Id
     $CountOfObjects = $FilesProperty.Count
     $Ranges = @()
