@@ -377,18 +377,14 @@ function Compile-NAVApplicationObjectFilesMulti
 {
     [CmdletBinding()]
     Param(
-        [Parameter(ValueFromPipelinebyPropertyName = $True)]
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $True)]
         [String]$Files,
-        [Parameter(ValueFromPipelinebyPropertyName = $True)]
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $True)]
         [String]$Server,
-        [Parameter(ValueFromPipelinebyPropertyName = $True)]
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $True)]
         [String]$Database,
         [Parameter(ValueFromPipelinebyPropertyName = $True)]
-        [String]$LogFolder,
-        [Parameter(ValueFromPipelinebyPropertyName = $True)]
         [String]$NavIde = '',
-        [Parameter(ValueFromPipelinebyPropertyName = $True)]
-        [String]$ClientFolder = '',
         [Parameter(ValueFromPipelinebyPropertyName = $True)]
         [switch]$AsJob
     )
@@ -396,7 +392,7 @@ function Compile-NAVApplicationObjectFilesMulti
     $CPUs = (Get-WmiObject -Class Win32_Processor -Property 'NumberOfLogicalProcessors' | Select-Object -Property 'NumberOfLogicalProcessors').NumberOfLogicalProcessors
     if ($NavIde -eq '') 
     {
-        $NavIde = $sourceclientfolder+'\finsql.exe'
+        $NavIde = Get-NAVIde
     }
 
     #$finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
@@ -423,17 +419,16 @@ function Compile-NAVApplicationObjectFilesMulti
     #foreach ($FileProperty in $FilesProperty){
     foreach ($Range in $Ranges) 
     {
-        $LogFile = "$LogFolder\$Range.log"
         $Filter = "Id=$Range"
         if ($AsJob -eq $true) 
         {
             Write-Host -Object "Compiling $Filter as Job..."
-            $jobs += Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile -AsJob
+            $jobs += Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -Filter $Filter -Recompile -AsJob
         }
         else 
         {
             Write-Host -Object "Compiling $Filter..."
-            Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile
+            Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -Filter $Filter -Recompile
         }
     }
     if ($AsJob -eq $true) 

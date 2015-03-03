@@ -26,7 +26,8 @@ param (
     [string] $Database = 'merge',
 
     #Source txt files for import
-    [Parameter(Mandatory = $True,ValueFromPipelinebyPropertyName = $True)]
+    [Parameter(Mandatory = $True,ValueFromPipelinebyPropertyName = $True]
+    [Alias('Files')]
     [String] $FileName,
 
     #FOB file imported before the txt files are imported. Could update the objects stored in the DB Backup file to newer version.
@@ -110,7 +111,7 @@ Process {
         Compile-NAVApplicationObject -Server $Server -Database $Database -Filter 'Type=Table;Id=2000000000..' -LogFolder $LogFolder -NavIde $NavIde
         Write-Verbose -Message 'System Objects compiled'
         Write-Progress -Activity 'Compiling objects...'
-        Compile-NAVApplicationObjectFilesMulti -Files $FileName -Server $Server -Database $Database -LogFolder $LogFolder -NavIde $NavIde -AsJob
+        Compile-NAVApplicationObjectFilesMulti -Files $FileName -Server $Server -Database $Database -NavIde $NavIde -AsJob
         Write-Verbose -Message 'Objects compiled'
 
         $ScriptEndTime = Get-Date
