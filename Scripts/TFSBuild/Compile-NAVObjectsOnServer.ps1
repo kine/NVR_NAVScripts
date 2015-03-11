@@ -9,14 +9,14 @@ Param (
 
 Import-Module NVR_NAVScripts -Force -DisableNameChecking
 $ProgressPreference="SilentlyContinue"
-NVR_NAVScripts\Compile-NAVApplicationObject2 -Server $Server -Database $Database -Filter 'Type=Table;Id=2000000000..' -LogFolder $LogFolder -NavIde $NavIde -SynchronizeSchemaChanges Force
+Compile-NAVApplicationObject2 -DatabaseServer $Server -DatabaseName $Database -Filter 'Type=Table;Id=2000000000..' -LogPath $LogFolder -NavIde $NavIde -SynchronizeSchemaChanges Force
 #Preventing the error about "Must be compiled..."
-NVR_NAVScripts\Compile-NAVApplicationObject2 -Server $Server -Database $Database -Filter 'Type=MenuSuite;Compiled=0' -LogFolder $LogFolder -NavIde $NavIde -SynchronizeSchemaChanges Force
+Compile-NAVApplicationObject2 -DatabaseServer $Server -DatabaseName $Database -Filter 'Type=MenuSuite;Compiled=0' -LogPath $LogFolder -NavIde $NavIde -SynchronizeSchemaChanges Force
 
 if ($CompileAll -eq 1) {
 #	Compile-NAVApplicationObjectFilesMulti -Files $Files -Server $Server -Database $Database -LogFolder $LogFolder -NavIde $NavIde
 	NVR_NAVScripts\Compile-NAVApplicationObjectMulti -Server $Server -Database $Database -Filter 'Compiled=0|1'-LogFolder $LogFolder -NavIde $NavIde  -SynchronizeSchemaChanges Force -AsJob
 } else {
-	NVR_NAVScripts\Compile-NAVApplicationObject2 -Server $Server -Database $Database -Filter 'Compiled=0' -LogFolder $LogFolder -NavIde $NavIde  -SynchronizeSchemaChanges Force
+	Compile-NAVApplicationObject2 -DatabaseServer $Server -DatabaseName $Database -Filter 'Compiled=0' -LogPath $LogFolder -NavIde $NavIde  -SynchronizeSchemaChanges Force
 }
 $ProgressPreference="Continue"

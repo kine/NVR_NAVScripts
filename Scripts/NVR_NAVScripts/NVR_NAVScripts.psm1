@@ -917,7 +917,7 @@ Function New-NAVLocalApplication
             }
         }
     }
-    Sync-NAVTenant -ServerInstance $ServerInstance -Force
+    #Sync-NAVTenant -ServerInstance $ServerInstance -Force
 }
 $client = Split-Path (Get-NAVIde)
 $NavIde = Get-NAVIde
