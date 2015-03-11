@@ -500,6 +500,9 @@ function Compile-NAVApplicationObjectMulti
         [String]$ClientFolder = '',
         [Parameter(ValueFromPipelinebyPropertyName = $true)]
         [Switch]$AsJob,
+        # Specifies the schema synchronization behaviour. The default value is 'Yes'.
+        [ValidateSet('Yes','No','Force')]
+        [string] $SynchronizeSchemaChanges = 'Yes',
         [int]$ParallelismLimit = 5
     )
     
@@ -543,12 +546,12 @@ function Compile-NAVApplicationObjectMulti
         if ($AsJob -eq $true) 
         {
             Write-Host -Object "Compiling $Filter as Job..."
-            $jobs += Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile -AsJob
+            $jobs += Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile -AsJob -SynchronizeSchemaChanges $SynchronizeSchemaChanges
         }
         else 
         {
             Write-Host -Object "Compiling $Filter..."
-            Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile
+            Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile -SynchronizeSchemaChanges $SynchronizeSchemaChanges
         }
     }
     if ($AsJob -eq $true) 
