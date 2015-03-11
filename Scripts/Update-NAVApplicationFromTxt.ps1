@@ -139,6 +139,47 @@ Process{
 
     $i = 0
     $count = $UpdatedObjects.Count
+    if (!$SkipDeleteCheck) 
+    {
+        $NAVObjects = Get-SQLCommandResult -Server $Server -Database $Database -Command 'select [Type],[ID],[Version List],[Modified],[Name],[Date],[Time] from Object where [Type]>0'
+        $i = 0
+        $count = $NAVObjects.Count
+        $StartTime = Get-Date
+
+        foreach ($NAVObject in $NAVObjects)
+        {
+            if (!$NAVObject.ID) 
+            {
+                Continue
+            }
+
+            $i++
+            $NowTime = Get-Date
+            $TimeSpan = New-TimeSpan $StartTime $NowTime
+            $percent = $i / $count
+            $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
+
+            if (-not $NoProgress) 
+            {
+                Write-Progress -Status "Processing $i of $count" -Activity 'Checking deleted objects...' -PercentComplete ($i / $count*100) -SecondsRemaining $remtime
+            }
+            $Type = Get-NAVObjectTypeNameFromId -TypeId $NAVObject.Type
+            #$FileObject = $FileObjects | Where-Object {($_.ObjectType -eq $Type) -and ($_.Id -eq $NAVObject.ID)}
+            $Exists = $FileObjectsHash["$($NAVObject.Type)-$($NAVObject.ID)"]
+            if (!$Exists) 
+            {
+                Write-Warning -Message "$Type $($NAVObject.ID) Should be removed from the database!"
+                if ($MarkToDelete) 
+                {
+                    $Result = Get-SQLCommandResult -Server $Server -Database $Database -Command "update Object set [Version List] = '#TODELETE '+ [Version List], [Name]='$($NAVObject.Type):$($NAVObject.ID)' where [Type]=$($NAVObject.Type) and [ID]=$($NAVObject.ID)"
+                }
+            }
+        }
+    }
+    
+    $i = 0
+    $count = $UpdatedObjects.Count
+        
     $StartTime = Get-Date
     foreach ($ObjToImport in $UpdatedObjects) 
     {
@@ -193,43 +234,6 @@ Process{
         Write-Host -Object "Compiled $($UpdatedObjects.Count) objects..."
     }
 
-    if (!$SkipDeleteCheck) 
-    {
-        $NAVObjects = Get-SQLCommandResult -Server $Server -Database $Database -Command 'select [Type],[ID],[Version List],[Modified],[Name],[Date],[Time] from Object where [Type]>0'
-        $i = 0
-        $count = $NAVObjects.Count
-        $StartTime = Get-Date
-
-        foreach ($NAVObject in $NAVObjects)
-        {
-            if (!$NAVObject.ID) 
-            {
-                Continue
-            }
-
-            $i++
-            $NowTime = Get-Date
-            $TimeSpan = New-TimeSpan $StartTime $NowTime
-            $percent = $i / $count
-            $remtime = $TimeSpan.TotalSeconds / $percent * (1-$percent)
-
-            if (-not $NoProgress) 
-            {
-                Write-Progress -Status "Processing $i of $count" -Activity 'Checking deleted objects...' -PercentComplete ($i / $count*100) -SecondsRemaining $remtime
-            }
-            $Type = Get-NAVObjectTypeNameFromId -TypeId $NAVObject.Type
-            #$FileObject = $FileObjects | Where-Object {($_.ObjectType -eq $Type) -and ($_.Id -eq $NAVObject.ID)}
-            $Exists = $FileObjectsHash["$($NAVObject.Type)-$($NAVObject.ID)"]
-            if (!$Exists) 
-            {
-                Write-Warning -Message "$Type $($NAVObject.ID) Should be removed from the database!"
-                if ($MarkToDelete) 
-                {
-                    $Result = Get-SQLCommandResult -Server $Server -Database $Database -Command "update Object set [Version List] = '#TODELETE '+ [Version List] where [Type]=$($NAVObject.Type) and [ID]=$($NAVObject.ID)"
-                }
-            }
-        }
-    }
 }
 End {
 }
