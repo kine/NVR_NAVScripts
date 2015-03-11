@@ -13,17 +13,8 @@
     [String]$LogFolder
 )
 
-try 
-{
-    Import-Module CommonPSFunctions -Force
+Import-Module CommonPSFunctions -Force
 
-    $ProgressPreference="SilentlyContinue"
-    . 'c:\Program Files\WindowsPowerShell\Modules\Update-NAVApplicationFromTxt.ps1' -Files $Files -Server $Server -Database $Database -LogFolder $LogFolder
-    $ProgressPreference="Continue"
-} catch
-{
-    $errors += $_.Exception.Message
-    Write-Error "Exception: $($_.Exception.Message)"
-}
-finally {
-}
+$ProgressPreference="SilentlyContinue"
+. 'c:\Program Files\WindowsPowerShell\Modules\Update-NAVApplicationFromTxt.ps1' -Files $Files -Server $Server -Database $Database -LogFolder $LogFolder
+$ProgressPreference="Continue"
