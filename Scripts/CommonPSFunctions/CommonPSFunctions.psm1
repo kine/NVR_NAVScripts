@@ -1,28 +1,28 @@
 ﻿function Get-NAVIde
 {
-    if ($ENV:NAVIdePath -eq '') 
+    if ($env:NAVIdePath -eq '') 
     {
-        return 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\finsql.exe'
+        return 'c:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client\finsql.exe'
     }
-    return (Join-Path -Path $ENV:NAVIdePath -ChildPath 'finsql.exe')
+    return (Join-Path -Path $env:NAVIdePath -ChildPath 'finsql.exe')
 }
 
 function Get-NAVIdePath
 {
-    if ($ENV:NAVIdePath -eq '') 
+    if ($env:NAVIdePath -eq '') 
     {
-        return 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client'
+        return 'c:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client'
     }
-    return $ENV:NAVIdePath
+    return $env:NAVIdePath
 }
 
 function Get-NAVAdminPath
 {
-    if ($ENV:NAVServicePath -eq '') 
+    if ($env:NAVServicePath -eq '') 
     {
         return 'c:\Program Files\Microsoft Dynamics NAV\71\Service'
     }
-    return $ENV:NAVServicePath
+    return $env:NAVServicePath
 }
 
 function Import-NAVAdminTool
@@ -33,7 +33,7 @@ function Import-NAVAdminTool
 
 function Import-NAVModelTool
 {
-    Import-Module -Global (Join-Path -Path (Get-NAVIdePath) -ChildPath 'Microsoft.Dynamics.Nav.Model.Tools.psd1') -DisableNameChecking #-force -WarningAction SilentlyContinue | Out-Null
+    Import-Module -Global (Join-Path -Path (Get-NAVIdePath) -ChildPath 'Microsoft.Dynamics.Nav.Model.Tools.psd1') -ArgumentList (Get-NAVIdePath) -DisableNameChecking #-force -WarningAction SilentlyContinue | Out-Null
     Write-Verbose -Message 'NAV model tool imported'
 }
 
@@ -176,7 +176,8 @@ function Remove-SQLDatabase
     $null = [System.Reflection.Assembly]::LoadWithPartialName('Microsoft.SqlServer.SMO')
     $srv = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Server -ArgumentList ($Server)
     $srv.KillAllprocesses("$Database")
-    if ($srv.databases[$Database]) {
+    if ($srv.databases[$Database]) 
+    {
         $srv.databases[$Database].drop()
     }
 }
