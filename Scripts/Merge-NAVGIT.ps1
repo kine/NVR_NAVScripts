@@ -6,7 +6,9 @@ Param (
     [Parameter(Mandatory = $true)]
     [string]$targetbranch,
     [switch]$skipcopytorep,
-    [switch]$remerge
+    [switch]$remerge,
+    #Languages, which will be removed from modified version and added after merge back (when merging with version without this language)
+    [String]$RemoveLanguageId
 )
 Import-Module -Name NVR_NAVScripts -WarningAction SilentlyContinue
 Import-NAVModelTool
@@ -100,8 +102,8 @@ function SolveConflicts($conflicts)
 function CreateResult([string]$resultfolder)
 {
     $result = Remove-Item -Path $sourcefiles -Recurse
-    $result = Copy-Item -Path $resultfolder$sourcefilespath -Filter $sourcefiles -Destination . -Exclude Conflict -Recurse -Force
-    $source = $resultfolder+$sourcefilespath+$sourcefiles
+    $result = Copy-Item -Path (Join-Path $resultfolder $sourcefilespath) -Filter $sourcefiles -Destination . -Exclude Conflict -Recurse -Force
+    $source = (Join-Path (Join-Path $resultfolder $sourcefilespath) $sourcefiles)
     $target = '.\'+$sourcefilespath
     Copy-Item -Path $source -Filter $sourcefiles -Destination $target -Force -Recurse
 }
@@ -109,6 +111,15 @@ function CreateResult([string]$resultfolder)
 function CreateGitMerge
 {
     $result = git.exe merge --no-ff --no-commit --strategy=ours --quiet --no-progress $targetbranch 2> $null
+}
+
+function ConvertTo-Date ($param1)
+{
+    if ($param1) 
+    {
+        return (Get-Date -Date $param1)
+    }
+    return (Get-Date -Year 1900 -Month 1 -Day 1)
 }
 function MergeVersionLists($mergeresult)
 {
@@ -128,14 +139,14 @@ function MergeVersionLists($mergeresult)
             }
 
             #($_.Target.Date,$_.Modified.Date) | Measure-Object -Maximum).Maximum
-            if ((Get-Date -Date $_.Target.Date) -gt $(Get-Date -Date $_.Modified.Date)) 
+            if ((ConvertTo-Date $_.Target.Date) -gt $(ConvertTo-Date $_.Modified.Date)) 
             {
                 $newdate = $_.Target.Date
                 $newtime = $_.Target.Time
             }
             else 
             {
-                if ((Get-Date -Date $_.Target.Date) -eq (Get-Date -Date $_.Modified.Date)) 
+                if ((ConvertTo-Date $_.Target.Date) -eq (ConvertTo-Date $_.Modified.Date)) 
                 {
                     $newdate = $_.Modified.Date
                     $newtime = (($_.Target.Time, $_.Modified.Time) | Measure-Object -Maximum).Maximum
@@ -148,7 +159,11 @@ function MergeVersionLists($mergeresult)
             }
         
             #if ($newversion -ne $_.Target.VersionList) {
-            Set-NAVApplicationObjectProperty -TargetPath $_.Result.FileName -VersionListProperty $newversion -ModifiedProperty $newmodified -DateTimeProperty "$newdate $newtime"
+            if ($newdate -and $newtime) {
+                Set-NAVApplicationObjectProperty -TargetPath $_.Result.FileName -VersionListProperty $newversion -ModifiedProperty $newmodified -DateTimeProperty "$newdate $newtime"
+            } else {
+                Set-NAVApplicationObjectProperty -TargetPath $_.Result.FileName -VersionListProperty $newversion -ModifiedProperty $newmodified
+            }
             #}
             $ProgressPreference = 'Continue'
         }
@@ -188,10 +203,13 @@ $sourcebranch = git.exe rev-parse --abbrev-ref HEAD
 TestIfFolderClear($repository)
 
 $tempfolder = $env:TEMP
-$sourcefolder = $tempfolder+'\NAVGIT\Source\'
-$targetfolder = $tempfolder+'\NAVGIT\Target\'
-$commonfolder = $tempfolder+'\NAVGIT\Common\'
-$resultfolder = $tempfolder+'\NAVGIT\Result\'
+$sourcefolder = $tempfolder+'\NAVGIT\Source'
+$sourcefolder2 = $tempfolder+'\NAVGIT\Source2'
+$targetfolder = $tempfolder+'\NAVGIT\Target'
+$targetfolder2 = $tempfolder+'\NAVGIT\Target2'
+$commonfolder = $tempfolder+'\NAVGIT\Common'
+$resultfolder = $tempfolder+'\NAVGIT\Result'
+$languagefolder = $tempfolder+'\NAVGIT\Language'
 
 $sourcefilespath = Split-Path $sourcefiles
 if ($sourcefilespath -eq '') 
@@ -207,18 +225,23 @@ if (!$remerge)
 {
     $result = Remove-Item -Path $sourcefolder -Force -Recurse
     $result = New-Item -Path $sourcefolder -ItemType directory -Force
+    
+    $result = Remove-Item -Path $sourcefolder2 -Force -Recurse
 
     $result = Remove-Item -Path $targetfolder -Force -Recurse
     $result = New-Item -Path $targetfolder -ItemType directory -Force
 
     $result = Remove-Item -Path $commonfolder -Force -Recurse
     $result = New-Item -Path $commonfolder -ItemType directory -Force
+    
+    $result = Remove-Item -Path $languagefolder -Force -Recurse
+    $result = New-Item -Path $languagefolder -ItemType directory -Force
 }
 
 $result = Remove-Item -Path $resultfolder -Force -Recurse
 $result = New-Item -Path $resultfolder -ItemType directory -Force
 
-$result = New-Item -Path $resultfolder$sourcefilespath -ItemType directory -Force
+$result = New-Item -Path (Join-Path $resultfolder $sourcefilespath) -ItemType directory -Force
 
 
 
@@ -255,10 +278,20 @@ if (!$remerge)
     $result = Copy-Item -Path $sourcefilespath -Filter $sourcefiles -Destination $sourcefolder -Recurse -Container
 }
 
+if ($RemoveLanguageId) {
+    $result = New-Item -Path $tempfolder -ItemType directory -Force
+    $result = New-Item -Path (Join-Path $tempfolder $sourcefilespath) -ItemType directory -Force
+    Export-NAVApplicationObjectLanguage -Source (Join-Path $sourcefolder $sourcefilespath) -Destination (Join-Path $sourcefolder 'Language') -LanguageId $RemoveLanguageId -DevelopmentLanguageId "ENU"
+    Export-NAVApplicationObjectLanguage -Source (Join-Path $targetfolder $sourcefilespath) -Destination (Join-Path $targetfolder 'Language') -LanguageId $RemoveLanguageId -DevelopmentLanguageId "ENU"
+    Remove-NAVApplicationObjectLanguage -Source (Join-Path $sourcefolder $sourcefilespath) -Destination (Join-Path $tempfolder $sourcefilespath) -LanguageId $RemoveLanguageId -DevelopmentLanguageId "ENU" -RemoveRedundant
+    $result = Remove-Item -Path $sourcefolder -Force -Recurse
+    $result = Rename-Item -Path $tempfolder -NewName $sourcefolder -Force
+}
+
 Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 'Merging NAV Object files...'
 
-$mergeresult = Merge-NAVApplicationObject -OriginalPath $commonfolder$sourcefilespath -Modified $sourcefolder$sourcefilespath -TargetPath $targetfolder$sourcefilespath -ResultPath $resultfolder$sourcefilespath -Force -DateTimeProperty FromModified -ModifiedProperty FromModified -DocumentationConflict ModifiedFirst
-$mergeresult | Export-Clixml -Path $resultfolder'\mergeresult.xml'
+$mergeresult = Merge-NAVApplicationObject -OriginalPath (Join-Path $commonfolder $sourcefilespath) -Modified (Join-Path $sourcefolder $sourcefilespath) -TargetPath (Join-Path $targetfolder $sourcefilespath) -ResultPath (Join-Path $resultfolder $sourcefilespath) -Force -DateTimeProperty FromModified -ModifiedProperty FromModified -DocumentationConflict ModifiedFirst
+$mergeresult | Export-Clixml -Path $resultfolder'..\mergeresult.xml'
 
 $merged = $mergeresult | Where-Object -FilterScript {
     $_.MergeResult -eq 'Merged'
@@ -299,6 +332,12 @@ Write-Host  Merged in $TimeSpan
 Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 'Solving conflicts...'
 SolveConflicts($conflicts)
 
+if ($RemoveLanguageId) {
+    $result = New-Item -Path (Join-Path $tempfolder $sourcefilespath) -ItemType directory -Force
+    Import-NAVApplicationObjectLanguage -Source (Join-Path $resultfolder $sourcefilespath) -LanguagePath (Join-Path $sourcefolder 'Language') -Destination (Join-Path $tempfolder $sourcefilespath) -LanguageId $RemoveLanguageId
+    $result = Remove-Item -Path $resultfolder -Force -Recurse
+    $result = Rename-Item -Path $tempfolder -NewName $resultfolder -Force
+}
 
 if (!$skipcopytorep) 
 {

@@ -195,7 +195,8 @@ ntauthentication=No`,username="$Username"`,password="$Password"`,$databaseInfo
     {
         if (Test-Path $LogFile)
         {
-            throw "${ErrorText}: $(Get-Content $LogFile -Raw)" -replace "`r[^`n]","`r`n"
+            #throw "${ErrorText}: $(Get-Content $LogFile -Raw)" -replace "`r[^`n]","`r`n"
+            Convert-NAVLogFileToErrors $LogFile
         }
     }
     else

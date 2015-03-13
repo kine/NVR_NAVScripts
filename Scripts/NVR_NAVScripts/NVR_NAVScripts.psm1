@@ -922,6 +922,40 @@ Function New-NAVLocalApplication
     }
     #Sync-NAVTenant -ServerInstance $ServerInstance -Force
 }
+
+<#
+    .Synopsis
+    Get list of changed files between two commits
+    .DESCRIPTION
+    Get list of changed files between two commits
+    .EXAMPLE
+    Example of how to use this cmdlet
+    .EXAMPLE
+    Another example of how to use this cmdlet
+#>
+function Get-GITModifiedFiles
+{
+    [CmdletBinding()]
+    Param
+    (
+        # Param1 help description
+        [Parameter(Mandatory=$true,
+                ValueFromPipelineByPropertyName=$true,
+        Position=0)]
+        $Repository,
+
+        # Param2 help description
+        [String]
+        $FromCommit,
+        [String]
+        $ToCommit
+    )
+    Push-Location
+    $list= (git diff --name-only "$FromCommit" "$ToCommit")
+    Pop-Location
+    return $list
+
+}
 $client = Split-Path (Get-NAVIde)
 $NavIde = Get-NAVIde
 
@@ -943,3 +977,5 @@ Export-ModuleMember -Function Export-NAVApplicationObject
 Export-ModuleMember -Function New-NAVLocalApplication
 Export-ModuleMember -Function Remove-NAVLocalApplication
 Export-ModuleMember -Function Set-ServicePortSharing
+Export-ModuleMember -Function Get-GITModifiedFiles
+Export-ModuleMember -Function Convert-NAVLogFileToErrors 
