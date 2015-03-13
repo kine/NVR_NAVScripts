@@ -915,7 +915,7 @@ Function New-NAVLocalApplication
             if ($fob -gt '') 
             {
                 Write-Progress -Activity "Importing FOB File $fob..."
-                Import-NAVApplicationObjectFiles -files $fob -Server $Server -Database $Database -LogFolder (Join-Path -Path $env:TEMP -ChildPath 'NVR_NAVScripts')
+                Import-NAVApplicationObject2 -Path $fob -DatabaseServer $Server -DatabaseName $Database -LogFolder (Join-Path -Path $env:TEMP -ChildPath 'NVR_NAVScripts') -ImportAction Overwrite -SynchronizeSchemaChanges Force
                 Write-Host -Message "FOB Objects from $fob imported"
             }
         }
