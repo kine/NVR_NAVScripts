@@ -160,9 +160,9 @@ function MergeVersionLists($mergeresult)
         
             #if ($newversion -ne $_.Target.VersionList) {
             if ($newdate -and $newtime) {
-                Set-NAVApplicationObjectProperty -TargetPath $_.Result.FileName -VersionListProperty $newversion -ModifiedProperty $newmodified -DateTimeProperty "$newdate $newtime"
+                Set-NAVApplicationObjectProperty -Target $_.Result.FileName -VersionListProperty $newversion -ModifiedProperty $newmodified -DateTimeProperty "$newdate $newtime"
             } else {
-                Set-NAVApplicationObjectProperty -TargetPath $_.Result.FileName -VersionListProperty $newversion -ModifiedProperty $newmodified
+                Set-NAVApplicationObjectProperty -Target $_.Result.FileName -VersionListProperty $newversion -ModifiedProperty $newmodified
             }
             #}
             $ProgressPreference = 'Continue'
@@ -290,7 +290,7 @@ if ($RemoveLanguageId) {
 
 Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 'Merging NAV Object files...'
 
-$mergeresult = Merge-NAVApplicationObject -OriginalPath (Join-Path $commonfolder $sourcefilespath) -Modified (Join-Path $sourcefolder $sourcefilespath) -TargetPath (Join-Path $targetfolder $sourcefilespath) -ResultPath (Join-Path $resultfolder $sourcefilespath) -Force -DateTimeProperty FromModified -ModifiedProperty FromModified -DocumentationConflict ModifiedFirst
+$mergeresult = Merge-NAVApplicationObject -Original (Join-Path $commonfolder $sourcefilespath) -Modified (Join-Path $sourcefolder $sourcefilespath) -Target (Join-Path $targetfolder $sourcefilespath) -Result (Join-Path $resultfolder $sourcefilespath) -Force -DateTimeProperty FromModified -ModifiedProperty FromModified -DocumentationConflict ModifiedFirst
 $mergeresult | Export-Clixml -Path $resultfolder'..\mergeresult.xml'
 
 $merged = $mergeresult | Where-Object -FilterScript {
