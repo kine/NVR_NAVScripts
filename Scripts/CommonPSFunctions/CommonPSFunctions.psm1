@@ -20,19 +20,21 @@ function Get-NAVAdminPath
 {
     if ($env:NAVServicePath -eq '') 
     {
-        return 'c:\Program Files\Microsoft Dynamics NAV\71\Service'
+        return 'c:\Program Files\Microsoft Dynamics NAV\80\Service'
     }
     return $env:NAVServicePath
 }
 
 function Import-NAVAdminTool
 {
+    Write-Host "Importing NAVAdminTool from $(Join-Path -Path (Get-NAVAdminPath) -ChildPath 'Microsoft.Dynamics.Nav.Management.dll')"
     Import-Module -Global (Join-Path -Path (Get-NAVAdminPath) -ChildPath 'Microsoft.Dynamics.Nav.Management.dll') -DisableNameChecking
     Write-Verbose -Message 'NAV admin tool imported'
 }
 
 function Import-NAVModelTool
 {
+    Write-Host "Importing NAVModelTool from $(Join-Path -Path (Get-NAVIdePath) -ChildPath 'Microsoft.Dynamics.Nav.Model.Tools.psd1'))"
     Import-Module -Global (Join-Path -Path (Get-NAVIdePath) -ChildPath 'Microsoft.Dynamics.Nav.Model.Tools.psd1') -ArgumentList (Get-NAVIdePath) -DisableNameChecking #-force -WarningAction SilentlyContinue | Out-Null
     Write-Verbose -Message 'NAV model tool imported'
 }
