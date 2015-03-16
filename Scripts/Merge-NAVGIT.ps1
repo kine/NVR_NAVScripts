@@ -160,9 +160,9 @@ function MergeVersionLists($mergeresult)
         
             #if ($newversion -ne $_.Target.VersionList) {
             if ($newdate -and $newtime) {
-                Set-NAVApplicationObjectProperty -Target $_.Result.FileName -VersionListProperty $newversion -ModifiedProperty $newmodified -DateTimeProperty "$newdate $newtime"
+                Set-NAVApplicationObjectProperty -TargetPath $_.Result.FileName -VersionListProperty $newversion -ModifiedProperty $newmodified -DateTimeProperty "$newdate $newtime"
             } else {
-                Set-NAVApplicationObjectProperty -Target $_.Result.FileName -VersionListProperty $newversion -ModifiedProperty $newmodified
+                Set-NAVApplicationObjectProperty -TargetPath $_.Result.FileName -VersionListProperty $newversion -ModifiedProperty $newmodified
             }
             #}
             $ProgressPreference = 'Continue'
@@ -202,14 +202,14 @@ $sourcebranch = git.exe rev-parse --abbrev-ref HEAD
 
 TestIfFolderClear($repository)
 
-$tempfolder = $env:TEMP
-$sourcefolder = $tempfolder+'\NAVGIT\Source'
-$sourcefolder2 = $tempfolder+'\NAVGIT\Source2'
-$targetfolder = $tempfolder+'\NAVGIT\Target'
-$targetfolder2 = $tempfolder+'\NAVGIT\Target2'
-$commonfolder = $tempfolder+'\NAVGIT\Common'
-$resultfolder = $tempfolder+'\NAVGIT\Result'
-$languagefolder = $tempfolder+'\NAVGIT\Language'
+$tempfolder = (Join-Path $env:TEMP 'NAVGIT')
+$sourcefolder = $tempfolder+'\Source'
+$sourcefolder2 = $tempfolder+'\Source2'
+$targetfolder = $tempfolder+'\Target'
+$targetfolder2 = $tempfolder+'\Target2'
+$commonfolder = $tempfolder+'\Common'
+$resultfolder = $tempfolder+'\Result'
+$languagefolder = $tempfolder+'\Language'
 
 $sourcefilespath = Split-Path $sourcefiles
 if ($sourcefilespath -eq '') 
@@ -223,19 +223,23 @@ $sourcefiles = Split-Path -Path $sourcefiles -Leaf
 Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 'Clearing temp folders...'
 if (!$remerge) 
 {
-    $result = Remove-Item -Path $sourcefolder -Force -Recurse
+    $result = Remove-Item -Path $tempfolder -Force -Recurse
+    $result = New-Item -Path $tempfolder -ItemType directory -Force
+
+    #$result = Remove-Item -Path $sourcefolder -Force -Recurse
     $result = New-Item -Path $sourcefolder -ItemType directory -Force
     
-    $result = Remove-Item -Path $sourcefolder2 -Force -Recurse
+    #$result = Remove-Item -Path $sourcefolder2 -Force -Recurse
 
-    $result = Remove-Item -Path $targetfolder -Force -Recurse
+    #$result = Remove-Item -Path $targetfolder -Force -Recurse
     $result = New-Item -Path $targetfolder -ItemType directory -Force
 
-    $result = Remove-Item -Path $commonfolder -Force -Recurse
+    #$result = Remove-Item -Path $commonfolder -Force -Recurse
     $result = New-Item -Path $commonfolder -ItemType directory -Force
     
-    $result = Remove-Item -Path $languagefolder -Force -Recurse
+    #$result = Remove-Item -Path $languagefolder -Force -Recurse
     $result = New-Item -Path $languagefolder -ItemType directory -Force
+   
 }
 
 $result = Remove-Item -Path $resultfolder -Force -Recurse
@@ -279,13 +283,20 @@ if (!$remerge)
 }
 
 if ($RemoveLanguageId) {
-    $result = New-Item -Path $tempfolder -ItemType directory -Force
-    $result = New-Item -Path (Join-Path $tempfolder $sourcefilespath) -ItemType directory -Force
-    Export-NAVApplicationObjectLanguage -Source (Join-Path $sourcefolder $sourcefilespath) -Destination (Join-Path $sourcefolder 'Language') -LanguageId $RemoveLanguageId -DevelopmentLanguageId "ENU"
-    Export-NAVApplicationObjectLanguage -Source (Join-Path $targetfolder $sourcefilespath) -Destination (Join-Path $targetfolder 'Language') -LanguageId $RemoveLanguageId -DevelopmentLanguageId "ENU"
-    Remove-NAVApplicationObjectLanguage -Source (Join-Path $sourcefolder $sourcefilespath) -Destination (Join-Path $tempfolder $sourcefilespath) -LanguageId $RemoveLanguageId -DevelopmentLanguageId "ENU" -RemoveRedundant
+    $tempfolder2 = Join-Path $tempfolder 'TEMP'
+    $result = New-Item -Path $tempfolder2 -ItemType directory -Force
+    $result = New-Item -Path (Join-Path $tempfolder2 $sourcefilespath) -ItemType directory -Force
+    Export-NAVApplicationObjectLanguage -Source (Join-Path $sourcefolder $sourcefilespath) -Destination (Join-Path $sourcefolder '..\SourceLanguage.txt') -LanguageId $RemoveLanguageId -DevelopmentLanguageId "ENU"
+    Remove-NAVApplicationObjectLanguage -Source (Join-Path $sourcefolder $sourcefilespath) -Destination (Join-Path $tempfolder2 $sourcefilespath) -LanguageId $RemoveLanguageId -DevelopmentLanguageId "ENU" -RemoveRedundant
     $result = Remove-Item -Path $sourcefolder -Force -Recurse
-    $result = Rename-Item -Path $tempfolder -NewName $sourcefolder -Force
+    $result = Rename-Item -Path $tempfolder2 -NewName $sourcefolder -Force
+    
+    $result = New-Item -Path $tempfolder2 -ItemType directory -Force
+    $result = New-Item -Path (Join-Path $tempfolder2 $sourcefilespath) -ItemType directory -Force
+    Export-NAVApplicationObjectLanguage -Source (Join-Path $targetfolder $sourcefilespath) -Destination (Join-Path $targetfolder '..\TargetLanguage.txt') -LanguageId $RemoveLanguageId -DevelopmentLanguageId "ENU"
+    Remove-NAVApplicationObjectLanguage -Source (Join-Path $targetfolder $sourcefilespath) -Destination (Join-Path $tempfolder2 $sourcefilespath) -LanguageId $RemoveLanguageId -DevelopmentLanguageId "ENU" -RemoveRedundant
+    $result = Remove-Item -Path $targetfolder -Force -Recurse
+    $result = Rename-Item -Path $tempfolder2 -NewName $targetfolder -Force
 }
 
 Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 'Merging NAV Object files...'
@@ -333,10 +344,13 @@ Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 
 SolveConflicts($conflicts)
 
 if ($RemoveLanguageId) {
-    $result = New-Item -Path (Join-Path $tempfolder $sourcefilespath) -ItemType directory -Force
-    Import-NAVApplicationObjectLanguage -Source (Join-Path $resultfolder $sourcefilespath) -LanguagePath (Join-Path $sourcefolder 'Language') -Destination (Join-Path $tempfolder $sourcefilespath) -LanguageId $RemoveLanguageId
+    $result = New-Item -Path (Join-Path $tempfolder2 $sourcefilespath) -ItemType directory -Force
+    Import-NAVApplicationObjectLanguage -Source (Join-Path $resultfolder $sourcefilespath) -LanguagePath (Join-Path $sourcefolder '..\SourceLanguage.txt') -Destination (Join-Path $tempfolder2 $sourcefilespath) -LanguageId $RemoveLanguageId
     $result = Remove-Item -Path $resultfolder -Force -Recurse
-    $result = Rename-Item -Path $tempfolder -NewName $resultfolder -Force
+    $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
+    Import-NAVApplicationObjectLanguage -Source (Join-Path $resultfolder $sourcefilespath) -LanguagePath (Join-Path $sourcefolder '..\TargetLanguage.txt') -Destination (Join-Path $tempfolder2 $sourcefilespath) -LanguageId $RemoveLanguageId
+    $result = Remove-Item -Path $resultfolder -Force -Recurse
+    $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
 }
 
 if (!$skipcopytorep) 
