@@ -229,9 +229,9 @@ function Get-SQLCommandResult
     $SqlAdapter.SelectCommand = $SqlCmd
  
     $DataSet = New-Object -TypeName System.Data.DataSet
-    $SqlAdapter.Fill($DataSet)
+    $result = $SqlAdapter.Fill($DataSet)
  
-    $SqlConnection.Close()
+    $result = $SqlConnection.Close()
  
     return $DataSet.Tables[0]
 }
