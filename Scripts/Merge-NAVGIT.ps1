@@ -5,6 +5,7 @@ Param (
     [string]$sourcefiles,
     [Parameter(Mandatory = $true)]
     [string]$targetbranch,
+    [string]$ancestor,
     [switch]$skipcopytorep,
     [switch]$remerge,
     #Languages, which will be removed from modified version and added after merge back (when merging with version without this language)
@@ -195,6 +196,28 @@ function SetupGitRepository
     $result = git.exe config --local merge.ours.driver 'true'
 }
 
+function Get-GITNearAncestor ($Source, $Target)
+{
+    $Result = git.exe merge-base  "$Source" "$Target" --all
+    if ($Result.Count) {
+        $shortest=999999
+        foreach ($commit in $Result) 
+        {
+            $path = git.exe rev-list --ancestry-path "$commit..$Source"   
+            if ($path.Count -lt $shortest) 
+            {
+                $shortest = $path.Count
+                $ancestor = $commit
+            }
+            
+        }  
+        Return $ancestor
+    } else {
+        Return $Result
+    }
+    
+}
+
 $currentfolder = Get-Location
 Set-Location $repository 
 
@@ -261,7 +284,11 @@ Write-Host  Starting at $startdatetime
 if (!$remerge) 
 {
     Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 'Getting Common Ancestor...'
-    $commonbranch = git.exe merge-base $sourcebranch $targetbranch
+    if ($ancestor) {
+        $commonbranch = $ancestor
+    } else {
+        $commonbranch = Get-GITNearAncestor -Source $sourcebranch -Target $targetbranch
+    }
 
     Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Switching to $commonbranch"
     $result = git.exe checkout --force "$commonbranch" --quiet
