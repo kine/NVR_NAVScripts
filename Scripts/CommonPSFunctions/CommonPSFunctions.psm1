@@ -224,16 +224,26 @@ function Get-SQLCommandResult
     $SqlCmd = New-Object -TypeName System.Data.SqlClient.SqlCommand
     $SqlCmd.CommandText = $Command
     $SqlCmd.Connection = $SqlConnection
+    
+    if ($Command.Split(' ')[0] -ilike 'select') {
  
-    $SqlAdapter = New-Object -TypeName System.Data.SqlClient.SqlDataAdapter
-    $SqlAdapter.SelectCommand = $SqlCmd
+        $SqlAdapter = New-Object -TypeName System.Data.SqlClient.SqlDataAdapter
+        $SqlAdapter.SelectCommand = $SqlCmd
  
-    $DataSet = New-Object -TypeName System.Data.DataSet
-    $result = $SqlAdapter.Fill($DataSet)
+        $DataSet = New-Object -TypeName System.Data.DataSet
+        $result = $SqlAdapter.Fill($DataSet)
  
-    $result = $SqlConnection.Close()
+        $result = $SqlConnection.Close()
  
-    return $DataSet.Tables[0]
+        return $DataSet.Tables[0]
+    } else 
+    {
+        $result = $SqlConnection.Open()
+        #$result = $SqlCmd.ExecuteScalar()
+        $result = $SqlCmd.ExecuteNonQuery()
+        $SqlConnection.Close()
+        return $result
+    }
 }
 
 <#
