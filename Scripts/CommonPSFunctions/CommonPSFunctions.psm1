@@ -211,7 +211,7 @@ function Get-SQLCommandResult
         [String]
         $Command
     )
-
+    Write-Verbose "Executing SQL command: $Command"
     #Push-Location
     #Import-Module "sqlps" -DisableNameChecking
     #$Result = Invoke-Sqlcmd -Database $Database -ServerInstance $Server -Query $Command
