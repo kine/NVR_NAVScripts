@@ -386,7 +386,11 @@ function Compile-NAVApplicationObjectFilesMulti
         [Parameter(ValueFromPipelinebyPropertyName = $True)]
         [String]$NavIde = '',
         [Parameter(ValueFromPipelinebyPropertyName = $True)]
-        [switch]$AsJob
+        [switch]$AsJob,
+        # Specifies the schema synchronization behaviour. The default value is 'Yes'.
+        [Parameter(ValueFromPipelinebyPropertyName = $True)]
+        [ValidateSet('Yes','No','Force')]
+        [string] $SynchronizeSchemaChanges = 'Yes'
     )
     
     $CPUs = (Get-WmiObject -Class Win32_Processor -Property 'NumberOfLogicalProcessors' | Select-Object -Property 'NumberOfLogicalProcessors').NumberOfLogicalProcessors
@@ -423,12 +427,12 @@ function Compile-NAVApplicationObjectFilesMulti
         if ($AsJob -eq $true) 
         {
             Write-Host -Object "Compiling $Filter as Job..."
-            $jobs += Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -Filter $Filter -Recompile -AsJob
+            $jobs += Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -Filter $Filter -Recompile -AsJob -SynchronizeSchemaChanges $SynchronizeSchemaChanges
         }
         else 
         {
             Write-Host -Object "Compiling $Filter..."
-            Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -Filter $Filter -Recompile
+            Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -Filter $Filter -Recompile -SynchronizeSchemaChanges $SynchronizeSchemaChanges
         }
     }
     if ($AsJob -eq $true) 
@@ -893,6 +897,8 @@ Function New-NAVLocalApplication
     $null = New-NAVServerInstance -DatabaseServer $Server -DatabaseName $Database -ServerInstance $ServerInstance -ManagementServicesPort 7045 -DatabaseInstance ''
     
     Set-ServicePortSharing -Name $("MicrosoftDynamicsNavServer`$$ServerInstance")
+    
+    Set-NAVServerConfiguration -ServerInstance $ServerInstance -KeyName 'ClientServicesEnabled' -KeyValue 'true'
 
     Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
     Write-Verbose -Message 'Server instance created'
