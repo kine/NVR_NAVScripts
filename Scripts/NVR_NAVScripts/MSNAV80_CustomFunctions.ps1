@@ -469,15 +469,20 @@ function Compile-NAVApplicationObject2
     [CmdletBinding(DefaultParameterSetName="All")]
     Param(
         # Specifies the name of the Dynamics NAV database.
-        [Parameter(Mandatory=$true, Position=0)]
+        [Parameter(Mandatory=$true, Position=0,ValueFromPipelinebyPropertyName = $true)]
+        [Alias('Database')]
         [string] $DatabaseName,
 
         # Specifies the name of the SQL server instance to which the Dynamics NAV database is attached. The default value is the default instance on the local host (.).
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
+        [Alias('Server')]
         [string] $DatabaseServer = '.',
 
         # Specifies the log folder.
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
         [ValidateNotNullOrEmpty()]
+        [Alias('LogFolder')]
         [string] $LogPath = "$Env:TEMP\NavIde\$([GUID]::NewGuid().GUID)",
 
         # Specifies the filter that selects the objects to compile.
@@ -511,7 +516,7 @@ function Compile-NAVApplicationObject2
 
         # Specifies the port on the Microsoft Dynamics NAV Server server that the Microsoft Dynamics NAV Windows PowerShell cmdlets access. The default value is 7045.
         [ValidateNotNullOrEmpty()]
-        [int16]  $NavServerManagementPort = 7045)
+    [int16]  $NavServerManagementPort = 7045)
     
     if (-not $Recompile)
     {
@@ -575,15 +580,15 @@ function Compile-NAVApplicationObject2
             }
 
             RunNavIdeCommand -Command $command `
-                             -DatabaseServer $DatabaseServer `
-                             -DatabaseName $DatabaseName `
-                             -NTAuthentication:($Username -eq $null) `
-                             -Username $Username `
-                             -Password $Password `
-                             -NavServerInfo $navServerInfo `
-                             -LogFile $logFile `
-                             -ErrText "Error while compiling $Filter" `
-                             -Verbose:$VerbosePreference
+            -DatabaseServer $DatabaseServer `
+            -DatabaseName $DatabaseName `
+            -NTAuthentication:($Username -eq $null) `
+            -Username $Username `
+            -Password $Password `
+            -NavServerInfo $navServerInfo `
+            -LogFile $logFile `
+            -ErrText "Error while compiling $Filter" `
+            -Verbose:$VerbosePreference
         }
         catch
         {
