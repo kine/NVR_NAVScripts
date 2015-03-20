@@ -175,7 +175,7 @@ Process{
                 Write-Warning -Message "$Type $($NAVObject.ID) Should be removed from the database!"
                 if ($MarkToDelete) 
                 {
-                    $Result = Get-SQLCommandResult -Server $Server -Database $Database -Command "update Object set [Version List] = '#DELETE '+ [Version List], [Name]='#DELETED $($NAVObject.Type):$($NAVObject.ID)' where [Type]=$($NAVObject.Type) and [ID]=$($NAVObject.ID)"
+                    $Result = Get-SQLCommandResult -Server $Server -Database $Database -Command "update Object set [Version List] = '#DELETE', [Name]='#DELETED $($NAVObject.Type):$($NAVObject.ID)' where [Type]=$($NAVObject.Type) and [ID]=$($NAVObject.ID)"
                 }
             }
         }
