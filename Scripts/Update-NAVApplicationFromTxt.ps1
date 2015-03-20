@@ -45,9 +45,13 @@ Begin {
         Param(
             $Object
         )
-        if (($Object.Type -eq 1) -and ($Object.Id -gt 2000000004))
+        if (($Object.Type -eq 1) -and ($Object.ID -gt 2000000004))
         {
-            NVR_NAVScripts\Compile-NAVApplicationObject -Filter "Type=$($Object.Type);Id=$($Object.ID)" -Server $Server -Database $Database -NavIde (Get-NAVIde)
+            if ($Object.ID -eq 2000000006) {
+                NVR_NAVScripts\Compile-NAVApplicationObjectMulti -Filter "Type=$($Object.Type);Id=$($Object.ID)" -Server $Server -Database $Database -NavIde (Get-NAVIde) -SynchronizeSchemaChanges No
+            } else {
+                NVR_NAVScripts\Compile-NAVApplicationObjectMulti -Filter "Type=$($Object.Type);Id=$($Object.ID)" -Server $Server -Database $Database -NavIde (Get-NAVIde) -SynchronizeSchemaChanges Force
+            }
         }
     }
 
