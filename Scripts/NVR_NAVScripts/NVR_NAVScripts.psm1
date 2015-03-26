@@ -873,7 +873,7 @@ Function New-NAVLocalApplication
         
     if ($TargetPath) 
     {
-        $backupinfo = Get-SQLCommandResult -Server $Server -Database master -Command "RESTORE FILELISTONLY FROM DISK = `'$DbBackupFile`' WITH FILE = 1"
+        $backupinfo = Get-SQLCommandResult -Server $Server -Database master -Command "RESTORE FILELISTONLY FROM DISK = `'$DbBackupFile`' WITH FILE = 1" -ForceDataset
         if ($backupinfo.Count -gt 2)
         {
             Write-Host -Object "Trying to restore under folder $TargetPath..."

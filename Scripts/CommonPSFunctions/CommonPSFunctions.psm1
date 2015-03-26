@@ -209,7 +209,12 @@ function Get-SQLCommandResult
         # SQL Command to run
         [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
         [String]
-        $Command
+        $Command,
+        # Force return of dataset even when doesn't begin with SELECT
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
+        [Switch]
+        $ForceDataset
+      
     )
     Write-Verbose "Executing SQL command: $Command"
     #Push-Location
@@ -225,7 +230,7 @@ function Get-SQLCommandResult
     $SqlCmd.CommandText = $Command
     $SqlCmd.Connection = $SqlConnection
     
-    if ($Command.Split(' ')[0] -ilike 'select') {
+    if (($Command.Split(' ')[0] -ilike 'select') -or ($ForceDataset)) {
  
         $SqlAdapter = New-Object -TypeName System.Data.SqlClient.SqlDataAdapter
         $SqlAdapter.SelectCommand = $SqlCmd
