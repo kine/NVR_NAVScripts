@@ -103,7 +103,7 @@ function Import-NAVApplicationObject2
                 if ((Get-NavIdeMajorVersion) -ge 8) {
                     $command = "Command=ImportObjects`,ImportAction=$ImportAction`,SynchronizeSchemaChanges=$SynchronizeSchemaChanges`,File=`"$file`"" 
                 } else {
-                    $command = "Command=ImportObjects`,ImportAction=$ImportAction``,File=`"$file`"" 
+                    $command = "Command=ImportObjects`,ImportAction=$ImportAction`,File=`"$file`"" 
                 }
 
                 try
