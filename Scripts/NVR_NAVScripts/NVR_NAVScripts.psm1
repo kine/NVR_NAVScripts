@@ -368,7 +368,7 @@ function Compile-NAVApplicationObjectFiles
 
         If (Test-Path -Path "$LogFile") 
         {
-            Convert-NAVLogFileToErrors $LogFile
+            Convert-NAVLogFileToErrors -LogFile $LogFile
         }
     }
 }
@@ -377,18 +377,18 @@ function Compile-NAVApplicationObjectFilesMulti
 {
     [CmdletBinding()]
     Param(
-        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $True)]
-        [String]$Files,
-        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $True)]
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
+        [String]$files,
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
         [String]$Server,
-        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $True)]
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
         [String]$Database,
-        [Parameter(ValueFromPipelinebyPropertyName = $True)]
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
         [String]$NavIde = '',
-        [Parameter(ValueFromPipelinebyPropertyName = $True)]
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
         [switch]$AsJob,
         # Specifies the schema synchronization behaviour. The default value is 'Yes'.
-        [Parameter(ValueFromPipelinebyPropertyName = $True)]
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
         [ValidateSet('Yes','No','Force')]
         [string] $SynchronizeSchemaChanges = 'Yes'
     )
@@ -401,11 +401,11 @@ function Compile-NAVApplicationObjectFilesMulti
 
     #$finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
 
-    $TextFiles = Get-ChildItem -Path "$Files"
+    $TextFiles = Get-ChildItem -Path "$files"
     $i = 0
     $jobs = @()
 
-    $FilesProperty = Get-NAVApplicationObjectProperty -Source $Files
+    $FilesProperty = Get-NAVApplicationObjectProperty -Source $files
     $FilesSorted = $FilesProperty | Sort-Object -Property Id
     $CountOfObjects = $FilesProperty.Count
     $Ranges = @()
@@ -483,7 +483,7 @@ function Compile-NAVApplicationObject
 
     If (Test-Path -Path "$LogFile") 
     {
-        Convert-NAVLogFileToErrors $LogFile
+        Convert-NAVLogFileToErrors -LogFile $LogFile
     }
 }
 
@@ -866,6 +866,9 @@ Function New-NAVLocalApplication
         [Parameter(ValueFromPipelineByPropertyName = $true)]
         [string] $TargetPath
     )
+    #requires -version 4.0
+    #requires -runasadministrator
+
     Import-NAVAdminTool
     
     Write-Progress -Activity "Creating new database $Database on $Server..."
@@ -889,6 +892,9 @@ Function New-NAVLocalApplication
     {
         $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -ErrorAction Stop
     }
+    
+    Write-Verbose -Message 'Converting database'
+    Invoke-NAVDatabaseConversion2 -DatabaseName $Database -DatabaseServer $Server
     
     Write-Verbose -Message 'Database Restored'
 
@@ -922,7 +928,7 @@ Function New-NAVLocalApplication
             {
                 Write-Progress -Activity "Importing FOB File $fob..."
                 Import-NAVApplicationObject2 -Path $fob -DatabaseServer $Server -DatabaseName $Database -LogPath (Join-Path -Path $env:TEMP -ChildPath 'NVR_NAVScripts') -ImportAction Overwrite -SynchronizeSchemaChanges Force
-                Write-Host -Message "FOB Objects from $fob imported"
+                Write-Host -Object "FOB Objects from $fob imported"
             }
         }
     }
@@ -945,9 +951,9 @@ function Get-GITModifiedFiles
     Param
     (
         # Param1 help description
-        [Parameter(Mandatory=$true,
-                ValueFromPipelineByPropertyName=$true,
-        Position=0)]
+        [Parameter(Mandatory = $true,
+                ValueFromPipelineByPropertyName = $true,
+        Position = 0)]
         $Repository,
 
         # Param2 help description
@@ -957,11 +963,53 @@ function Get-GITModifiedFiles
         $ToCommit
     )
     Push-Location
-    $list= (git diff --name-only "$FromCommit" "$ToCommit")
+    $list = (git.exe diff --name-only "$FromCommit" "$ToCommit")
     Pop-Location
     return $list
-
 }
+
+<#
+    .Synopsis
+    Try to find specified version of NAV in folders on same level as passed default path
+    .DESCRIPTION
+    Return folder name for selected NAV version. If not found, return the passed default path
+    .EXAMPLE
+    Find-NAVVersion 'C:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client' '8.0.40262.0'
+    .EXAMPLE
+    Find-NAVVersion 'C:\Program Files\Microsoft Dynamics NAV\80\Service' '8.0.40262.0'
+#>
+
+function Find-NAVVersion
+{
+    param
+    (
+        #Default path, where to start the search
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true, HelpMessage = 'Default path, where to start the search')]
+        $path,
+        #Version which we are looking for
+        [Parameter(Mandatory = $true, Position = 1, ValueFromPipelineByPropertyName = $true, HelpMessage = 'Version which we are looking for')]
+        $Version
+    )
+    if (Test-Path -Path (Join-Path -Path $path -ChildPath 'Microsoft.Dynamics.Nav.Server.exe')) 
+    {
+        $searchfile = 'Microsoft.Dynamics.Nav.Server.exe'
+    }
+    if (Test-Path -Path (Join-Path -Path $path -ChildPath 'finsql.exe')) 
+    {
+        $searchfile = 'finsql.exe'
+    } 
+    $result = Split-Path $path |
+    Get-ChildItem -Filter $searchfile -Recurse |
+    Where-Object -FilterScript {
+        $_.VersionInfo.FileVersion -eq $Version
+    } 
+    if ($result) 
+    {
+        return $result.DirectoryName
+    }
+    return $path
+}
+
 $client = Split-Path (Get-NAVIde)
 $NavIde = Get-NAVIde
 
@@ -985,3 +1033,4 @@ Export-ModuleMember -Function Remove-NAVLocalApplication
 Export-ModuleMember -Function Set-ServicePortSharing
 Export-ModuleMember -Function Get-GITModifiedFiles
 Export-ModuleMember -Function Convert-NAVLogFileToErrors 
+Export-ModuleMember -Function Find-NAVVersion
