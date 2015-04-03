@@ -158,14 +158,14 @@ function RunNavIdeCommand
 {
     [CmdletBinding()]
     Param(
-    [string] $Command,
-    [string] $DatabaseServer,
-    [string] $DatabaseName,
-    [switch] $NTAuthentication,
-    [string] $Username,
-    [string] $Password,
-    [string] $NavServerInfo,
-    [string] $LogFile,
+        [string] $Command,
+        [string] $DatabaseServer,
+        [string] $DatabaseName,
+        [switch] $NTAuthentication,
+        [string] $Username,
+        [string] $Password,
+        [string] $NavServerInfo,
+        [string] $LogFile,
     [string] $ErrText)
 
     TestNavIde
@@ -174,19 +174,14 @@ function RunNavIdeCommand
     Remove-Item "$logPath\navcommandresult.txt" -ErrorAction Ignore
     Remove-Item $logFile -ErrorAction Ignore
 
-    $databaseInfo = @"
-ServerName="$DatabaseServer"`,Database="$DatabaseName"
-"@
+    $databaseInfo = "ServerName=`"$DatabaseServer`",Database=`"$DatabaseName`""
+    
     if ($Username)
     {
-        $databaseInfo = @"
-ntauthentication=No`,username="$Username"`,password="$Password"`,$databaseInfo
-"@
+        $databaseInfo = "ntauthentication=No`,username=`"$Username`",password=`"$Password`",$databaseInfo"
     }
     $NavIde=Get-NavIde
-    $finSqlCommand = @"
-& "$NavIde" --% $Command`,LogFile="$logFile"`,${databaseInfo}${NavServerInfo} | Out-Null
-"@ 
+    $finSqlCommand = "& `"$NavIde`" --% $Command`,LogFile=`"$LogFile`"`,${databaseInfo}${NavServerInfo} | Out-Null" 
 
     Write-Verbose "Running command: $finSqlCommand"
     Invoke-Expression -Command  $finSqlCommand
