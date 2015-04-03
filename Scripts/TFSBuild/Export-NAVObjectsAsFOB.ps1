@@ -5,7 +5,7 @@ Param (
 	[String]$NavIde,
 	[String]$LogFolder
 )
-Import-Module NVR_NAVScripts -Force -DisableNameChecking
+Import-Module -Name NVR_NAVScripts -DisableNameChecking -Force
 
 NVR_NAVScripts\Export-NAVApplicationObject -Server $Server -Database $Database -Path $ResultFob -Filter 'Compiled=1' -NavIde $NavIde -LogFolder $LogFolder
 

@@ -998,6 +998,10 @@ function Find-NAVVersion
         [Parameter(Mandatory = $true, Position = 1, ValueFromPipelineByPropertyName = $true, HelpMessage = 'Version which we are looking for')]
         $Version
     )
+    if (!($Version)) {
+        return $path
+    }
+    
     if (Test-Path -Path (Join-Path -Path $path -ChildPath 'Microsoft.Dynamics.Nav.Server.exe')) 
     {
         $searchfile = 'Microsoft.Dynamics.Nav.Server.exe'

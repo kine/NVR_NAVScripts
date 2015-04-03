@@ -186,6 +186,6 @@ function Update-NAVTxtFromApplication
     }
 
     End {
-        Remove-Item -Path 'LOG' -Force
+        Remove-Item -Path 'LOG' -Force -ErrorAction SilentlyContinue
     }
 }

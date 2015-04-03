@@ -13,8 +13,10 @@
     [String]$LogFolder
 )
 
-Import-Module CommonPSFunctions -Force
+Import-Module -Name NVR_NAVScripts -DisableNameChecking -Force
+Import-Module -Name CommonPSFunctions
+Import-Module (Get-NAVAdminModuleName)
 
 $ProgressPreference="SilentlyContinue"
-. (Join-Path $PSScriptRoot '..\Update-NAVApplicationFromTxt.ps1') -Files $Files -Server $Server -Database $Database -LogFolder $LogFolder -MarkToDelete
+Update-NAVApplicationFromTxt -Files $Files -Server $Server -Database $Database -LogFolder $LogFolder -MarkToDelete
 $ProgressPreference="Continue"
