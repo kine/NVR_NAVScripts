@@ -27,16 +27,28 @@ function Get-NAVAdminPath
 
 function Import-NAVAdminTool
 {
-    Write-Host "Importing NAVAdminTool from $(Join-Path -Path (Get-NAVAdminPath) -ChildPath 'Microsoft.Dynamics.Nav.Management.dll')"
-    Import-Module -Global (Join-Path -Path (Get-NAVAdminPath) -ChildPath 'Microsoft.Dynamics.Nav.Management.dll') -DisableNameChecking
-    Write-Verbose -Message 'NAV admin tool imported'
+    $modulepath = (Join-Path -Path (Get-NAVAdminPath) -ChildPath 'Microsoft.Dynamics.Nav.Management.dll')
+    $module = Get-Module 'Microsoft.Dynamics.Nav.Management'
+    if (!($module) -or ($module.Path -ne $modulepath)) {
+        Write-Host -Object "Importing NAVAdminTool from $modulepath"
+        Import-Module -Global (Join-Path -Path (Get-NAVAdminPath) -ChildPath 'Microsoft.Dynamics.Nav.Management.dll') -DisableNameChecking -Force
+        Write-Verbose -Message 'NAV admin tool imported'
+    } else {
+        Write-Verbose -Message 'NAV admin tool already imported'
+    }
 }
 
 function Import-NAVModelTool
 {
-    Write-Host "Importing NAVModelTool from $(Join-Path -Path (Get-NAVIdePath) -ChildPath 'Microsoft.Dynamics.Nav.Model.Tools.psd1')"
-    Import-Module -Global (Join-Path -Path (Get-NAVIdePath) -ChildPath 'Microsoft.Dynamics.Nav.Model.Tools.psd1') -ArgumentList (Get-NAVIde) -DisableNameChecking #-force -WarningAction SilentlyContinue | Out-Null
-    Write-Verbose -Message 'NAV model tool imported'
+    $modulepath = (Join-Path -Path (Get-NAVIdePath) -ChildPath 'Microsoft.Dynamics.Nav.Model.Tools.psd1')
+    $module = Get-Module 'Microsoft.Dynamics.Nav.Model.Tools'
+    if (!($module) -or ($module.Path -ne $modulepath)) {
+        Write-Host -Object "Importing NAVModelTool from $modulepath"
+        Import-Module -Global $modulepath -ArgumentList (Get-NAVIde) -DisableNameChecking -force #-WarningAction SilentlyContinue | Out-Null
+        Write-Verbose -Message 'NAV model tool imported'
+    } else {
+        Write-Verbose -Message 'NAV model tool already imported'
+    }
 }
 
 function Write-TfsMessage
@@ -216,7 +228,7 @@ function Get-SQLCommandResult
         $ForceDataset
       
     )
-    Write-Verbose "Executing SQL command: $Command"
+    Write-Verbose -Message "Executing SQL command: $Command"
     #Push-Location
     #Import-Module "sqlps" -DisableNameChecking
     #$Result = Invoke-Sqlcmd -Database $Database -ServerInstance $Server -Query $Command
@@ -230,8 +242,8 @@ function Get-SQLCommandResult
     $SqlCmd.CommandText = $Command
     $SqlCmd.Connection = $SqlConnection
     
-    if (($Command.Split(' ')[0] -ilike 'select') -or ($ForceDataset)) {
- 
+    if (($Command.Split(' ')[0] -ilike 'select') -or ($ForceDataset)) 
+    {
         $SqlAdapter = New-Object -TypeName System.Data.SqlClient.SqlDataAdapter
         $SqlAdapter.SelectCommand = $SqlCmd
  
@@ -241,7 +253,8 @@ function Get-SQLCommandResult
         $result = $SqlConnection.Close()
  
         return $DataSet.Tables[0]
-    } else 
+    }
+    else 
     {
         $result = $SqlConnection.Open()
         #$result = $SqlCmd.ExecuteScalar()
