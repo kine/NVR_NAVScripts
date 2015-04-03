@@ -3,9 +3,9 @@ param (
 	[String]$Instance,
 	[int]$CodeunitID
 )
-Import-Module CommonPSFunctions -DisableNameChecking
-Import-Module NVR_NAVScripts -DisableNameChecking
-Import-NAVAdminTool
+Import-Module -Name NVR_NAVScripts -DisableNameChecking -Force
+Import-Module -Name CommonPSFunctions
+Import-Module (Get-NAVAdminModuleName)
 
 if ($CodeunitID -gt 0) {
 	Write-Output "Running test codeunit $CodeunitID"

@@ -3,7 +3,7 @@ param(
 	[String]$Database,
 	[String]$Instance
 )
-Import-Module NVR_NAVScripts -DisableNameChecking
-Import-Module CommonPSFunctions -DisableNameChecking
-Import-NAVAdminTool -DisableNameChecking
+Import-Module -Name NVR_NAVScripts -DisableNameChecking -Force
+Import-Module -Name CommonPSFunctions
+Import-Module (Get-NAVAdminModuleName)
 Remove-NAVLocalApplication -Server $Server -Database $Database -ServerInstance $Instance

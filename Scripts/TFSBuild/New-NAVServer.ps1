@@ -12,9 +12,9 @@ Param (
 if (Test-Path $TargetPath\src\setup.xml) {
   . "$PSScriptRoot\..\Get-NAVGITSetup.ps1" -SetupFile "$TargetPath\src\setup.xml" | Out-Null
 }
-Import-Module CommonPSFunctions -DisableNameChecking
-Import-Module NVR_NAVScripts -DisableNameChecking
-Import-NAVAdminTool
+Import-Module -Name NVR_NAVScripts -DisableNameChecking -Force
+Import-Module -Name CommonPSFunctions
+Import-Module (Get-NAVAdminModuleName)
 
 if ((Get-NAVServerInstance -ServerInstance $Instance) -and (-not $ForceNewDB)) {
     Write-Host "Server instance $Instance already exists, skipping the initialization of environment..."
