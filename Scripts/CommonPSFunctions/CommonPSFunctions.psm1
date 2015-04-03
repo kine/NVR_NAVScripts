@@ -25,15 +25,26 @@ function Get-NAVAdminPath
     return $env:NAVServicePath
 }
 
+function Get-NAVAdminModuleName
+{
+    return (Join-Path -Path (Get-NAVAdminPath) -ChildPath 'Microsoft.Dynamics.Nav.Management.dll')
+}
 function Import-NAVAdminTool
 {
-    $modulepath = (Join-Path -Path (Get-NAVAdminPath) -ChildPath 'Microsoft.Dynamics.Nav.Management.dll')
-    $module = Get-Module 'Microsoft.Dynamics.Nav.Management'
-    if (!($module) -or ($module.Path -ne $modulepath)) {
+    $modulepath = Get-NAVAdminModuleName
+    $module = Get-Module -Name 'Microsoft.Dynamics.Nav.Management'
+    if (!($module) -or ($module.Path -ne $modulepath)) 
+    {
+        if (!(Test-Path -Path $modulepath)) 
+        {
+            Write-Error -Message "Module $moduelpath not found!"
+            return
+        }
         Write-Host -Object "Importing NAVAdminTool from $modulepath"
-        Import-Module -Global (Join-Path -Path (Get-NAVAdminPath) -ChildPath 'Microsoft.Dynamics.Nav.Management.dll') -DisableNameChecking -Force
+        Import-Module -Global "$modulepath" -ArgumentList (Get-NAVIde) -DisableNameChecking -Force
         Write-Verbose -Message 'NAV admin tool imported'
-    } else {
+    } else 
+    {
         Write-Verbose -Message 'NAV admin tool already imported'
     }
 }
@@ -41,12 +52,19 @@ function Import-NAVAdminTool
 function Import-NAVModelTool
 {
     $modulepath = (Join-Path -Path (Get-NAVIdePath) -ChildPath 'Microsoft.Dynamics.Nav.Model.Tools.psd1')
-    $module = Get-Module 'Microsoft.Dynamics.Nav.Model.Tools'
-    if (!($module) -or ($module.Path -ne $modulepath)) {
+    $module = Get-Module -Name 'Microsoft.Dynamics.Nav.Model.Tools'
+    if (!($module) -or ($module.Path -ne $modulepath)) 
+    {
+        if (!(Test-Path -Path $modulepath)) 
+        {
+            Write-Error -Message "Module $moduelpath not found!"
+            return
+        }
         Write-Host -Object "Importing NAVModelTool from $modulepath"
-        Import-Module -Global $modulepath -ArgumentList (Get-NAVIde) -DisableNameChecking -force #-WarningAction SilentlyContinue | Out-Null
+        Import-Module -Global "$modulepath" -ArgumentList (Get-NAVIde) -DisableNameChecking -Force #-WarningAction SilentlyContinue | Out-Null
         Write-Verbose -Message 'NAV model tool imported'
-    } else {
+    } else 
+    {
         Write-Verbose -Message 'NAV model tool already imported'
     }
 }
@@ -487,3 +505,4 @@ Export-ModuleMember -Function Write-TfsError
 Export-ModuleMember -Function Write-TfsWarning
 Export-ModuleMember -Function Get-NAVBlobToString
 Export-ModuleMember -Function Get-StringToNAVBlob
+Export-ModuleMember -Function Get-NAVAdminModuleName
