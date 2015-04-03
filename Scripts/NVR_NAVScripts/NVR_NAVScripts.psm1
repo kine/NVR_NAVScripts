@@ -2,10 +2,18 @@
 #. "Merge-NAVVersionListString script.ps1"
 
 #Import-Module 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\Microsoft.Dynamics.Nav.Model.Tools.psd1' -WarningAction SilentlyContinue | Out-Null
-Import-NAVAdminTool
-Import-NAVModelTool
+#Import-NAVAdminTool
+#Import-NAVModelTool
 
 . (Join-Path -Path $PSScriptRoot -ChildPath 'MSNAV80_CustomFunctions.ps1')
+. (Join-Path -Path $PSScriptRoot -ChildPath 'Compile-NAVTxt2Fob.ps1')
+. (Join-Path -Path $PSScriptRoot -ChildPath 'Export-NAVProfileCaptionML')
+. (Join-Path -Path $PSScriptRoot -ChildPath 'Fix-NAVProfileTriggerNames')
+. (Join-Path -Path $PSScriptRoot -ChildPath 'Get-NAVGITSetup')
+. (Join-Path -Path $PSScriptRoot -ChildPath 'Merge-NAVGIT') 
+. (Join-Path -Path $PSScriptRoot -ChildPath 'Translate-NAVProfileCaptionML') 
+. (Join-Path -Path $PSScriptRoot -ChildPath 'Update-NAVApplicationFromTxt') 
+. (Join-Path -Path $PSScriptRoot -ChildPath 'Update-NAVTxtFromApplication') 
 
 Add-Type -Language CSharp -TypeDefinition @"
   public enum VersionListMergeMode
@@ -1034,3 +1042,11 @@ Export-ModuleMember -Function Set-ServicePortSharing
 Export-ModuleMember -Function Get-GITModifiedFiles
 Export-ModuleMember -Function Convert-NAVLogFileToErrors 
 Export-ModuleMember -Function Find-NAVVersion
+Export-ModuleMember -Function Compile-NAVTxt2Fob
+Export-ModuleMember -Function Export-NAVProfileCaptionML
+Export-ModuleMember -Function Fix-NAVProfileTriggerNames
+Export-ModuleMember -Function Get-NAVGITSetup
+Export-ModuleMember -Function Merge-NAVGIT
+Export-ModuleMember -Function Translate-NAVProfileCaptionML
+Export-ModuleMember -Function Update-NAVApplicationFromTxt
+Export-ModuleMember -Function Update-NAVTxtFromApplication
