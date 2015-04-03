@@ -34,8 +34,8 @@ function Import-NAVAdminTool
 
 function Import-NAVModelTool
 {
-    Write-Host "Importing NAVModelTool from $(Join-Path -Path (Get-NAVIdePath) -ChildPath 'Microsoft.Dynamics.Nav.Model.Tools.psd1'))"
-    Import-Module -Global (Join-Path -Path (Get-NAVIdePath) -ChildPath 'Microsoft.Dynamics.Nav.Model.Tools.psd1') -ArgumentList (Get-NAVIdePath) -DisableNameChecking #-force -WarningAction SilentlyContinue | Out-Null
+    Write-Host "Importing NAVModelTool from $(Join-Path -Path (Get-NAVIdePath) -ChildPath 'Microsoft.Dynamics.Nav.Model.Tools.psd1')"
+    Import-Module -Global (Join-Path -Path (Get-NAVIdePath) -ChildPath 'Microsoft.Dynamics.Nav.Model.Tools.psd1') -ArgumentList (Get-NAVIde) -DisableNameChecking #-force -WarningAction SilentlyContinue | Out-Null
     Write-Verbose -Message 'NAV model tool imported'
 }
 
@@ -466,6 +466,7 @@ Export-ModuleMember -Function Remove-SQLDatabase
 Export-ModuleMember -Function Get-NAVObjectTypeIdFromName
 Export-ModuleMember -Function Get-NAVObjectTypeNameFromId
 Export-ModuleMember -Function Get-NAVIde
+Export-ModuleMember -Function Get-NAVIdePath
 Export-ModuleMember -Function Get-NAVAdminPath
 Export-ModuleMember -Function Get-SQLCommandResult
 Export-ModuleMember -Function Write-TfsMessage
