@@ -15,7 +15,7 @@ Compile-NAVApplicationObject2 -DatabaseServer $Server -DatabaseName $Database -F
 
 if ($CompileAll -eq 1) {
 #	Compile-NAVApplicationObjectFilesMulti -Files $Files -Server $Server -Database $Database -LogFolder $LogFolder -NavIde $NavIde
-	NVR_NAVScripts\Compile-NAVApplicationObjectMulti -Server $Server -Database $Database -Filter 'Compiled=0|1'-LogFolder $LogFolder -NavIde $NavIde  -SynchronizeSchemaChanges Force -AsJob
+	Compile-NAVApplicationObjectMulti -Server $Server -Database $Database -Filter 'Compiled=0|1'-LogFolder $LogFolder -NavIde $NavIde  -SynchronizeSchemaChanges Force -AsJob
 } else {
 	Compile-NAVApplicationObject2 -DatabaseServer $Server -DatabaseName $Database -Filter 'Compiled=0' -LogPath $LogFolder -SynchronizeSchemaChanges Force
 }

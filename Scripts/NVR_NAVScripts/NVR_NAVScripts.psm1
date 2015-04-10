@@ -414,14 +414,16 @@ function Compile-NAVApplicationObjectFilesMulti
     $jobs = @()
 
     $FilesProperty = Get-NAVApplicationObjectProperty -Source $files
-    $FilesSorted = $FilesProperty | Sort-Object -Property Id
+    $FilesSorted = $FilesProperty | Where-Object {$_.ObjectType -ne 'Table'} | Sort-Object -Property Id
     $CountOfObjects = $FilesProperty.Count
     $Ranges = @()
-    $Step = $CountOfObjects/$CPUs
+    $Step = $CountOfObjects/($CPUs-1)
     $Last = 0
-    for ($i = 0;$i -lt $CPUs;$i++) 
+    #Adding one CPU for compilation of tables (preventing deadlocks?)
+    $Ranges += '0..2000000999;Type=Table'
+    for ($i = 0;$i -lt ($CPUs-1);$i++) 
     {
-        $Ranges += "$($Last+1)..$($FilesSorted[$i*$Step+$Step-1].Id)"
+        $Ranges += "$($Last+1)..$($FilesSorted[$i*$Step+$Step-1].Id);Type=2.."
         $Last = $FilesSorted[$i*$Step+$Step-1].Id
     }
 
@@ -529,21 +531,24 @@ function Compile-NAVApplicationObjectMulti
     $i = 0
     $jobs = @()
 
-    $ObjectProperty = Get-SQLCommandResult -Server $Server -Database $Database -Command 'Select Type,ID from Object order by ID'
+    $ObjectProperty = Get-SQLCommandResult -Server $Server -Database $Database -Command "Select Type,ID from Object where Type > '1' order by ID"
     $CountOfObjects = $ObjectProperty.Count
     $Ranges = @()
-    $Step = $CountOfObjects/$CPUs
+    $Step = $CountOfObjects/($CPUs-1)
     
     if ($Step -lt $ParallelismLimit) 
     {
         $CPUs = $CountOfObjects / $ParallelismLimit   
-        $Step = $CountOfObjects/$CPUs
+        $Step = $CountOfObjects/($CPUs-1)
     }
     
     $Last = 0
-    for ($i = 0;$i -lt $CPUs;$i++) 
+    #Adding one CPU for compilation of tables (preventing deadlocks?)
+    $Ranges += '0..2000000999;Type=Table'
+    
+    for ($i = 0;$i -lt ($CPUs-1);$i++) 
     {
-        $Ranges += "$($Last+1)..$($ObjectProperty[$i*$Step+$Step-1].ID)"
+        $Ranges += "$($Last+1)..$($ObjectProperty[$i*$Step+$Step-1].ID);Type=2.."
         $Last = $ObjectProperty[$i*$Step+$Step-1].ID
     }
 
@@ -553,7 +558,7 @@ function Compile-NAVApplicationObjectMulti
     #foreach ($FileProperty in $FilesProperty){
     foreach ($Range in $Ranges) 
     {
-        $LogFile = "$LogFolder\$Range.log"
+        $LogFile = "$LogFolder\$($Range -replace '\W','_').log"
         $Filter = "ID=$Range"
         if ($AsJob -eq $true) 
         {
@@ -901,9 +906,6 @@ Function New-NAVLocalApplication
         $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -ErrorAction Stop
     }
     
-    Write-Verbose -Message 'Converting database'
-    Invoke-NAVDatabaseConversion2 -DatabaseName $Database -DatabaseServer $Server
-    
     Write-Verbose -Message 'Database Restored'
 
     Write-Progress -Activity 'Creating new server instance $ServerInstance...'
@@ -914,13 +916,17 @@ Function New-NAVLocalApplication
     
     Set-NAVServerConfiguration -ServerInstance $ServerInstance -KeyName 'ClientServicesEnabled' -KeyValue 'true'
 
-    Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
     Write-Verbose -Message 'Server instance created'
-
+    Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
+        
     Write-Progress -Activity 'Importing License $LicenseFile...'
     Import-NAVServerLicense -LicenseFile $LicenseFile -Database NavDatabase -ServerInstance $ServerInstance -WarningAction SilentlyContinue 
     Write-Verbose -Message 'License imported'
-
+        
+    Write-Verbose -Message 'Converting database'
+    Invoke-NAVDatabaseConversion2 -DatabaseName $Database -DatabaseServer $Server
+    
+    
     Stop-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
     Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
     Write-Verbose -Message 'Server instance restarted'
@@ -1054,3 +1060,8 @@ Export-ModuleMember -Function Merge-NAVGIT
 Export-ModuleMember -Function Translate-NAVProfileCaptionML
 Export-ModuleMember -Function Update-NAVApplicationFromTxt
 Export-ModuleMember -Function Update-NAVTxtFromApplication
+Export-ModuleMember -Function Compile-NAVApplicationObject2
+Export-ModuleMember -Function Create-NAVDatabase2
+Export-ModuleMember -Function Delete-NAVApplicationObject2
+Export-ModuleMember -Function Export-NAVApplicationObject2
+Export-ModuleMember -Function Import-NAVApplicationObject2
