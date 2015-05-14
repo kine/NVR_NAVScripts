@@ -1065,3 +1065,4 @@ Export-ModuleMember -Function Create-NAVDatabase2
 Export-ModuleMember -Function Delete-NAVApplicationObject2
 Export-ModuleMember -Function Export-NAVApplicationObject2
 Export-ModuleMember -Function Import-NAVApplicationObject2
+Export-ModuleMember -Function Set-NAVObjectAsDeleted
