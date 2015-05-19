@@ -94,6 +94,9 @@ function Update-NAVApplicationFromTxt
                     NVR_NAVScripts\Compile-NAVApplicationObjectMulti -Filter "Type=$($Object.Type);Id=$($Object.ID)" -Server $Server -Database $Database -NavIde (Get-NAVIde) -SynchronizeSchemaChanges Force
                 }
             }
+            if ($Object.Type -eq 7) { #menusuite
+                NVR_NAVScripts\Compile-NAVApplicationObjectMulti -Filter "Type=$($Object.Type);Id=$($Object.ID)" -Server $Server -Database $Database -NavIde (Get-NAVIde) -SynchronizeSchemaChanges Force
+            }
         }
 
         if (!($env:PSModulePath -like "*;$PSScriptRoot*")) 
