@@ -13,7 +13,7 @@ Write-Host 'Compiling uncompiled system tables...'
 Compile-NAVApplicationObject2 -DatabaseServer $Server -DatabaseName $Database -Filter 'Type=Table;Id=2000000000..' -LogPath $LogFolder -SynchronizeSchemaChanges Force
 #Preventing the error about "Must be compiled..."
 Write-Host 'Compiling uncompiled menusuites...'
-Compile-NAVApplicationObject2 -DatabaseServer $Server -DatabaseName $Database -Filter 'Type=MenuSuite;Compiled=0' -LogPath $LogFolder -SynchronizeSchemaChanges Force
+Compile-NAVApplicationObject2 -DatabaseServer $Server -DatabaseName $Database -Filter 'Type=MenuSuite;Compiled=0' -LogPath $LogFolder -SynchronizeSchemaChanges Force -ErrorAction SilentlyContinue
 Write-Host 'Compiling rest of objects...'
 if ($CompileAll -eq 1) {
 #	Compile-NAVApplicationObjectFilesMulti -Files $Files -Server $Server -Database $Database -LogFolder $LogFolder -NavIde $NavIde
