@@ -834,7 +834,7 @@ function Set-ServicePortSharing
     #Enable and start Port Sharing
     Get-Service -Name NetTcpPortSharing | Set-Service -StartupType Manual -Status Running
     #turn on Port Sharing on the new service
-    sc.exe config "$Name" depend= NetTcpPortSharing/HTTP > null
+    sc.exe config "$Name" depend= NetTcpPortSharing/HTTP | Out-Null
 }
 
 <#
@@ -909,6 +909,10 @@ Function New-NAVLocalApplication
     Write-Verbose -Message 'Database Restored'
 
     Write-Progress -Activity 'Creating new server instance $ServerInstance...'
+    
+    Write-Host 'Converting database...'
+    Invoke-NAVDatabaseConversion2 -DatabaseName $Database -DatabaseServer $Server
+    
     Write-Host -Object "Creating new server instance $ServerInstance..."
     $null = New-NAVServerInstance -DatabaseServer $Server -DatabaseName $Database -ServerInstance $ServerInstance -ManagementServicesPort 7045 -DatabaseInstance ''
     
@@ -917,18 +921,16 @@ Function New-NAVLocalApplication
     Set-NAVServerConfiguration -ServerInstance $ServerInstance -KeyName 'ClientServicesEnabled' -KeyValue 'true'
 
     Write-Verbose -Message 'Server instance created'
-    Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
+    Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance") -ErrorAction Stop
         
     Write-Progress -Activity 'Importing License $LicenseFile...'
-    Import-NAVServerLicense -LicenseFile $LicenseFile -Database NavDatabase -ServerInstance $ServerInstance -WarningAction SilentlyContinue 
+    Import-NAVServerLicense -LicenseFile $LicenseFile -Database NavDatabase -ServerInstance $ServerInstance -WarningAction SilentlyContinue -ErrorAction Stop
     Write-Verbose -Message 'License imported'
         
-    Write-Verbose -Message 'Converting database'
-    Invoke-NAVDatabaseConversion2 -DatabaseName $Database -DatabaseServer $Server
-    
+   
     
     Stop-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
-    Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
+    Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance") -ErrorAction Stop
     Write-Verbose -Message 'Server instance restarted'
 
     #Sync-NAVTenant -ServerInstance $ServerInstance -Force

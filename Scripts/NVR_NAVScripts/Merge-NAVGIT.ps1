@@ -114,7 +114,7 @@ function Merge-NAVGIT
 
     function CreateGitMerge
     {
-        $result = git.exe merge --no-ff --no-commit --strategy=ours --quiet --no-progress $targetbranch 2> $null
+        $result = git.exe merge --no-ff --no-commit --strategy=ours --quiet --no-progress $targetbranch | Out-Null
     }
 
     function ConvertTo-Date ($param1)
