@@ -524,6 +524,11 @@ function Get-Confirmation
     return $result
 }
 
+function Test-Administrator  
+{ 
+    $user = [Security.Principal.WindowsIdentity]::GetCurrent()
+    return (New-Object Security.Principal.WindowsPrincipal $user).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)  
+}
 
 Export-ModuleMember -Function Import-NAVAdminTool
 Export-ModuleMember -Function Import-NAVModelTool
@@ -544,3 +549,4 @@ Export-ModuleMember -Function Get-NAVBlobToString
 Export-ModuleMember -Function Get-StringToNAVBlob
 Export-ModuleMember -Function Get-NAVAdminModuleName
 Export-ModuleMember -Function Get-Confirmation
+Export-ModuleMember -Function Test-Administrator  
