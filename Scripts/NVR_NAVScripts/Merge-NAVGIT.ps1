@@ -224,6 +224,18 @@ function Merge-NAVGIT
         }
     }
 
+    function Remove-NAVEmptyTranslation
+    {
+        param
+        (
+            [Parameter(Mandatory = $true)]
+            $Path,
+            [Parameter(Mandatory = $true)]
+            $Result
+        )
+        Get-Content -Path $Path | Where-Object {$_ -match '.+-L999:.+'} | Set-Content -Path $Result
+    }
+
     $currentfolder = Get-Location
     Set-Location $repository 
 
@@ -384,12 +396,15 @@ function Merge-NAVGIT
 
     if ($RemoveLanguageId) 
     {
+        Remove-NAVEmptyTranslation -Path (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage.txt') -Result (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage2.txt')
+        Remove-NAVEmptyTranslation -Path (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage.txt') -Result (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage2.txt')
+        
         $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
-        Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId
+        Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId
         $result = Remove-Item -Path $resultfolder -Force -Recurse
         $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
         $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
-        Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId
+        Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId
         $result = Remove-Item -Path $resultfolder -Force -Recurse
         $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
     }
