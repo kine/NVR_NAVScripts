@@ -1,6 +1,6 @@
 ﻿function Get-NAVIde
 {
-    if ($env:NAVIdePath -eq '') 
+    if (!$env:NAVIdePath) 
     {
         return 'c:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client\finsql.exe'
     }
@@ -9,7 +9,7 @@
 
 function Get-NAVIdePath
 {
-    if ($env:NAVIdePath -eq '') 
+    if (!$env:NAVIdePath) 
     {
         return 'c:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client'
     }
@@ -18,7 +18,7 @@ function Get-NAVIdePath
 
 function Get-NAVAdminPath
 {
-    if ($env:NAVServicePath -eq '') 
+    if (!$env:NAVServicePath) 
     {
         return 'c:\Program Files\Microsoft Dynamics NAV\80\Service'
     }
