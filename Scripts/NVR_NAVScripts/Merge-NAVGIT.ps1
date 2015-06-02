@@ -252,7 +252,9 @@ function Merge-NAVGIT
     Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 'Clearing temp folders...'
     if (!$remerge) 
     {
-        $result = Remove-Item -Path $tempfolder -Force -Recurse
+        if (Get-Item $tempfolder) {
+            $result = Remove-Item -Path $tempfolder -Force -Recurse
+        }
         $result = New-Item -Path $tempfolder -ItemType directory -Force
 
         #$result = Remove-Item -Path $sourcefolder -Force -Recurse
@@ -270,7 +272,9 @@ function Merge-NAVGIT
         $result = New-Item -Path $languagefolder -ItemType directory -Force
     }
 
-    $result = Remove-Item -Path $resultfolder -Force -Recurse
+    if (Get-Item $resultfolder) {
+        $result = Remove-Item -Path $resultfolder -Force -Recurse
+    }
     $result = New-Item -Path $resultfolder -ItemType directory -Force
 
     $result = New-Item -Path (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -ItemType directory -Force
@@ -384,6 +388,7 @@ function Merge-NAVGIT
         Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId
         $result = Remove-Item -Path $resultfolder -Force -Recurse
         $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
+        $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
         Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId
         $result = Remove-Item -Path $resultfolder -Force -Recurse
         $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
