@@ -879,9 +879,8 @@ Function New-NAVLocalApplication
         [Parameter(ValueFromPipelineByPropertyName = $true)]
         [string] $TargetPath
     )
-    #requires -version 4.0
-    #requires -runasadministrator
-
+    Test-Administrator
+    
     Import-NAVAdminTool
     
     Write-Progress -Activity "Creating new database $Database on $Server..."
