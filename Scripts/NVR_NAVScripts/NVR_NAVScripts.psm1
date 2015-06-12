@@ -960,24 +960,26 @@ Function New-NAVLocalApplication
     .EXAMPLE
     Another example of how to use this cmdlet
 #>
-function Get-GITModifiedFiles
+function Get-GITModifiedFile
 {
     [CmdletBinding()]
     Param
     (
-        # Param1 help description
-        [Parameter(Mandatory = $true,
+        # GIT Repository path
+        [Parameter(Mandatory = $false,
                 ValueFromPipelineByPropertyName = $true,
         Position = 0)]
-        $Repository,
+        $Repository='.',
 
-        # Param2 help description
+        # From commit
         [String]
-        $FromCommit,
+        $FromCommit='HEAD',
+        # To commit
         [String]
-        $ToCommit
+        $ToCommit='HEAD~1'
     )
     Push-Location
+    Set-Location -Path $Repository
     $list = (git.exe diff --name-only "$FromCommit" "$ToCommit")
     Pop-Location
     return $list
