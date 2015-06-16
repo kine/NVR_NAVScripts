@@ -1029,6 +1029,19 @@ function Find-NAVVersion
     return $path
 }
 
+Function Set-NAVUIDOffset
+{
+	param (
+		[Parameter(Mandatory=$true, ValueFromPipelineByPropertyName = $true, HelpMessage="SQL Server")]
+		[String]$Server,
+		[Parameter(Mandatory=$true, ValueFromPipelineByPropertyName = $true, HelpMessage="SQL Database")]
+		[String]$Database,
+		[Parameter(Mandatory=$true, ValueFromPipelineByPropertyName = $true, HelpMessage="ID Offset to set")]
+		[int]$UIDOffset
+	)
+	Get-SQLCommandResult -Server $Server -Database $Database -Command "UPDATE [`$ndo`$dbproperty] SET [uidoffset] = $UIDOffset" | Out-Null
+}
+
 $client = Split-Path (Get-NAVIde)
 $NavIde = Get-NAVIde
 
@@ -1067,3 +1080,4 @@ Export-ModuleMember -Function Delete-NAVApplicationObject2
 Export-ModuleMember -Function Export-NAVApplicationObject2
 Export-ModuleMember -Function Import-NAVApplicationObject2
 Export-ModuleMember -Function Set-NAVObjectAsDeleted
+Export-ModuleMember -Function Set-NAVUIDOffset
