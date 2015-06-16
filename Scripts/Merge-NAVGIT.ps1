@@ -397,13 +397,17 @@ if ($RemoveLanguageId)
     Remove-NAVEmptyTranslation -Path (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage.txt') -Result (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage2.txt')
         
     $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
-    Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId
-    $result = Remove-Item -Path $resultfolder -Force -Recurse
-    $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
+    if (Test-Path -Path (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage2.txt')) {
+        Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId
+        $result = Remove-Item -Path $resultfolder -Force -Recurse
+        $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
+    }
     $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
-    Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId
-    $result = Remove-Item -Path $resultfolder -Force -Recurse
-    $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
+    if (Test-Path -Path (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage2.txt')) {
+        Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId
+        $result = Remove-Item -Path $resultfolder -Force -Recurse
+        $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
+    }
 }
 
 if (!$skipcopytorep) 
