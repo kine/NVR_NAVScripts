@@ -14,6 +14,7 @@
 . (Join-Path -Path $PSScriptRoot -ChildPath 'Translate-NAVProfileCaptionML') 
 . (Join-Path -Path $PSScriptRoot -ChildPath 'Update-NAVApplicationFromTxt') 
 . (Join-Path -Path $PSScriptRoot -ChildPath 'Update-NAVTxtFromApplication') 
+. (Join-Path -Path $PSScriptRoot -ChildPath 'Publish-NAVObject') 
 
 Add-Type -Language CSharp -TypeDefinition @"
   public enum VersionListMergeMode
@@ -136,6 +137,9 @@ function Merge-NAVVersionListString
                 $result = $result + $module
             }
         }
+    }
+    if ($result -notlike "*$($newmoduleinfo.shortcut)*") {
+      $result = $result + ',' + $newversion
     }
     return $result
 }
@@ -1083,3 +1087,4 @@ Export-ModuleMember -Function Export-NAVApplicationObject2
 Export-ModuleMember -Function Import-NAVApplicationObject2
 Export-ModuleMember -Function Set-NAVObjectAsDeleted
 Export-ModuleMember -Function Set-NAVUIDOffset
+Export-ModuleMember -Function Publish-NAVObject
