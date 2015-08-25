@@ -258,7 +258,8 @@ function Update-NAVApplicationFromTxt
             }
             else 
             {
-                Import-NAVApplicationObjectFiles -files $ObjToImport.FileName.FileName -Server $Server -Database $Database -NavIde (Get-NAVIde) -LogFolder $LogFolder
+                #Import-NAVApplicationObjectFiles -files $ObjToImport.FileName.FileName -Server $Server -Database $Database -NavIde (Get-NAVIde) -LogFolder $LogFolder
+                Import-NAVApplicationObject2 -Path $ObjToImport.FileName.FileName -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFolder -ImportAction Overwrite -SynchronizeSchemaChanges Force
             }
             Invoke-PostImportCompilation -Object $ObjectToImport
         }
