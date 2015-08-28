@@ -89,10 +89,11 @@ function Import-NAVApplicationObject2
             $Path = (Get-Item $Path).FullName
         }
 
-        if ($PSCmdlet.ShouldProcess(
-            "Import application objects from $Path into the $DatabaseName database.",
-            "Import application objects from $Path into the $DatabaseName database. If you continue, you may loose data in fields that are removed or changed in the imported file.",
-            'Confirm'))
+        #        if ($PSCmdlet.ShouldProcess(
+        #            "Import application objects from $Path into the $DatabaseName database.",
+        #            "Import application objects from $Path into the $DatabaseName database. If you continue, you may loose data in fields that are removed or changed in the imported file.",
+        #            'Confirm'))
+        if ($True)
         {
             $navServerInfo = GetNavServerInfo $NavServerName $NavServerInstance $NavServerManagementPort
 
@@ -191,7 +192,12 @@ function RunNavIdeCommand
         if (Test-Path $LogFile)
         {
             #throw "${ErrorText}: $(Get-Content $LogFile -Raw)" -replace "`r[^`n]","`r`n"
-            Convert-NAVLogFileToErrors $LogFile
+            if ($env:BUILD_REPOSITORY_PROVIDER)
+            {
+                Convert-NAVLogFileToErrors $LogFile
+            } else {
+                Convert-NAVLogFileToErrors $LogFile
+            }
         }
     }
     else
@@ -276,14 +282,16 @@ function Export-NAVApplicationObject2
         [Parameter(Mandatory=$true, ParameterSetName="DatabaseAuthentication")]
         [string] $Password)
 
-    if ($PSCmdlet.ShouldProcess(
-        "Export application objects from $DatabaseName database to $Path.",
-        "Export application objects from $DatabaseName database to $Path.",
-        'Confirm'))
+    #if ($PSCmdlet.ShouldProcess(
+    #        "Export application objects from $DatabaseName database to $Path.",
+    #        "Export application objects from $DatabaseName database to $Path.",
+    #        'Confirm'))
+    if ($true)
     {
-        if (!$Force -and (Test-Path $Path) -and !$PSCmdlet.ShouldContinue(
-            "$Path already exists. If you continue, $Path will be overwritten.",
-            'Confirm'))
+        #if (!$Force -and (Test-Path $Path) -and !$PSCmdlet.ShouldContinue(
+        #        "$Path already exists. If you continue, $Path will be overwritten.",
+        #    'Confirm'))
+        if ($false)
         {
             Write-Error "$Path already exists."
             return
@@ -394,10 +402,11 @@ function Delete-NAVApplicationObject2
         [ValidateNotNullOrEmpty()]
         [int16]  $NavServerManagementPort = 7045)
 
-    if ($PSCmdlet.ShouldProcess(
-        "Delete application objects from $DatabaseName database.",
-        "Delete application objects from $DatabaseName database.",
-        'Confirm'))
+    #if ($PSCmdlet.ShouldProcess(
+    #    "Delete application objects from $DatabaseName database.",
+    #    "Delete application objects from $DatabaseName database.",
+    #    'Confirm'))
+    if ($true)
     {
         if ((Get-NavIdeMajorVersion) -ge 8) {
             $command = "Command=DeleteObjects`,SynchronizeSchemaChanges=$SynchronizeSchemaChanges"

@@ -1030,6 +1030,9 @@ function Find-NAVVersion
     } 
     if ($result) 
     {
+        if ($result.Count -gt 1) {
+            return $result[0].DirectoryName
+        }
         return $result.DirectoryName
     }
     return $path

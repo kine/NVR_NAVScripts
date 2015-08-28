@@ -258,6 +258,9 @@ function Update-NAVApplicationFromTxt
             }
             else 
             {
+                if ($env:TF_BUILD) {
+                    Write-Host "Importing $($ObjToImport.FileName.FileName)"
+                }
                 #Import-NAVApplicationObjectFiles -files $ObjToImport.FileName.FileName -Server $Server -Database $Database -NavIde (Get-NAVIde) -LogFolder $LogFolder
                 Import-NAVApplicationObject2 -Path $ObjToImport.FileName.FileName -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFolder -ImportAction Overwrite -SynchronizeSchemaChanges Force
             }

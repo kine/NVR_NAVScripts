@@ -39,16 +39,17 @@ Begin {
     [xml]$XML = Get-Content $SetupFile
     $setup = ConvertFrom-Xml $XML
 
-    $env:NAVIdePath = "$($setup.NavIdePath)"
+    $env:NAVIdePath = $setup.NavIdePath
     try 
     {
         [Environment]::SetEnvironmentVariable('NAVIdePath', "$($setup.NavIdePath)", 'Machine')
+        $env:NAVIdePath = $setup.NavIdePath
     }
     catch 
     {
 
     }
-    $env:NAVServicePath = "$($setup.NAVServicePath)"
+    $env:NAVServicePath = $setup.NAVServicePath
     try 
     {
         [Environment]::SetEnvironmentVariable('NAVServicePath', "$($setup.NAVServicePath)", 'Machine')
