@@ -289,7 +289,8 @@ function Update-NAVApplicationFromTxt
                     Write-Progress -Status "Processing $i of $count" -Activity 'Compiling objects...' -PercentComplete ($i / $count*100) -SecondsRemaining $remtime
                 }
 
-                NVR_NAVScripts\Compile-NAVApplicationObject -Filter "Type=$($UpdatedObject.Type);Id=$($UpdatedObject.ID)" -Server $Server -Database $Database -NavIde (Get-NAVIde)
+                #NVR_NAVScripts\Compile-NAVApplicationObject -Filter "Type=$($UpdatedObject.Type);Id=$($UpdatedObject.ID)" -Server $Server -Database $Database -NavIde (Get-NAVIde)
+                Compile-NAVApplicationObject2 -Filter "Type=$($UpdatedObject.Type);Id=$($UpdatedObject.ID)" -DatabaseServer $Server -DatabaseName $Database -SynchronizeSchemaChanges Force
             }
             Write-Host -Object "Compiled $($UpdatedObjects.Count) objects..."
         }
