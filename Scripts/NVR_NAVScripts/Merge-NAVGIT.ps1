@@ -1,15 +1,30 @@
+<#
+    .Synopsis
+    Merge two local branches by using NAV Model tools.
+    .DESCRIPTION
+    Merge two local branches by using NAV model tools scripts. Can remove selected language 
+    before merging and add them back after merge.
+    .EXAMPLE
+    Merge-NAVGIT -repository c:\git\myrepo -sourcefiles objects\*.txt -targetbranch master -RemoveLanguageId 'SKY'
+#>
 function Merge-NAVGIT
 {
     [CmdletBinding()]
     Param (
+        #Path to repostory root folder
         [Parameter(Mandatory = $true)]
         [string]$repository,
+        #Relatife path to files in the repository (e.g. 'objects\*.txt')
         [Parameter(Mandatory = $true)]
         [string]$sourcefiles,
+        #Name of local branch or hash of commit with which to merge
         [Parameter(Mandatory = $true)]
         [string]$targetbranch,
+        #If needed, you can pass hash of the ancestor to be used for merging. If not used, ancestor is automatically detected
         [string]$ancestor,
+        #Will not copy result back to the repository
         [switch]$skipcopytorep,
+        #If used, objects are not copied from repo to temp folders and existing temp folders are used to merge
         [switch]$remerge,
         #Languages, which will be removed from modified version and added after merge back (when merging with version without this language)
         [String]$RemoveLanguageId
