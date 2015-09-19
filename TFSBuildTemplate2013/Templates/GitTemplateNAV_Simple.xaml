@@ -1,0 +1,553 @@
+﻿<Activity mc:Ignorable="sads sap sap2010" x:Class="TfsBuild.Process" this:Process.BuildNumberFormat="[&quot;$(BuildDefinitionName)_$(Date:yyyyMMdd)$(Rev:.r)&quot;]" this:Process.CleanRepository="[True]" this:Process.AdvancedBuildSettings="[New Microsoft.TeamFoundation.Build.Common.BuildParameter(&quot; { &quot;&quot;MSBuildArguments&quot;&quot;: &quot;&quot;&quot;&quot;, &quot;&quot;MSBuildPlatform&quot;&quot;: &quot;&quot;Auto&quot;&quot;, &quot;&quot;PreActionScriptPath&quot;&quot;: &quot;&quot;&quot;&quot;, &quot;&quot;PreActionScriptArguments&quot;&quot;: &quot;&quot;&quot;&quot;, &quot;&quot;PostActionScriptPath&quot;&quot;: &quot;&quot;&quot;&quot;, &quot;&quot;PostActionScriptArguments&quot;&quot;: &quot;&quot;&quot;&quot;, &quot;&quot;RunCodeAnalysis&quot;&quot;: &quot;&quot;AsConfigured&quot;&quot; } &quot;)]" this:Process.AgentSettings="[New Microsoft.TeamFoundation.Build.Common.BuildParameter(&quot; { &quot;&quot;MaxExecutionTime&quot;&quot;: &quot;&quot;00:00:00&quot;&quot;, &quot;&quot;MaxWaitTime&quot;&quot;: &quot;&quot;04:00:00&quot;&quot;, &quot;&quot;Name&quot;&quot;: &quot;&quot;*&quot;&quot;, &quot;&quot;Tags&quot;&quot;: [], &quot;&quot;TagComparison&quot;&quot;: &quot;&quot;MatchExactly&quot;&quot; } &quot;)]" this:Process.CleanBuild="[True]" this:Process.OutputLocation="[&quot;SingleFolder&quot;]" this:Process.CreateWorkItem="[True]" this:Process.UpdateAssociatedWorkItems="[True]" this:Process.SupportedReasons="Manual, IndividualCI, BatchedCI, Schedule, ScheduleForced, UserCreated" this:Process.BuildProcessVersion="12.0" this:Process.NavTestCodeunit="0" this:Process.NAVCompileOnlyNotCompiled="False" this:Process.NAVImportLastBuild="False" this:Process.DropServer="True" this:Process.ForceImport="False" this:Process.ForceNewDB="False"
+ xmlns="http://schemas.microsoft.com/netfx/2009/xaml/activities"
+ xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+ xmlns:mtba="clr-namespace:Microsoft.TeamFoundation.Build.Activities;assembly=Microsoft.TeamFoundation.Build.Activities"
+ xmlns:mtbac="clr-namespace:Microsoft.TeamFoundation.Build.Activities.Core;assembly=Microsoft.TeamFoundation.Build.Activities"
+ xmlns:mtbag="clr-namespace:Microsoft.TeamFoundation.Build.Activities.Git;assembly=Microsoft.TeamFoundation.Build.Activities"
+ xmlns:mtbc="clr-namespace:Microsoft.TeamFoundation.Build.Common;assembly=Microsoft.TeamFoundation.Build.Common"
+ xmlns:mtbc1="clr-namespace:Microsoft.TeamFoundation.Build.Client;assembly=Microsoft.TeamFoundation.Build.Client"
+ xmlns:mtbw="clr-namespace:Microsoft.TeamFoundation.Build.Workflow;assembly=Microsoft.TeamFoundation.Build.Workflow"
+ xmlns:mtbwa="clr-namespace:Microsoft.TeamFoundation.Build.Workflow.Activities;assembly=Microsoft.TeamFoundation.Build.Workflow"
+ xmlns:mtbwt="clr-namespace:Microsoft.TeamFoundation.Build.Workflow.Tracking;assembly=Microsoft.TeamFoundation.Build.Workflow"
+ xmlns:mva="clr-namespace:Microsoft.VisualBasic.Activities;assembly=System.Activities"
+ xmlns:s="clr-namespace:System;assembly=mscorlib"
+ xmlns:sads="http://schemas.microsoft.com/netfx/2010/xaml/activities/debugger"
+ xmlns:sap="http://schemas.microsoft.com/netfx/2009/xaml/activities/presentation"
+ xmlns:sap2010="http://schemas.microsoft.com/netfx/2010/xaml/activities/presentation"
+ xmlns:scg="clr-namespace:System.Collections.Generic;assembly=mscorlib"
+ xmlns:sco="clr-namespace:System.Collections.ObjectModel;assembly=mscorlib"
+ xmlns:sma="clr-namespace:System.Management.Automation;assembly=System.Management.Automation"
+ xmlns:tas="clr-namespace:TfsBuildExtensions.Activities.Scripting;assembly=TfsBuildExtensions.Activities"
+ xmlns:tat="clr-namespace:TfsBuildExtensions.Activities.TeamFoundationServer;assembly=TfsBuildExtensions.Activities"
+ xmlns:this="clr-namespace:TfsBuild"
+ xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <x:Members>
+    <x:Property Name="BuildNumberFormat" Type="InArgument(x:String)" />
+    <x:Property Name="CleanRepository" Type="InArgument(x:Boolean)" />
+    <x:Property Name="AdvancedBuildSettings" Type="InArgument(mtbc:BuildParameter)" />
+    <x:Property Name="AgentSettings" Type="InArgument(mtbc:BuildParameter)" />
+    <x:Property Name="CleanBuild" Type="InArgument(x:Boolean)" />
+    <x:Property Name="CheckoutOverride" Type="InArgument(x:String)" />
+    <x:Property Name="OutputLocation" Type="InArgument(x:String)" />
+    <x:Property Name="SymbolStorePath" Type="InArgument(x:String)" />
+    <x:Property Name="CreateWorkItem" Type="InArgument(x:Boolean)" />
+    <x:Property Name="UpdateAssociatedWorkItems" Type="InArgument(x:Boolean)" />
+    <x:Property Name="Metadata" Type="mtbw:ProcessParameterMetadataCollection" />
+    <x:Property Name="SupportedReasons" Type="mtbc1:BuildReason" />
+    <x:Property Name="BuildProcessVersion" Type="x:String" />
+    <x:Property Name="NavTestCodeunit" Type="InArgument(x:Int32)" />
+    <x:Property Name="NAVCompileOnlyNotCompiled" Type="InArgument(x:Boolean)" />
+    <x:Property Name="NAVImportLastBuild" Type="InArgument(x:Boolean)" />
+    <x:Property Name="NAVDropFolder" Type="InArgument(x:String)" />
+    <x:Property Name="NAVLastBuildFile" Type="InArgument(x:String)" />
+    <x:Property Name="DropServer" Type="InArgument(x:Boolean)" />
+    <x:Property Name="ForceImport" Type="InArgument(x:Boolean)" />
+    <x:Property Name="ForceNewDB" Type="InArgument(x:Boolean)" />
+  </x:Members>
+  <this:Process.CheckoutOverride>
+    <InArgument x:TypeArguments="x:String" />
+  </this:Process.CheckoutOverride>
+  <this:Process.SymbolStorePath>
+    <InArgument x:TypeArguments="x:String" />
+  </this:Process.SymbolStorePath>
+  <this:Process.Metadata>
+    <mtbw:ProcessParameterMetadataCollection>
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Category="#100 Git" Description="Set this to true to start with a clean repository on each build." DisplayName="1. Clean repository" ParameterName="CleanRepository" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Category="#100 Git" Description="Specify the id of a checkout to override the default branch and commit." DisplayName="2. Checkout override" ParameterName="CheckoutOverride" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Category="#200 Build" Description="Set this to true to perform a clean build." DisplayName="3. Clean build" ParameterName="CleanBuild" />
+      <mtbw:ProcessParameterMetadata Category="#200 Build" Description="Specify the type of location that outputs should be created in: SingleFolder, PerProject, AsConfigured." DisplayName="4. Output location" Editor="@DropDownList=SingleFolder,PerProject,AsConfigured" ParameterName="OutputLocation" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Category="#200 Build" Description="" DisplayName="5. Advanced" ParameterName="AdvancedBuildSettings" ValueFormatString=" " />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Description="Specify additional MSBuild arguments." DisplayName="MSBuild arguments" ParameterName="AdvancedBuildSettings.MSBuildArguments" />
+      <mtbw:ProcessParameterMetadata Description="Specify the MSBuild platform to use. Defaults to the OS." DisplayName="MSBuild platform" Editor="@DropDownList=Auto,X86" ParameterName="AdvancedBuildSettings.MSBuildPlatform" />
+      <mtbw:ProcessParameterMetadata Description="Specify the path to a custom script that runs before the MSBuild activity starts." DisplayName="Pre-build script path" Editor="Microsoft.TeamFoundation.Build.Controls.GitLocalFileBrowserEditor, Microsoft.TeamFoundation.Build.Controls" ParameterName="AdvancedBuildSettings.PreActionScriptPath" ValueFormatString="" />
+      <mtbw:ProcessParameterMetadata Description="Specify the command line arguments to pass to the script that runs before the MSBuild activity starts." DisplayName="Pre-build script arguments" ParameterName="AdvancedBuildSettings.PreActionScriptArguments" ValueFormatString="" />
+      <mtbw:ProcessParameterMetadata Description="Specify the path to a custom script that runs after the MSBuild activity successfully completes." DisplayName="Post-build script path" Editor="Microsoft.TeamFoundation.Build.Controls.GitLocalFileBrowserEditor, Microsoft.TeamFoundation.Build.Controls" ParameterName="AdvancedBuildSettings.PostActionScriptPath" ValueFormatString="" />
+      <mtbw:ProcessParameterMetadata Description="Specify the command line arguments to pass to the script that runs after the MSBuild activity successfully completes." DisplayName="Post-build script arguments" ParameterName="AdvancedBuildSettings.PostActionScriptArguments" ValueFormatString="" />
+      <mtbw:ProcessParameterMetadata Description="Specify AsConfigured to run code analysis according to project settings; Never to never run code analysis; Always to always run code analysis." DisplayName="Perform code analysis" Editor="@DropDownList=Never,AsConfigured,Always" ParameterName="AdvancedBuildSettings.RunCodeAnalysis" />
+      <mtbw:ProcessParameterMetadata Category="#250 Test" Description="Specify the test assemblies or test metadata files on which to run tests.  You can skip running these tests by setting the Disable Tests setting to True." DisplayName="1. Automated tests" Editor="Microsoft.TeamFoundation.Build.Controls.AgileTestSpecListEditor, Microsoft.TeamFoundation.Build.Controls" ParameterName="AutomatedTests" ValueFormatString="{}{Count} set(s) of tests specified." />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" DisplayName="Test source" Editor="Microsoft.TeamFoundation.Build.Controls.AgileTestSpecEditor, Microsoft.TeamFoundation.Build.Controls" ParameterName="AutomatedTests.[Item]" ValueFormatString="{}{RunName} - Run tests in test sources matching {AssemblyFileSpec}, Target platform: '{ExecutionPlatform}'" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Description="Specify the search pattern for locating test sources - e.g., **\\*test*.dll." DisplayName="Test sources spec" ParameterName="AutomatedTests.AssemblyFileSpec" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Never" ParameterName="AutomatedTests.HasRunSettingsFile" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Never" ParameterName="AutomatedTests.HasTestCaseFilter" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Never" ParameterName="AutomatedTests.RunSettingsFileName" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Description="Use the specified filter to select tests to run based on filter criteria.  You can use the format &lt;property&gt;Operator&lt;value&gt; to construct your filter where Operator is one of =, != or ~ (Operator ~ has 'contains' semantics and is applicable for string properties like DisplayName).  You can also use the logical operator |, to construct your filter and parenthesis () for grouping.  For example, (FullyQualifiedName~Nightly|Name=MyTestMethod)" DisplayName="Test case filter" ParameterName="AutomatedTests.TestCaseFilter" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Description="Specify run settings to be used for running the tests." DisplayName="Run settings" ParameterName="AutomatedTests.RunSettingsForTestRun" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Description="Specify the Run Settings file to use with the test sources." DisplayName="Run settings file" Editor="Microsoft.TeamFoundation.Build.Controls.GitRunSettingsFileBrowserEditor, Microsoft.TeamFoundation.Build.Controls" ParameterName="AutomatedTests.RunSettingsForTestRun.ServerRunSettingsFile" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Description="Select the type of run settings to use with test sources.  Values are Default, CodeCoverageEnabled, CodeCoverageEnabledForAspNetApps, UserSpecified." DisplayName="Type of run settings" Editor="@DropDownList=Default,CodeCoverageEnabled,CodeCoverageEnabledForAspNetApps,UserSpecified" ParameterName="AutomatedTests.RunSettingsForTestRun.TypeRunSettings" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Never" ParameterName="AutomatedTests.RunSettingsForTestRun.HasRunSettingsFile" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Description="Specify target platform for test execution.  X86 or X64" DisplayName="Target platform for test execution" Editor="@DropDownList=X86,X64" ParameterName="AutomatedTests.ExecutionPlatform" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Description="Set this to true to fail any builds where these tests do not pass.  The default is to mark the build as partially succeeded if the tests fail." DisplayName="Fail build on test failure" ParameterName="AutomatedTests.FailBuildOnFailure" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Description="Specify the name the test run is published as." DisplayName="Test run name" ParameterName="AutomatedTests.RunName" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Category="#250 Test" Description="" DisplayName="2. Advanced" ParameterName="AdvancedTestSettings" ValueFormatString=" " />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Category="#250 Test" Description="Specify True to skip running all tests with the build; False to run tests as defined by the Automated Tests setting." DisplayName="Disable tests" ParameterName="AdvancedTestSettings.DisableTests" />
+      <mtbw:ProcessParameterMetadata Description="Specify the path to a custom script that runs before the RunAgileTestRunner activity starts." DisplayName="Pre-test script path" Editor="Microsoft.TeamFoundation.Build.Controls.GitLocalFileBrowserEditor, Microsoft.TeamFoundation.Build.Controls" ParameterName="AdvancedTestSettings.PreActionScriptPath" ValueFormatString="" />
+      <mtbw:ProcessParameterMetadata Description="Specify the command line arguments to pass to the script that runs before the RunAgileTestRunner activity starts." DisplayName="Pre-test script arguments" ParameterName="AdvancedTestSettings.PreActionScriptArguments" ValueFormatString="" />
+      <mtbw:ProcessParameterMetadata Description="Specify the path to a custom script that runs after the RunAgileTestRunner activity successfully completes." DisplayName="Post-test script path" Editor="Microsoft.TeamFoundation.Build.Controls.GitLocalFileBrowserEditor, Microsoft.TeamFoundation.Build.Controls" ParameterName="AdvancedTestSettings.PostActionScriptPath" ValueFormatString="" />
+      <mtbw:ProcessParameterMetadata Description="Specify the command line arguments to pass to the script that runs after the RunAgileTestRunner activity successfully completes." DisplayName="Post-test script arguments" ParameterName="AdvancedTestSettings.PostActionScriptArguments" ValueFormatString="" />
+      <mtbw:ProcessParameterMetadata Category="#300 Publish Symbols" Description="Specify the path to the symbol store share.  When this value is set, source indexing is a part of the build.  Source indexing is never performed for private builds." DisplayName="Path to publish symbols" ParameterName="SymbolStorePath" />
+      <mtbw:ProcessParameterMetadata Category="#400 Advanced" Description="Specify the format for the number of this build." DisplayName="Build number format" Editor="Microsoft.TeamFoundation.Build.Controls.BuildNumberFormatEditor, Microsoft.TeamFoundation.Build.Controls" ParameterName="BuildNumberFormat" />
+      <mtbw:ProcessParameterMetadata Category="#400 Advanced" Description="Specify the Name and/or Tags (and other properties) that will be used to select an appropriate Agent for the build." DisplayName="Agent settings" ParameterName="AgentSettings" ValueFormatString="Use agent where Name={Name} and Tags={Tags} ({TagComparison})" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Description="Specify the maximum amount of time that you want to allow for this part of the work flow to run. The default value is zero which means there is no timeout." DisplayName="Maximum agent execution time" Editor="@Type=TimeSpan" ParameterName="AgentSettings.MaxExecutionTime" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Description="Specify the maximum amount of time that you want to allow waiting for an agent. The default value is zero which means there is no timeout." DisplayName="Maximum agent reservation wait time" Editor="@Type=TimeSpan" ParameterName="AgentSettings.MaxWaitTime" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Description="Specify the agent to use for this remote execution by display name (this is not the computer name). Supported wildcard characters include '*' and '?'." DisplayName="Name filter" Editor="Microsoft.TeamFoundation.Build.Controls.BuildAgentSelectionEditor, Microsoft.TeamFoundation.Build.Controls" ParameterName="AgentSettings.Name" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Description="Specify the comparison method to use for tags when selecting a build agent. MatchExactly, MatchAtLeast" DisplayName="Tag comparison operator" Editor="@DropDownList=MatchExactly,MatchAtLeast" ParameterName="AgentSettings.TagComparison" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Description="Specify the tags used to select the build agent." DisplayName="Tags filter" Editor="Microsoft.TeamFoundation.Build.Controls.TagsEditor, Microsoft.TeamFoundation.Build.Controls" ParameterName="AgentSettings.Tags" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Category="#400 Advanced" Description="Set this to true to create a work item when the build fails." DisplayName="Create work item on failure" ParameterName="CreateWorkItem" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Category="#400 Advanced" Description="Set this to true to update the associated work items by setting the Fixed In Build field to the build number of this build." DisplayName="Update work items with build number" ParameterName="UpdateAssociatedWorkItems" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Category="#001 MS Dynamics NAV" Description="If set, only uncompiled objects will be compiled in one step (imported objects), instead all objects one-by-one." DisplayName="6. Compile only not compiled" ParameterName="NAVCompileOnlyNotCompiled" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Category="#001 MS Dynamics NAV" Description="Will import FOB from last Build instead the base FOB" DisplayName="7. Import FOB from last build" ParameterName="NAVImportLastBuild" />
+      <mtbw:ProcessParameterMetadata Category="#001 MS Dynamics NAV" Description="Folder, where last build FOBs are searched for" DisplayName="8. NAV Build Drop Folder" ParameterName="NAVDropFolder" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Category="#001 MS Dynamics NAV" Description="When disabled, server and database will still exists when build finish" DisplayName="9. Drop NAV Server and DB at the end" ParameterName="DropServer" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Category="#001 MS Dynamics NAV" Description="Force import of all objects" DisplayName="1. Force Import" ParameterName="ForceImport" />
+      <mtbw:ProcessParameterMetadata BrowsableWhen="Always" Category="#001 MS Dynamics NAV" Description="Force creation of new DB, e.g. when new RU used, or upgraded server" DisplayName="2. Force new DB and Server" ParameterName="ForceNewDB" />
+    </mtbw:ProcessParameterMetadataCollection>
+  </this:Process.Metadata>
+  <mva:VisualBasic.Settings>
+    <x:Null />
+  </mva:VisualBasic.Settings>
+  <sap2010:WorkflowViewState.IdRef>TfsBuild.Process_1</sap2010:WorkflowViewState.IdRef>
+  <TextExpression.NamespacesForImplementation>
+    <sco:Collection x:TypeArguments="x:String">
+      <x:String>System.Activities.XamlIntegration</x:String>
+      <x:String>System.Activities.Validation</x:String>
+      <x:String>System.Activities</x:String>
+      <x:String>System.Activities.Statements</x:String>
+      <x:String>System.Activities.Expressions</x:String>
+      <x:String>Microsoft.TeamFoundation</x:String>
+      <x:String>Microsoft.TeamFoundation.Build.Client</x:String>
+      <x:String>Microsoft.TeamFoundation.Build.Common</x:String>
+      <x:String>Microsoft.TeamFoundation.Build.Workflow</x:String>
+      <x:String>Microsoft.TeamFoundation.Build.Workflow.Activities</x:String>
+      <x:String>Microsoft.TeamFoundation.Build.Activities</x:String>
+      <x:String>Microsoft.TeamFoundation.Build.Activities.Core</x:String>
+      <x:String>Microsoft.TeamFoundation.Build.Activities.Git</x:String>
+      <x:String>Microsoft.TeamFoundation.Build.Workflow.Tracking</x:String>
+      <x:String>Microsoft.TeamFoundation.TestImpact.BuildIntegration.BuildActivities</x:String>
+      <x:String>Microsoft.TeamFoundation.VersionControl.Client</x:String>
+      <x:String>Microsoft.TeamFoundation.VersionControl.Common</x:String>
+      <x:String>Microsoft.VisualBasic.Activities</x:String>
+      <x:String>System</x:String>
+      <x:String>System.Activities.Debugger</x:String>
+      <x:String>System.Collections.Generic</x:String>
+      <x:String>System.Linq</x:String>
+      <x:String>System.Windows.Markup</x:String>
+      <x:String>TfsBuild</x:String>
+      <x:String>System.Management.Automation</x:String>
+      <x:String>System.IO</x:String>
+      <x:String>Microsoft.TeamFoundation.Build.Activities.Extensions</x:String>
+    </sco:Collection>
+  </TextExpression.NamespacesForImplementation>
+  <TextExpression.ReferencesForImplementation>
+    <sco:Collection x:TypeArguments="AssemblyReference">
+      <AssemblyReference>System.Activities</AssemblyReference>
+      <AssemblyReference>Microsoft.TeamFoundation.Common</AssemblyReference>
+      <AssemblyReference>Microsoft.TeamFoundation.Build.Client</AssemblyReference>
+      <AssemblyReference>Microsoft.TeamFoundation.Build.Common</AssemblyReference>
+      <AssemblyReference>Microsoft.TeamFoundation.Build.Workflow</AssemblyReference>
+      <AssemblyReference>Microsoft.TeamFoundation.Build.Activities</AssemblyReference>
+      <AssemblyReference>Microsoft.TeamFoundation.TestImpact.BuildIntegration</AssemblyReference>
+      <AssemblyReference>Microsoft.TeamFoundation.VersionControl.Client</AssemblyReference>
+      <AssemblyReference>Microsoft.TeamFoundation.VersionControl.Common</AssemblyReference>
+      <AssemblyReference>mscorlib</AssemblyReference>
+      <AssemblyReference>System.Core</AssemblyReference>
+      <AssemblyReference>PresentationFramework</AssemblyReference>
+      <AssemblyReference>WindowsBase</AssemblyReference>
+      <AssemblyReference>PresentationCore</AssemblyReference>
+      <AssemblyReference>System.Xaml</AssemblyReference>
+      <AssemblyReference>Templates</AssemblyReference>
+      <AssemblyReference>System</AssemblyReference>
+      <AssemblyReference>System.ServiceModel</AssemblyReference>
+      <AssemblyReference>System.Management.Automation</AssemblyReference>
+    </sco:Collection>
+  </TextExpression.ReferencesForImplementation>
+  <Sequence DisplayName="Overall build process" sap2010:WorkflowViewState.IdRef="Sequence_3">
+    <Sequence.Variables>
+      <Variable x:TypeArguments="x:String" Name="BuildNumber" />
+    </Sequence.Variables>
+    <mtbac:SetBuildNumber DropLocation="{x:Null}" BuildNumberFormat="[BuildNumberFormat]" DisplayName="Update build number" sap2010:WorkflowViewState.IdRef="SetBuildNumber_1" />
+    <mtbac:GetEnvironmentVariable x:TypeArguments="x:String" DisplayName="Get Build Number" sap2010:WorkflowViewState.IdRef="GetEnvironmentVariable`1_3" Name="[Microsoft.TeamFoundation.Build.Activities.Extensions.WellKnownEnvironmentVariables.BuildNumber]" Result="[BuildNumber]" />
+    <mtbwa:AgentScope DataToIgnore="" DisplayName="Run on agent" sap2010:WorkflowViewState.IdRef="AgentScope_1" MaxExecutionTime="[AgentSettings.GetValue(Of TimeSpan)(&quot;MaxExecutionTime&quot;, New System.TimeSpan(0,0,0))]" MaxWaitTime="[AgentSettings.GetValue(Of TimeSpan)(&quot;MaxWaitTime&quot;, New System.TimeSpan(4,0,0))]" ReservationSpec="[AgentSettings.CreateAgentReservationSpec()]" mva:VisualBasic.Settings="Assembly references and imported namespaces serialized as XML namespaces">
+      <mtbwa:AgentScope.Variables>
+        <Variable x:TypeArguments="sma:PSObject[]" Name="PowershellResultVar" />
+        <Variable x:TypeArguments="scg:IEnumerable(x:String)" Name="ObjectFiles2" />
+        <Variable x:TypeArguments="x:Boolean" Default="False" Name="NAVError" />
+        <Variable x:TypeArguments="sma:PSObject[]" Name="GetLastFileResult" />
+        <Variable x:TypeArguments="x:String" Name="BuildDir" />
+        <Variable x:TypeArguments="scg:IList(mtbag:AssociatedCommit)" Name="AssociatedChangesResult" />
+        <Variable x:TypeArguments="x:String" Name="FOBToImport">
+          <Variable.Default>
+            <Literal x:TypeArguments="x:String" Value="" />
+          </Variable.Default>
+        </Variable>
+        <Variable x:TypeArguments="x:String" Name="variable1" />
+        <Variable x:TypeArguments="x:String" Name="BinDir" />
+        <Variable x:TypeArguments="mtbc1:IBuildDetail" Name="BuildDetail" />
+        <Variable x:TypeArguments="mtbc1:IBuildDetail" Name="PreviousBuildDetail" />
+        <Variable x:TypeArguments="scg:IList(mtbag:AssociatedCommit)" Name="AssociatedCommits" />
+      </mtbwa:AgentScope.Variables>
+      <mtbac:InitializeEnvironment BinariesFolder="bin" DisplayName="Initialize environment" sap2010:WorkflowViewState.IdRef="InitializeEnvironment_1" SourceFolder="src" TestResultsFolder="tst" />
+      <mtbag:GitPull CleanRepository="[CleanRepository]" Commit="[CheckoutOverride]" DisplayName="Pull sources from Git repo" Enabled="True" sap2010:WorkflowViewState.IdRef="GitPull_1" />
+      <mtbac:GetEnvironmentVariable x:TypeArguments="x:String" DisplayName="Get Build Directory" sap2010:WorkflowViewState.IdRef="GetEnvironmentVariable`1_1" Name="BuildDirectory" Result="[BuildDir]" />
+      <tas:InvokePowerShellCommandExt Arguments="{x:Null}" FailBuildOnError="{x:Null}" FailBuildOnFirstError="{x:Null}" IgnoreExceptions="{x:Null}" TreatWarningsAsErrors="{x:Null}" DisplayName="UpdateSubmodules" sap2010:WorkflowViewState.IdRef="InvokePowerShellCommandExt_11" IsTest="False" LogExceptionStack="True" MessageImportance="[BuildMessageImportance.High]" Script="[String.Format(&quot;{0}\src\UpdateSubmodule.ps1&quot;, BuildDir)]" WarningImportance="[BuildMessageImportance.High]" />
+      <Sequence DisplayName="AssociateCommits" sap2010:WorkflowViewState.IdRef="Sequence_19">
+        <Sequence.Variables>
+          <Variable x:TypeArguments="sma:PSObject[]" Name="PSAssociatedCommits" />
+        </Sequence.Variables>
+        <mtbac:GetEnvironmentVariable x:TypeArguments="x:String" DisplayName="Get Build Directory" sap2010:WorkflowViewState.IdRef="GetEnvironmentVariable`1_4" Name="BuildDirectory" Result="[BuildDir]" />
+        <mtbwa:GetBuildDetail sap2010:WorkflowViewState.IdRef="GetBuildDetail_1" Result="[BuildDetail]" />
+        <tat:GetLastGoodBuild BuildQuality="{x:Null}" FailBuildOnError="{x:Null}" IgnoreExceptions="{x:Null}" TeamFoundationServer="{x:Null}" TreatWarningsAsErrors="{x:Null}" BuildDefinition="[BuildDetail.BuildDefinition.Name]" sap2010:WorkflowViewState.IdRef="GetLastGoodBuild_1" LogExceptionStack="True" ParentBuild="[BuildDetail]" Result="[PreviousBuildDetail]" TeamProject="[BuildDetail.BuildDefinition.TeamProject]" />
+        <mtba:AssociateChanges DisplayName="Associate the changesets that occurred since the last good build" Enabled="True" sap2010:WorkflowViewState.IdRef="AssociateChanges_1" PreviousBuild="[PreviousBuildDetail]" UpdateWorkItems="[UpdateAssociatedWorkItems]" />
+        <mtbag:GitAssociateCommitsAndWorkItems AssociateWorkItems="[True]" sap2010:WorkflowViewState.IdRef="GitAssociateCommitsAndWorkItems_2" Result="[AssociatedCommits]" UpdateWorkItems="[True]" />
+      </Sequence>
+      <TryCatch DisplayName="Try" sap2010:WorkflowViewState.IdRef="TryCatch_1" mtbwt:BuildTrackingParticipant.Importance="Low">
+        <TryCatch.Try>
+          <Sequence DisplayName="Compile, Test and Publish" sap2010:WorkflowViewState.IdRef="Sequence_1">
+            <TryCatch DisplayName="Try Create" sap2010:WorkflowViewState.IdRef="TryCatch_3">
+              <TryCatch.Try>
+                <Sequence DisplayName="Create Server" sap2010:WorkflowViewState.IdRef="Sequence_11">
+                  <If Condition="[NAVImportLastBuild]" DisplayName="If Import Last Build" sap2010:WorkflowViewState.IdRef="If_2">
+                    <If.Then>
+                      <Sequence DisplayName="Sequence Get Last Build File" sap2010:WorkflowViewState.IdRef="Sequence_7">
+                        <tas:InvokePowerShellCommandExt FailBuildOnFirstError="{x:Null}" IgnoreExceptions="{x:Null}" TreatWarningsAsErrors="{x:Null}" Arguments="[String.Format(&quot;-Folder &quot;&quot;{0}&quot;&quot; -Filter &quot;&quot;{1}&quot;&quot;&quot;, NAVDropFolder, &quot;*.fob&quot;)]" DisplayName="Get Latest Build File" FailBuildOnError="False" sap2010:WorkflowViewState.IdRef="InvokePowerShellCommandExt_10" IsTest="False" LogExceptionStack="True" MessageImportance="[BuildMessageImportance.High]" Result="[GetLastFileResult]" Script="c:\Program Files\WindowsPowerShell\Modules\TFSBuild\Get-LastBuildFile.ps1" WarningImportance="[BuildMessageImportance.High]" />
+                        <ForEach x:TypeArguments="sma:PSObject" DisplayName="Processing Result of Get Last Build" sap2010:WorkflowViewState.IdRef="ForEach`1_5" Values="[GetLastFileResult]">
+                          <ActivityAction x:TypeArguments="sma:PSObject">
+                            <ActivityAction.Argument>
+                              <DelegateInArgument x:TypeArguments="sma:PSObject" Name="item" />
+                            </ActivityAction.Argument>
+                            <Sequence sap2010:WorkflowViewState.IdRef="Sequence_10">
+                              <Assign DisplayName="Set import to last Build FOB" sap2010:WorkflowViewState.IdRef="Assign_1">
+                                <Assign.To>
+                                  <OutArgument x:TypeArguments="x:String">[FOBToImport]</OutArgument>
+                                </Assign.To>
+                                <Assign.Value>
+                                  <InArgument x:TypeArguments="x:String">[FOBToImport + ";" + item.ToString]</InArgument>
+                                </Assign.Value>
+                              </Assign>
+                            </Sequence>
+                          </ActivityAction>
+                        </ForEach>
+                      </Sequence>
+                    </If.Then>
+                  </If>
+                  <mtbwa:WriteBuildMessage DisplayName="FOB for Import" sap2010:WorkflowViewState.IdRef="WriteBuildMessage_13" Importance="[Microsoft.TeamFoundation.Build.Client.BuildMessageImportance.High]" Message="[FOBToImport.ToString()]" mva:VisualBasic.Settings="Assembly references and imported namespaces serialized as XML namespaces" />
+                  <tas:InvokePowerShellCommandExt IgnoreExceptions="{x:Null}" TreatWarningsAsErrors="{x:Null}" Arguments="[String.Format(&quot;-BaseFob &quot;&quot;{0}&quot;&quot; -TargetPath &quot;&quot;{1}&quot;&quot; -ForceNewDB ${2}&quot;, FOBToImport, &quot;&quot;, ForceNewDB.ToString())]" DisplayName="Prepare NAV Server" FailBuildOnError="True" FailBuildOnFirstError="True" sap2010:WorkflowViewState.IdRef="InvokePowerShellCommandExt_3" IsTest="False" LogExceptionStack="True" MessageImportance="[BuildMessageImportance.High]" Script="[String.Format(&quot;{0}\src\{1}&quot;, BuildDir, &quot;NVRPowerShell\Scripts\Create.ps1&quot;)]" WarningImportance="[BuildMessageImportance.High]" />
+                </Sequence>
+              </TryCatch.Try>
+              <TryCatch.Catches>
+                <Catch x:TypeArguments="s:Exception" sap2010:WorkflowViewState.IdRef="Catch`1_4">
+                  <ActivityAction x:TypeArguments="s:Exception">
+                    <ActivityAction.Argument>
+                      <DelegateInArgument x:TypeArguments="s:Exception" Name="exception" />
+                    </ActivityAction.Argument>
+                    <Sequence sap2010:WorkflowViewState.IdRef="Sequence_18">
+                      <If Condition="[DropServer]" DisplayName="If Drop Server" sap2010:WorkflowViewState.IdRef="If_5">
+                        <If.Then>
+                          <tas:InvokePowerShellCommandExt Arguments="{x:Null}" FailBuildOnError="{x:Null}" FailBuildOnFirstError="{x:Null}" IgnoreExceptions="{x:Null}" TreatWarningsAsErrors="{x:Null}" DisplayName="Remove NAV Server" sap2010:WorkflowViewState.IdRef="InvokePowerShellCommandExt_13" IsTest="False" LogExceptionStack="True" MessageImportance="[BuildMessageImportance.High]" Script="[String.Format(&quot;{0}\src\{1}&quot;, BuildDir, &quot;NVRPowerShell\Scripts\Remove.ps1&quot;)]" WarningImportance="[BuildMessageImportance.High]" />
+                        </If.Then>
+                      </If>
+                      <Rethrow sap2010:WorkflowViewState.IdRef="Rethrow_4" />
+                    </Sequence>
+                  </ActivityAction>
+                </Catch>
+              </TryCatch.Catches>
+            </TryCatch>
+            <TryCatch DisplayName="Try to compile" sap2010:WorkflowViewState.IdRef="TryCatch_2">
+              <TryCatch.Try>
+                <Sequence DisplayName="Create update compile test export" sap2010:WorkflowViewState.IdRef="Sequence_4">
+                  <Sequence DisplayName="Update objects" sap2010:WorkflowViewState.IdRef="Sequence_12">
+                    <If Condition="[ForceImport]" sap2010:WorkflowViewState.IdRef="If_4">
+                      <If.Then>
+                        <Sequence sap2010:WorkflowViewState.IdRef="Sequence_16">
+                          <tas:InvokePowerShellCommandExt FailBuildOnFirstError="{x:Null}" IgnoreExceptions="{x:Null}" TreatWarningsAsErrors="{x:Null}" Arguments="-NoProgress" DisplayName="Import txt files Force" FailBuildOnError="True" sap2010:WorkflowViewState.IdRef="InvokePowerShellCommandExt_12" IsTest="False" LogExceptionStack="True" MessageImportance="[BuildMessageImportance.High]" Result="[PowershellResultVar]" Script="[String.Format(&quot;{0}\src\{1}&quot;, BuildDir, &quot;NVRPowerShell\Scripts\_UpdateDBFromRepo_Force.ps1&quot;)]" WarningImportance="[BuildMessageImportance.High]" />
+                        </Sequence>
+                      </If.Then>
+                      <If.Else>
+                        <Sequence sap2010:WorkflowViewState.IdRef="Sequence_17">
+                          <tas:InvokePowerShellCommandExt FailBuildOnFirstError="{x:Null}" IgnoreExceptions="{x:Null}" TreatWarningsAsErrors="{x:Null}" Arguments="-NoProgress" DisplayName="Import txt files" FailBuildOnError="True" sap2010:WorkflowViewState.IdRef="InvokePowerShellCommandExt_7" IsTest="False" LogExceptionStack="True" MessageImportance="[BuildMessageImportance.High]" Result="[PowershellResultVar]" Script="[String.Format(&quot;{0}\src\{1}&quot;, BuildDir, &quot;NVRPowerShell\Scripts\_UpdateDBFromRepo.ps1&quot;)]" WarningImportance="[BuildMessageImportance.High]" />
+                        </Sequence>
+                      </If.Else>
+                    </If>
+                  </Sequence>
+                  <Sequence DisplayName="Test" sap2010:WorkflowViewState.IdRef="Sequence_14">
+                    <tas:InvokePowerShellCommandExt FailBuildOnError="{x:Null}" FailBuildOnFirstError="{x:Null}" IgnoreExceptions="{x:Null}" TreatWarningsAsErrors="{x:Null}" Arguments="[String.Format(&quot;-Codeunit {0}&quot;, NavTestCodeunit)]" DisplayName="Run Test Codeunit" sap2010:WorkflowViewState.IdRef="InvokePowerShellCommandExt_8" IsTest="True" LogExceptionStack="True" MessageImportance="[BuildMessageImportance.High]" Script="[String.Format(&quot;{0}\src\{1}&quot;, BuildDir, &quot;NVRPowerShell\Scripts\RunTests.ps1&quot;)]" WarningImportance="[BuildMessageImportance.High]" />
+                  </Sequence>
+                  <Sequence DisplayName="Export objects" sap2010:WorkflowViewState.IdRef="Sequence_15">
+                    <mtbac:GetEnvironmentVariable x:TypeArguments="x:String" DisplayName="Get binaries folder" sap2010:WorkflowViewState.IdRef="GetEnvironmentVariable`1_2" Name="[Microsoft.TeamFoundation.Build.Activities.Extensions.WellKnownEnvironmentVariables.BinariesDirectory]" Result="[BinDir]" />
+                    <mtbwa:CreateDirectory Directory="[BinDir]" DisplayName="Create out Directory" sap2010:WorkflowViewState.IdRef="CreateDirectory_1" />
+                    <tas:InvokePowerShellCommandExt FailBuildOnError="{x:Null}" FailBuildOnFirstError="{x:Null}" IgnoreExceptions="{x:Null}" TreatWarningsAsErrors="{x:Null}" Arguments="[String.Format(&quot;-ResultFob &quot;&quot;{0}\{1}.fob&quot;&quot;&quot;, BinDir, BuildNumber)]" DisplayName="Export as FOB" sap2010:WorkflowViewState.IdRef="InvokePowerShellCommandExt_5" IsTest="True" LogExceptionStack="True" MessageImportance="[BuildMessageImportance.High]" Script="[String.Format(&quot;{0}\src\{1}&quot;, BuildDir, &quot;NVRPowerShell\Scripts\ExportFob.ps1&quot;)]" WarningImportance="[BuildMessageImportance.High]" />
+                  </Sequence>
+                </Sequence>
+              </TryCatch.Try>
+              <TryCatch.Catches>
+                <Catch x:TypeArguments="s:Exception" sap2010:WorkflowViewState.IdRef="Catch`1_3">
+                  <ActivityAction x:TypeArguments="s:Exception">
+                    <ActivityAction.Argument>
+                      <DelegateInArgument x:TypeArguments="s:Exception" Name="exception" />
+                    </ActivityAction.Argument>
+                    <Rethrow sap2010:WorkflowViewState.IdRef="Rethrow_3" />
+                  </ActivityAction>
+                </Catch>
+              </TryCatch.Catches>
+              <TryCatch.Finally>
+                <If Condition="[DropServer]" DisplayName="If Drop Server" sap2010:WorkflowViewState.IdRef="If_3">
+                  <If.Then>
+                    <tas:InvokePowerShellCommandExt Arguments="{x:Null}" FailBuildOnError="{x:Null}" FailBuildOnFirstError="{x:Null}" IgnoreExceptions="{x:Null}" TreatWarningsAsErrors="{x:Null}" DisplayName="Remove NAV Server" sap2010:WorkflowViewState.IdRef="InvokePowerShellCommandExt_6" IsTest="False" LogExceptionStack="True" MessageImportance="[BuildMessageImportance.High]" Script="[String.Format(&quot;{0}\src\{1}&quot;, BuildDir, &quot;NVRPowerShell\Scripts\Remove.ps1&quot;)]" WarningImportance="[BuildMessageImportance.High]" />
+                  </If.Then>
+                </If>
+              </TryCatch.Finally>
+            </TryCatch>
+            <mtba:RunPublishSymbols DisplayName="Publish Symbols" Enabled="True" sap2010:WorkflowViewState.IdRef="RunPublishSymbols_1" SymbolStorePath="[SymbolStorePath]" />
+          </Sequence>
+        </TryCatch.Try>
+        <TryCatch.Catches>
+          <Catch x:TypeArguments="s:Exception" sap2010:WorkflowViewState.IdRef="Catch`1_1">
+            <ActivityAction x:TypeArguments="s:Exception">
+              <ActivityAction.Argument>
+                <DelegateInArgument x:TypeArguments="s:Exception" Name="ex" />
+              </ActivityAction.Argument>
+              <Sequence DisplayName="Handle Exception" sap2010:WorkflowViewState.IdRef="Sequence_2">
+                <mtba:CreateBuildFailureBug DisplayName="Create a bug for the build failure" Enabled="[CreateWorkItem]" sap2010:WorkflowViewState.IdRef="CreateBuildFailureBug_1" />
+                <Rethrow DisplayName="Rethrow the exception so the build will stop" sap2010:WorkflowViewState.IdRef="Rethrow_1" />
+              </Sequence>
+            </ActivityAction>
+          </Catch>
+        </TryCatch.Catches>
+        <TryCatch.Finally>
+          <Sequence DisplayName="Perform Final Actions On Agent" sap2010:WorkflowViewState.IdRef="Sequence_6">
+            <mtbac:DropBinaries DestinationPath="{x:Null}" DisplayName="Copy binaries to drop" Enabled="True" sap2010:WorkflowViewState.IdRef="DropBinaries_1" />
+            <mtbac:ResetEnvironment DisplayName="Reset the Environment" sap2010:WorkflowViewState.IdRef="ResetEnvironment_1" />
+          </Sequence>
+        </TryCatch.Finally>
+      </TryCatch>
+    </mtbwa:AgentScope>
+    <sads:DebugSymbol.Symbol>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</sads:DebugSymbol.Symbol>
+  </Sequence>
+  <sap2010:WorkflowViewState.ViewStateManager>
+    <sap2010:ViewStateManager>
+      <sap2010:ViewStateData Id="SetBuildNumber_1" sap:VirtualizedContainerService.HintSize="593,22" />
+      <sap2010:ViewStateData Id="GetEnvironmentVariable`1_3" sap:VirtualizedContainerService.HintSize="593,22" />
+      <sap2010:ViewStateData Id="InitializeEnvironment_1" sap:VirtualizedContainerService.HintSize="571,22" />
+      <sap2010:ViewStateData Id="GitPull_1" sap:VirtualizedContainerService.HintSize="571,22" />
+      <sap2010:ViewStateData Id="GetEnvironmentVariable`1_1" sap:VirtualizedContainerService.HintSize="571,22" />
+      <sap2010:ViewStateData Id="InvokePowerShellCommandExt_11" sap:VirtualizedContainerService.HintSize="571,22" />
+      <sap2010:ViewStateData Id="GetEnvironmentVariable`1_4" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="GetBuildDetail_1" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="GetLastGoodBuild_1" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="AssociateChanges_1" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="GitAssociateCommitsAndWorkItems_2" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="Sequence_19" sap:VirtualizedContainerService.HintSize="571,394">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="InvokePowerShellCommandExt_10" sap:VirtualizedContainerService.HintSize="294,22" />
+      <sap2010:ViewStateData Id="Assign_1" sap:VirtualizedContainerService.HintSize="242,60" />
+      <sap2010:ViewStateData Id="Sequence_10" sap:VirtualizedContainerService.HintSize="264,184">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="ForEach`1_5" sap:VirtualizedContainerService.HintSize="294,332">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Sequence_7" sap:VirtualizedContainerService.HintSize="316,518">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="If_2" sap:VirtualizedContainerService.HintSize="464,666">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="WriteBuildMessage_13" sap:VirtualizedContainerService.HintSize="464,22" />
+      <sap2010:ViewStateData Id="InvokePowerShellCommandExt_3" sap:VirtualizedContainerService.HintSize="464,22" />
+      <sap2010:ViewStateData Id="Sequence_11" sap:VirtualizedContainerService.HintSize="486,914">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="InvokePowerShellCommandExt_13" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="If_5" sap:VirtualizedContainerService.HintSize="464,208">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Rethrow_4" sap:VirtualizedContainerService.HintSize="464,22" />
+      <sap2010:ViewStateData Id="Sequence_18" sap:VirtualizedContainerService.HintSize="486,391">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Catch`1_4" sap:VirtualizedContainerService.HintSize="490,21">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="TryCatch_3" sap:VirtualizedContainerService.HintSize="531,1141">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="InvokePowerShellCommandExt_12" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="Sequence_16" sap:VirtualizedContainerService.HintSize="222,146">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="InvokePowerShellCommandExt_7" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="Sequence_17" sap:VirtualizedContainerService.HintSize="222,146">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="If_4" sap:VirtualizedContainerService.HintSize="469,294" />
+      <sap2010:ViewStateData Id="Sequence_12" sap:VirtualizedContainerService.HintSize="491,418">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="InvokePowerShellCommandExt_8" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="Sequence_14" sap:VirtualizedContainerService.HintSize="491,146">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="GetEnvironmentVariable`1_2" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="CreateDirectory_1" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="InvokePowerShellCommandExt_5" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="Sequence_15" sap:VirtualizedContainerService.HintSize="491,270">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Sequence_4" sap:VirtualizedContainerService.HintSize="513,1038">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Rethrow_3" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="Catch`1_3" sap:VirtualizedContainerService.HintSize="517,21">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="InvokePowerShellCommandExt_6" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="If_3" sap:VirtualizedContainerService.HintSize="464,208">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="TryCatch_2" sap:VirtualizedContainerService.HintSize="531,1265">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="RunPublishSymbols_1" sap:VirtualizedContainerService.HintSize="531,22" />
+      <sap2010:ViewStateData Id="Sequence_1" sap:VirtualizedContainerService.HintSize="553,2632">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="CreateBuildFailureBug_1" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="Rethrow_1" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="Sequence_2" sap:VirtualizedContainerService.HintSize="222,208">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="Catch`1_1" sap:VirtualizedContainerService.HintSize="404,21">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">False</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="DropBinaries_1" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="ResetEnvironment_1" sap:VirtualizedContainerService.HintSize="200,22" />
+      <sap2010:ViewStateData Id="Sequence_6" sap:VirtualizedContainerService.HintSize="222,208">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="TryCatch_1" sap:VirtualizedContainerService.HintSize="571,2859">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+            <x:Boolean x:Key="IsPinned">False</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="AgentScope_1" sap:VirtualizedContainerService.HintSize="593,3665" />
+      <sap2010:ViewStateData Id="Sequence_3" sap:VirtualizedContainerService.HintSize="615,3913">
+        <sap:WorkflowViewStateService.ViewState>
+          <scg:Dictionary x:TypeArguments="x:String, x:Object">
+            <x:Boolean x:Key="IsExpanded">True</x:Boolean>
+          </scg:Dictionary>
+        </sap:WorkflowViewStateService.ViewState>
+      </sap2010:ViewStateData>
+      <sap2010:ViewStateData Id="TfsBuild.Process_1" sap:VirtualizedContainerService.HintSize="655,3993" />
+    </sap2010:ViewStateManager>
+  </sap2010:WorkflowViewState.ViewStateManager>
+</Activity>
