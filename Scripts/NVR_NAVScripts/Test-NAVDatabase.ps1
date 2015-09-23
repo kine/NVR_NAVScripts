@@ -50,8 +50,8 @@ function Test-NAVDatabase
         $config.Save($ConfigFile)
         $null = & $RoleTailoredClientExePath -consolemode `
         -showNavigationPage:0 `
-        "dynamicsnav://$NAVServerName/$NAVServerInstance/$CompanyName/RunCodeunit?Codeunit=$CodeunitId"`
-        -config '$ConfigFile'
+        -settings:'$ConfigFile'`
+        "dynamicsnav://$NAVServerName/$NAVServerInstance/$CompanyName/RunCodeunit?Codeunit=$CodeunitId"
     }
 
     function Save-NAVTestResult 

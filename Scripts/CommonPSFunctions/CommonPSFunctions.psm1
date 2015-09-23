@@ -27,12 +27,21 @@ function Get-NAVAdminPath
 
 function Get-NAVAdminModuleName
 {
+    #    return (Join-Path -Path (Get-NAVAdminPath) -ChildPath 'Microsoft.Dynamics.Nav.Management.dll')
     return (Join-Path -Path (Get-NAVAdminPath) -ChildPath 'Microsoft.Dynamics.Nav.Management.dll')
 }
 function Import-NAVAdminTool
 {
-    $modulepath = Get-NAVAdminModuleName
+    [CmdletBinding()]
+    param (
+        [Switch]$Force
+    )
     $module = Get-Module -Name 'Microsoft.Dynamics.Nav.Management'
+    if ($Force) 
+    {
+        Remove-Module -Name 'Microsoft.Dynamics.Nav.Management' -Force
+    }
+    $modulepath = Get-NAVAdminModuleName
     if (!($module) -or ($module.Path -ne $modulepath)) 
     {
         if (!(Test-Path -Path $modulepath)) 
@@ -41,7 +50,8 @@ function Import-NAVAdminTool
             return
         }
         Write-Host -Object "Importing NAVAdminTool from $modulepath"
-        Import-Module -Global "$modulepath" -ArgumentList (Get-NAVIde) -DisableNameChecking -Force
+        Import-Module -Global "$modulepath" -DisableNameChecking -Force
+        #& $modulepath #| Out-Null
         Write-Verbose -Message 'NAV admin tool imported'
     } else 
     {
