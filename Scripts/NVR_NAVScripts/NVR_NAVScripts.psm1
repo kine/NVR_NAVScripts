@@ -795,14 +795,14 @@ function Merge-NAVDatabaseObjects
 
 
 <#
-    .Synopsis
-    Short description
-    .DESCRIPTION
-    Long description
-    .EXAMPLE
-    Example of how to use this cmdlet
-    .EXAMPLE
-    Another example of how to use this cmdlet
+        .Synopsis
+        Short description
+        .DESCRIPTION
+        Long description
+        .EXAMPLE
+        Example of how to use this cmdlet
+        .EXAMPLE
+        Another example of how to use this cmdlet
 #>
 Function Remove-NAVLocalApplication
 {
@@ -844,14 +844,14 @@ function Set-ServicePortSharing
 }
 
 <#
-    .Synopsis
-    Short description
-    .DESCRIPTION
-    Long description
-    .EXAMPLE
-    Example of how to use this cmdlet
-    .EXAMPLE
-    Another example of how to use this cmdlet
+        .Synopsis
+        Short description
+        .DESCRIPTION
+        Long description
+        .EXAMPLE
+        Example of how to use this cmdlet
+        .EXAMPLE
+        Another example of how to use this cmdlet
 #>
 Function New-NAVLocalApplication
 {
@@ -957,14 +957,14 @@ Function New-NAVLocalApplication
 }
 
 <#
-    .Synopsis
-    Get list of changed files between two commits
-    .DESCRIPTION
-    Get list of changed files between two commits
-    .EXAMPLE
-    Example of how to use this cmdlet
-    .EXAMPLE
-    Another example of how to use this cmdlet
+        .Synopsis
+        Get list of changed files between two commits
+        .DESCRIPTION
+        Get list of changed files between two commits
+        .EXAMPLE
+        Example of how to use this cmdlet
+        .EXAMPLE
+        Another example of how to use this cmdlet
 #>
 function Get-GITModifiedFile
 {
@@ -992,14 +992,14 @@ function Get-GITModifiedFile
 }
 
 <#
-    .Synopsis
-    Try to find specified version of NAV in folders on same level as passed default path
-    .DESCRIPTION
-    Return folder name for selected NAV version. If not found, return the passed default path
-    .EXAMPLE
-    Find-NAVVersion 'C:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client' '8.0.40262.0'
-    .EXAMPLE
-    Find-NAVVersion 'C:\Program Files\Microsoft Dynamics NAV\80\Service' '8.0.40262.0'
+        .Synopsis
+        Try to find specified version of NAV in folders on same level as passed default path
+        .DESCRIPTION
+        Return folder name for selected NAV version. If not found, return the passed default path
+        .EXAMPLE
+        Find-NAVVersion 'C:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client' '8.0.40262.0'
+        .EXAMPLE
+        Find-NAVVersion 'C:\Program Files\Microsoft Dynamics NAV\80\Service' '8.0.40262.0'
 #>
 
 function Find-NAVVersion
@@ -1042,15 +1042,15 @@ function Find-NAVVersion
 
 Function Set-NAVUIDOffset
 {
-	param (
-		[Parameter(Mandatory=$true, ValueFromPipelineByPropertyName = $true, HelpMessage="SQL Server")]
-		[String]$Server,
-		[Parameter(Mandatory=$true, ValueFromPipelineByPropertyName = $true, HelpMessage="SQL Database")]
-		[String]$Database,
-		[Parameter(Mandatory=$true, ValueFromPipelineByPropertyName = $true, HelpMessage="ID Offset to set")]
-		[int]$UIDOffset
-	)
-	Get-SQLCommandResult -Server $Server -Database $Database -Command "UPDATE [`$ndo`$dbproperty] SET [uidoffset] = $UIDOffset" | Out-Null
+    param (
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName = $true, HelpMessage="SQL Server")]
+        [String]$Server,
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName = $true, HelpMessage="SQL Database")]
+        [String]$Database,
+        [Parameter(Mandatory=$true, ValueFromPipelineByPropertyName = $true, HelpMessage="ID Offset to set")]
+        [int]$UIDOffset
+    )
+    Get-SQLCommandResult -Server $Server -Database $Database -Command "UPDATE [`$ndo`$dbproperty] SET [uidoffset] = $UIDOffset" | Out-Null
 }
 
 <#
@@ -1105,6 +1105,42 @@ function Update-NAVServiceVersion
     end{
     }
 }
+
+function Upgrade-NAVServerInstance
+{
+    param (
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true, HelpMessage = 'Name of the service to upgrade')]
+        $Name,
+        [Parameter(Mandatory = $true, Position = 1, HelpMessage = 'Path to the target service folder')]
+        $TargetFolder
+    )
+
+    begin {
+    }
+    process {
+        $service = Get-Service $Name
+        Write-Host "$($Service.DisplayName)"
+        if ($service.Status -eq 'Running') {
+            $service.Stop()
+        }
+        $currentPath = (Get-ItemProperty -Path ('HKLM:\System\CurrentControlSet\Services\'+$service.Name) -Name ImagePath).ImagePath
+        $originalPath = (Split-Path $currentPath.Split('$')[0]).Replace('"','')
+        $newPath = $currentPath.Replace($originalPath,$TargetFolder)
+        Set-ItemProperty -Path ('HKLM:\System\CurrentControlSet\Services\'+$service.Name) -Name ImagePath -Value $newPath
+        Move-Item -Path "$originalPath\Instances\$($Name.Split('$')[1])" -Destination "$TargetFolder\Instances\"
+
+        $option=[System.StringSplitOptions]::RemoveEmptyEntries
+        $separator = " config ","DUMMY"
+        $configFile = $newPath.Split($separator,$option)[1].Replace('"','')
+        $config = [xml](Get-Content $configFile)
+        $config.configuration.appSettings.file = $config.configuration.appSettings.file.Replace($originalPath,$TargetFolder)
+        $config.configuration.tenants.file = $config.configuration.tenants.file.Replace($originalPath,$TargetFolder)
+        $config.Save($configFile)
+    }
+    end{
+    }
+}
+
 $client = Split-Path (Get-NAVIde)
 $NavIde = Get-NAVIde
 
@@ -1146,3 +1182,4 @@ Export-ModuleMember -Function Set-NAVObjectAsDeleted
 Export-ModuleMember -Function Set-NAVUIDOffset
 Export-ModuleMember -Function Publish-NAVObject
 Export-ModuleMember -Function Test-NAVDatabase
+Export-ModuleMember -Function Upgrade-NAVServerInstance

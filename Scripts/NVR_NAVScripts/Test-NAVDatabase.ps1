@@ -1,13 +1,15 @@
-﻿<#
-    .Synopsis
-    Run NAV Tests and export result as NUnit xml file
-    .DESCRIPTION
-    RUN NAV Test through selected codeunit. Collect results from the SQL table
-    and write them into NUnit xml file.
-    .EXAMPLE
-    Test-NAVDatabase -SQLServer localhost -SQLDb 'Demo Database NAV (9-0)' -NAVServerName localhost -NAVServerInstance DynamicsNAV90 -CodeunitId 130402 -OutTestFile 'D:\git\TFSTest\test-nav.xml'
+﻿#requires -Version 2 -Modules CommonPSFunctions
+<#
+        .Synopsis
+        Run NAV Tests and export result as NUnit xml file
+        .DESCRIPTION
+        RUN NAV Test through selected codeunit. Collect results from the SQL table
+        and write them into NUnit xml file.
+        .EXAMPLE
+        Test-NAVDatabase -SQLServer localhost -SQLDb 'Demo Database NAV (9-0)' -NAVServerName localhost -NAVServerInstance DynamicsNAV90 -CodeunitId 130402 -OutTestFile 'D:\git\TFSTest\test-nav.xml'
 #>
-function Test-NAVDatabase {
+function Test-NAVDatabase 
+{
     param(
         $SQLServer,
         $SQLDb,
@@ -15,8 +17,8 @@ function Test-NAVDatabase {
         $NAVServerInstance,
         #If CompanyName is not used, first CRONUS company will be taken
         $CompanyName,
-        $CodeunitId=130402,
-        $OutTestFile=''
+        $CodeunitId = 130402,
+        $OutTestFile = ''
     )
 
     function Get-FirstCompanyName
@@ -38,10 +40,18 @@ function Test-NAVDatabase {
             $CompanyName,
             $CodeunitId
         )
-        & $RoleTailoredClientExePath -consolemode `
+        $OrigConfigFile = Join-Path $env:ProgramData "Microsoft\Microsoft Dynamics NAV\$NavVersion\ClientUserSettings.config"
+        $ConfigFile = 'ClientUserSettings.config'
+        $config = [xml](Get-Content $OrigConfigFile)
+        $Server=$config.configuration.appSettings.SelectSingleNode('add[@key="Server"]')
+        $Server.value = $NAVServerName
+        $Instance=$config.configuration.appSettings.SelectSingleNode('add[@key="ServerInstance"]')
+        $Instance.value = $NAVServerInstance        
+        $config.Save($ConfigFile)
+        $null = & $RoleTailoredClientExePath -consolemode `
         -showNavigationPage:0 `
-        "dynamicsnav://$NAVServerName/$NAVServerInstance/$CompanyName/RunCodeunit?Codeunit=$CodeunitId" `
-        | Out-Null
+        "dynamicsnav://$NAVServerName/$NAVServerInstance/$CompanyName/RunCodeunit?Codeunit=$CodeunitId"`
+        -config '$ConfigFile'
     }
 
     function Save-NAVTestResult 
@@ -58,7 +68,7 @@ function Test-NAVDatabase {
         $Command = "select * from [$CompanyName`$$ResultTableName]"
         $Result = Get-SQLCommandResult -Server $SQLServer -Database $SQLDb -Command $Command    
         $FileNo = 0
-        $TestResults=[xml]'<?xml version="1.0" encoding="utf-8" standalone="no"?><test-run></test-run>'
+        $TestResults = [xml]'<?xml version="1.0" encoding="utf-8" standalone="no"?><test-run></test-run>'
         $TestRun = $TestResults['test-run']
         $TestRun.SetAttribute('id',0)
         $TestRun.SetAttribute('name','NAV Build Test')
@@ -73,14 +83,18 @@ function Test-NAVDatabase {
         $TestRun.SetAttribute('skipped',0)
         $TestRun.SetAttribute('asserts',0)
                                                             
-        ForEach ($line in $Result) {
+        ForEach ($line in $Result) 
+        {
             $TestSuiteName = $line['Codeunit Name']
             $TestSuite = $TestRun.SelectSingleNode("/test-run/test-suite[@name='$TestSuiteName']")
-            if ($TestSuite) {
-        
-            } else {
+            if ($TestSuite) 
+            {
+
+            }
+            else 
+            {
                 $TestSuite = $TestResults.CreateElement('test-suite')
-                $TestRun.AppendChild($TestSuite) | Out-Null
+                $null = $TestRun.AppendChild($TestSuite)
                 $TestSuite.SetAttribute('type','Assembly')
                 $TestSuite.SetAttribute('name',"$TestSuiteName")
                 $TestSuite.SetAttribute('status','Passed')
@@ -96,43 +110,48 @@ function Test-NAVDatabase {
             $TestSuite.SetAttribute('testcasecount',1+$TestSuite.GetAttribute('testcasecount'))
             $TestRun.SetAttribute('testcasecount',1+$TestRun.GetAttribute('testcasecount'))
             $TestCase = $TestResults.CreateElement('test-case')
-            $TestSuite.AppendChild($TestCase) | Out-Null
+            $null = $TestSuite.AppendChild($TestCase)
             #Passed,Failed,Inconclusive,Incomplete
             switch ($line['Result']) {
-                0 {
-                    $TestResult='Passed'
+                0 
+                {
+                    $TestResult = 'Passed'
                     $TestSuite.SetAttribute('passed',1+$TestSuite.GetAttribute('passed'))
                     $TestRun.SetAttribute('passed',1+$TestRun.GetAttribute('passed'))
                 }
-                1 {
-                    $TestResult='Failed'
+                1 
+                {
+                    $TestResult = 'Failed'
                     $TestSuite.SetAttribute('status','Failed')
                     $TestRun.SetAttribute('status','Failed')
                     $TestSuite.SetAttribute('failed',1+$TestSuite.GetAttribute('failed'))
                     $TestRun.SetAttribute('failed',1+$TestRun.GetAttribute('failed'))
                     $Failure = $TestResults.CreateElement('failure')
-                    $TestCase.AppendChild($Failure) | Out-Null
+                    $null = $TestCase.AppendChild($Failure)
                     $Message = $TestResults.CreateElement('message')
-                    $Failure.AppendChild($Message) | Out-Null
+                    $null = $Failure.AppendChild($Message)
                     $Message.InnerText = $line['Error Message']
                     $CallStackData = Get-NAVBlobToString -CompressedByteArray $line['Call Stack']
                     $StackTrace = $TestResults.CreateElement('stack-trace')
-                    $Failure.AppendChild($StackTrace) | Out-Null
+                    $null = $Failure.AppendChild($StackTrace)
                     $StackTrace.InnerText = $CallStackData.Data
                 }
-                2 {
-                    $TestResult='Inconclusive'
+                2 
+                {
+                    $TestResult = 'Inconclusive'
                     $TestSuite.SetAttribute('inconclusive',1+$TestSuite.GetAttribute('inconclusive'))
                     $TestRun.SetAttribute('inconclusive',1+$TestRun.GetAttribute('inconclusive'))
                 }
-                3 {
-                    $TestResult='Incomplete'
+                3 
+                {
+                    $TestResult = 'Incomplete'
                 }
             }
             $TestCase.SetAttribute('id',"$($line['No_'])")
             $TestCase.SetAttribute('name',"$($TestSuiteName):$($line['Function Name'])")
             $TestCase.SetAttribute('result',$TestResult)
-            if ($line['Execution Time'] -lt 0) {
+            if ($line['Execution Time'] -lt 0) 
+            {
                 $line['Execution Time'] = -$line['Execution Time']
             }
             $RunTime = [TimeSpan]::FromMilliseconds($line['Execution Time'])
@@ -146,11 +165,12 @@ function Test-NAVDatabase {
             #$TestCaseProp.SetAttribute('name','Description')
             #$TestCaseProp.SetAttribute('value',"$($TestSuiteName)")
                         
-            if ($TestRun.GetAttribute('testcasecount') -eq $MaxTestsPerFile) {
+            if ($TestRun.GetAttribute('testcasecount') -eq $MaxTestsPerFile) 
+            {
                 $TestResults.Save($ActualOutFile)
                 $FileNo++
                 $ActualOutFile = $OutFile.Insert($OutFile.LastIndexOf('.'),$FileNo)
-                $TestResults=[xml]'<?xml version="1.0" encoding="utf-8" standalone="no"?><test-run></test-run>'
+                $TestResults = [xml]'<?xml version="1.0" encoding="utf-8" standalone="no"?><test-run></test-run>'
                 $TestRun = $TestResults['test-run']
                 $TestRun.SetAttribute('id',0)
                 $TestRun.SetAttribute('name','NAV Build Test')
@@ -174,18 +194,22 @@ function Test-NAVDatabase {
     $ReplaceChars = '."\/%]['''
 
     #microsoft.Dynamics.Nav.Client.exe
-    $RoleTailoredClientExePath = Join-Path $env:NAVIdePath 'Microsoft.Dynamics.Nav.Client.exe'
+    $RoleTailoredClientExePath = Join-Path -Path $env:NAVIdePath -ChildPath 'Microsoft.Dynamics.Nav.Client.exe'
 
-    if (-not $CompanyName) {
+    if (-not $CompanyName) 
+    {
         $CompanyName = Get-FirstCompanyName -SQLServer $SQLServer -SQLDb $SQLDb
     }
     
     $DBCompanyName = $CompanyName
-    for ($i=0;$i -lt $ReplaceChars.Length;$i++) {
-        $DBCompanyName = $DBCompanyName.Replace($ReplaceChars[$i],'_')  
+    for ($i = 0;$i -lt $ReplaceChars.Length;$i++) 
+    {
+        $DBCompanyName = $DBCompanyName.Replace($ReplaceChars[$i],'_')
     }
+    Import-Module (Get-NAVAdminModuleName) -Force
+    New-NAVServerUser -WindowsAccount "$($env:USERDOMAIN)\$($env:USERNAME)" -ServerInstance $NAVServerInstance  
+    New-NAVServerUserPermissionSet -WindowsAccount "$($env:USERDOMAIN)\$($env:USERNAME)" -ServerInstance $NAVServerInstance -PermissionSetId 'SUPER'
     
-    Start-NAVTest -RoleTailoredClientExePath $RoleTailoredClientExePath -NavServerName $NavServerName -NAVServerInstance $NavServerInstance -CompanyName $CompanyName -CodeunitId $CodeunitId
+    Start-NAVTest -RoleTailoredClientExePath $RoleTailoredClientExePath -NavServerName $NAVServerName -NAVServerInstance $NAVServerInstance -CompanyName $CompanyName -CodeunitId $CodeunitId
     Save-NAVTestResult -CompanyName $DBCompanyName -SQLServer $SQLServer -SQLDb $SQLDb -ResultTable $ResultTableName -OutFile $OutTestFile
-
 }
