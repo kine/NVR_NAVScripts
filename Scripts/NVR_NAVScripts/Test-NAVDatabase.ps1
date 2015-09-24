@@ -18,7 +18,8 @@ function Test-NAVDatabase
         #If CompanyName is not used, first CRONUS company will be taken
         $CompanyName,
         $CodeunitId = 130402,
-        $OutTestFile = ''
+        $OutTestFile = '',
+        [bool]$ExportOnly=$false
     )
 
     function Get-FirstCompanyName
@@ -431,7 +432,10 @@ function Test-NAVDatabase
         $DBCompanyName = $DBCompanyName.Replace($ReplaceChars[$i],'_')
     }
     #Import-Module (Get-NAVAdminModuleName) -Force
-    #Start-NAVTest -RoleTailoredClientExePath $RoleTailoredClientExePath -NavServerName $NAVServerName -NAVServerInstance $NAVServerInstance -CompanyName $CompanyName -CodeunitId $CodeunitId
+    if  ($ExportOnly) {
+    } else {
+        Start-NAVTest -RoleTailoredClientExePath $RoleTailoredClientExePath -NavServerName $NAVServerName -NAVServerInstance $NAVServerInstance -CompanyName $CompanyName -CodeunitId $CodeunitId
+    }
     #Save-NAVTestResultTrx -CompanyName $DBCompanyName -SQLServer $SQLServer -SQLDb $SQLDb -ResultTable $ResultTableName -OutFile $OutTestFile
     Save-NAVTestResultTrx -CompanyName $DBCompanyName -SQLServer $SQLServer -SQLDb $SQLDb -ResultTable $ResultTableName -OutFile $OutTestFile
 }
