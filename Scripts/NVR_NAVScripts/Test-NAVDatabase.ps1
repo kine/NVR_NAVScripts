@@ -41,7 +41,7 @@ function Test-NAVDatabase
             $CodeunitId
         )
         $OrigConfigFile = Join-Path $env:ProgramData "Microsoft\Microsoft Dynamics NAV\$NavVersion\ClientUserSettings.config"
-        $ConfigFile = 'ClientUserSettings.config'
+        $ConfigFile = Join-Path $env:Temp "ClientUserSettings$([guid]::NewGuid().ToString() -replace '[{}-]','').config"
         $config = [xml](Get-Content $OrigConfigFile)
         $Server=$config.configuration.appSettings.SelectSingleNode('add[@key="Server"]')
         $Server.value = $NAVServerName
@@ -52,6 +52,7 @@ function Test-NAVDatabase
         -showNavigationPage:0 `
         -settings:"$ConfigFile"`
         "dynamicsnav://$NAVServerName/$NAVServerInstance/$CompanyName/RunCodeunit?Codeunit=$CodeunitId"
+        Remove-Item -Path $ConfigFile
     }
 
     function Save-NAVTestResult 
@@ -206,9 +207,7 @@ function Test-NAVDatabase
     {
         $DBCompanyName = $DBCompanyName.Replace($ReplaceChars[$i],'_')
     }
-    Import-Module (Get-NAVAdminModuleName) -Force
-    New-NAVServerUser -WindowsAccount "$($env:USERDOMAIN)\$($env:USERNAME)" -ServerInstance $NAVServerInstance  
-    New-NAVServerUserPermissionSet -WindowsAccount "$($env:USERDOMAIN)\$($env:USERNAME)" -ServerInstance $NAVServerInstance -PermissionSetId 'SUPER'
+    #Import-Module (Get-NAVAdminModuleName) -Force
     
     Start-NAVTest -RoleTailoredClientExePath $RoleTailoredClientExePath -NavServerName $NAVServerName -NAVServerInstance $NAVServerInstance -CompanyName $CompanyName -CodeunitId $CodeunitId
     Save-NAVTestResult -CompanyName $DBCompanyName -SQLServer $SQLServer -SQLDb $SQLDb -ResultTable $ResultTableName -OutFile $OutTestFile

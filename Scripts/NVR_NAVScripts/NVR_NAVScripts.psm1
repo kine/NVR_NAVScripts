@@ -937,7 +937,11 @@ Function New-NAVLocalApplication
     Stop-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
     Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance") -ErrorAction Stop
     Write-Verbose -Message 'Server instance restarted'
-
+    
+    Write-Host -Object 'Adding current user as SUPER'
+    New-NAVServerUser -WindowsAccount "$($env:USERDOMAIN)\$($env:USERNAME)" -ServerInstance $NAVServerInstance  
+    New-NAVServerUserPermissionSet -WindowsAccount "$($env:USERDOMAIN)\$($env:USERNAME)" -ServerInstance $NAVServerInstance -PermissionSetId 'SUPER'
+    
     #Sync-NAVTenant -ServerInstance $ServerInstance -Force
 
     if ($BaseFob -gt '') 
