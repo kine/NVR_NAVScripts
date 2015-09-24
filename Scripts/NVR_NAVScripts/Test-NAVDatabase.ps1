@@ -52,10 +52,10 @@ function Test-NAVDatabase
         $Instance=$config.configuration.appSettings.SelectSingleNode('add[@key="ServerInstance"]')
         $Instance.value = $NAVServerInstance        
         $config.Save($ConfigFile)
-        $null = & $RoleTailoredClientExePath -consolemode `
+        & $RoleTailoredClientExePath -consolemode `
         -showNavigationPage:0 `
         -settings:"$ConfigFile"`
-        "dynamicsnav://$NAVServerName/$NAVServerInstance/$CompanyName/RunCodeunit?Codeunit=$CodeunitId"
+        "dynamicsnav://$NAVServerName/$NAVServerInstance/$CompanyName/RunCodeunit?Codeunit=$CodeunitId" | Out-Null
         Remove-Item -Path $ConfigFile
     }
 
