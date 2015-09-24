@@ -40,6 +40,10 @@ function Test-NAVDatabase
             $CompanyName,
             $CodeunitId
         )
+        if ($env:NAVServicePath -match '.*\\\d\d\\.*') 
+        {
+            $NavVersion = $Mateches[1]
+        }
         $OrigConfigFile = Join-Path $env:ProgramData "Microsoft\Microsoft Dynamics NAV\$NavVersion\ClientUserSettings.config"
         $ConfigFile = Join-Path $env:Temp "ClientUserSettings$([guid]::NewGuid().ToString() -replace '[{}-]','').config"
         $config = [xml](Get-Content $OrigConfigFile)
