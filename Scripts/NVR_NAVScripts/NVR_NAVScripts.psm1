@@ -908,7 +908,7 @@ Function New-NAVLocalApplication
     }
     else 
     {
-        $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -ErrorAction Stop
+        $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -ErrorAction Stop -DataFilesDestinationPath (Get-Location)
     }
     
     Write-Verbose -Message 'Database Restored'
@@ -939,8 +939,8 @@ Function New-NAVLocalApplication
     Write-Verbose -Message 'Server instance restarted'
     
     Write-Host -Object 'Adding current user as SUPER'
-    New-NAVServerUser -WindowsAccount "$($env:USERDOMAIN)\$($env:USERNAME)" -ServerInstance $NAVServerInstance  
-    New-NAVServerUserPermissionSet -WindowsAccount "$($env:USERDOMAIN)\$($env:USERNAME)" -ServerInstance $NAVServerInstance -PermissionSetId 'SUPER'
+    New-NAVServerUser -WindowsAccount "$($env:USERDOMAIN)\$($env:USERNAME)" -ServerInstance $ServerInstance  
+    New-NAVServerUserPermissionSet -WindowsAccount "$($env:USERDOMAIN)\$($env:USERNAME)" -ServerInstance $ServerInstance -PermissionSetId 'SUPER'
     
     #Sync-NAVTenant -ServerInstance $ServerInstance -Force
 
