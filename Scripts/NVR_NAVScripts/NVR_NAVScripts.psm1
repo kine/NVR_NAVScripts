@@ -908,7 +908,7 @@ Function New-NAVLocalApplication
     }
     else 
     {
-        $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -ErrorAction Stop -DataFilesDestinationPath (Get-Location)
+        $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -ErrorAction Stop
     }
     
     Write-Verbose -Message 'Database Restored'
