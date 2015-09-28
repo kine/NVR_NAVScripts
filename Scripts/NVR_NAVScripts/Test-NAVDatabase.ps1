@@ -220,7 +220,7 @@ function Test-NAVDatabase
             '<ResultSummary outcome="Passed">'+
             '<Counters total="0" executed="0" passed="0" error="0" failed="0" timeout="0" aborted="0" inconclusive="0" passedButRunAborted="0" notRunnable="0" notExecuted="0" disconnected="0" warning="0" completed="0" inProgress="0" pending="0" />'+
             '</ResultSummary>'+
-            "<Times creation=`"$(Get-Date -Format o)`" queuing=`"$(Get-Date -Format o)`" start=`"$(Get-Date -Format o)`" finish=`"$(Get-Date -Format o)`" />"+
+            "<Times creation=`"$(Get-Date -Format o)`" queuing=`"$(Get-Date -Format o)`" start=`"`" finish=`"`" />"+
             '<TestSettings id="010e155f-ff0f-44f5-a83e-5093c2e8dcc4" name="Settings">'+
             '</TestSettings>'+
             '<TestDefinitions></TestDefinitions>'+
@@ -243,6 +243,7 @@ function Test-NAVDatabase
         $TestEntries=$TestResults.SelectSingleNode('/TestRun/TestEntries')
         $Results = $TestResults.SelectSingleNode('/TestRun/Results')
         $ResultsSummary = $TestResults.SelectSingleNode('/TestRun/ResultSummary')                                              
+        $Times = $TestResults.SelectNodes('/TestRun/Times')
         
         ForEach ($line in $SqlResult) 
         {
@@ -298,6 +299,10 @@ function Test-NAVDatabase
             #Passed,Failed,Inconclusive,Incomplete
             $ResultsSummary.Counters.executed = (1+$ResultsSummary.Counters.executed).ToString()
             $ResultsSummary.Counters.total = (1+$ResultsSummary.Counters.total).ToString()
+            if ($Times.GetAttribute('start') -eq '') {
+                $Times.SetAttribute('start',$StartTime)
+            }
+            $Times.SetAttribute('finish',$EndTime)
             
             switch ($line['Result']) {
                 0 
