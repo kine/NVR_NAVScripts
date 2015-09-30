@@ -19,7 +19,8 @@ function Test-NAVDatabase
         $CompanyName,
         $CodeunitId = 130402,
         $OutTestFile = '',
-        [bool]$ExportOnly=$false
+        [bool]$ExportOnly=$false,
+        [bool]$ReportFailures=$true
     )
 
     function Get-FirstCompanyName
@@ -351,6 +352,13 @@ function Test-NAVDatabase
         }
         #$TestRun.Times.SetAttribute('finish',(Get-Date -Format o).ToString())
         $TestResults.Save($ActualOutFile)
+        if ($ReportFailures) 
+        {
+            if ($ResultsSummary.GetAttribute('outcome') -eq 'Failed') 
+            {
+                Write-Error "$($ResultsSummary.Counters.failed) tests of $($ResultsSummary.Counters.total) failed!"
+            }
+        }
     }
     
     function Save-NAVTestResultSummary
