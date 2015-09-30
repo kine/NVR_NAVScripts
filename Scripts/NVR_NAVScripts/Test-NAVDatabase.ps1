@@ -349,7 +349,7 @@ function Test-NAVDatabase
             $Result.SetAttribute('testListId','8c84fa94-04c1-424b-9868-57a2d4851a1d')
             $Result.SetAttribute('testType','13cdc9d9-ddb5-4fa4-a97d-d965ccfc6d4b')
         }
-        $TestRun.Times.SetAttribute('finish',(Get-Date -Format o).ToString())
+        #$TestRun.Times.SetAttribute('finish',(Get-Date -Format o).ToString())
         $TestResults.Save($ActualOutFile)
     }
     
