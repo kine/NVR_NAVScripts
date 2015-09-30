@@ -254,7 +254,7 @@ function Test-NAVDatabase
             $TestDefinition.SetAttribute('name',$line['Function Name'])
             $TestDefinition.SetAttribute('id',$id)
             $TestDefinition.SetAttribute('storage',"$OutFile")
-            $TestDefinition.SetAttribute('nammedCategory',"$TestSuiteName")
+            #$TestDefinition.SetAttribute('nammedCategory',"$TestSuiteName")
             #$Css = $TestResults.CreateElement('Css')
             #$null = $TestDefinition.AppendChild($Css)
             #$Css.SetAttribute('projectStructure','')
