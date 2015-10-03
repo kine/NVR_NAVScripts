@@ -447,7 +447,7 @@ function Test-NAVDatabase
     #Import-Module (Get-NAVAdminModuleName) -Force
     if  ($ExportOnly) {
     } else {
-        #Start-NAVTest -RoleTailoredClientExePath $RoleTailoredClientExePath -NavServerName $NAVServerName -NAVServerInstance $NAVServerInstance -CompanyName $CompanyName -CodeunitId $CodeunitId
+        Start-NAVTest -RoleTailoredClientExePath $RoleTailoredClientExePath -NavServerName $NAVServerName -NAVServerInstance $NAVServerInstance -CompanyName $CompanyName -CodeunitId $CodeunitId
     }
     #Save-NAVTestResultTrx -CompanyName $DBCompanyName -SQLServer $SQLServer -SQLDb $SQLDb -ResultTable $ResultTableName -OutFile $OutTestFile
     Save-NAVTestResultTrx -CompanyName $DBCompanyName -SQLServer $SQLServer -SQLDb $SQLDb -ResultTable $ResultTableName -OutFile $OutTestFile
