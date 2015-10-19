@@ -406,9 +406,9 @@ function Compile-NAVApplicationObjectFilesMulti
         [ValidateSet('Yes','No','Force')]
         [string] $SynchronizeSchemaChanges = 'Yes',
         [Parameter(ValueFromPipelinebyPropertyName = $true)]
-        [String]$NavServerName,
+        [String]$NavServerName='',
         [Parameter(ValueFromPipelinebyPropertyName = $true)]
-        [String]$NavServerInstance
+        [String]$NavServerInstance=''
             )
     
     $CPUs = (Get-WmiObject -Class Win32_Processor -Property 'NumberOfLogicalProcessors' | Select-Object -Property 'NumberOfLogicalProcessors').NumberOfLogicalProcessors
@@ -529,9 +529,9 @@ function Compile-NAVApplicationObjectMulti
         [string] $SynchronizeSchemaChanges = 'Yes',
         [int]$ParallelismLimit = 5,
         [Parameter(ValueFromPipelinebyPropertyName = $true)]
-        [String]$NavServerName,
+        [String]$NavServerName='',
         [Parameter(ValueFromPipelinebyPropertyName = $true)]
-        [String]$NavServerInstance
+        [String]$NavServerInstance=''
             )
     
     $CPUs = (Get-WmiObject -Class Win32_Processor -Property 'NumberOfLogicalProcessors' | Select-Object -Property 'NumberOfLogicalProcessors').NumberOfLogicalProcessors

@@ -71,11 +71,9 @@ function Import-NAVApplicationObject2
         [string] $Password,
 
         # Specifies the name of the server that hosts the Microsoft Dynamics NAV Server instance, such as MyServer.
-        [ValidateNotNullOrEmpty()]
         [string] $NavServerName,
 
         # Specifies the Microsoft Dynamics NAV Server instance that is being used.The default value is DynamicsNAV80.
-        [ValidateNotNullOrEmpty()]
         [string] $NavServerInstance = "DynamicsNAV80",
 
         # Specifies the port on the Microsoft Dynamics NAV Server server that the Microsoft Dynamics NAV Windows PowerShell cmdlets access. The default value is 7045.
@@ -391,11 +389,9 @@ function Delete-NAVApplicationObject2
         [string] $Password,
 
         # Specifies the name of the server that hosts the Microsoft Dynamics NAV Server instance, such as MyServer.
-        [ValidateNotNullOrEmpty()]
         [string] $NavServerName,
 
         # Specifies the Microsoft Dynamics NAV Server instance that is being used.The default value is DynamicsNAV80.
-        [ValidateNotNullOrEmpty()]
         [string] $NavServerInstance = "DynamicsNAV80",
 
         # Specifies the port on the Microsoft Dynamics NAV Server server that the Microsoft Dynamics NAV Windows PowerShell cmdlets access. The default value is 7045.
@@ -511,11 +507,9 @@ function Compile-NAVApplicationObject2
         [string] $Password,
 
         # Specifies the name of the server that hosts the Microsoft Dynamics NAV Server instance, such as MyServer.
-        [ValidateNotNullOrEmpty()]
         [string] $NavServerName,
 
         # Specifies the Microsoft Dynamics NAV Server instance that is being used.The default value is DynamicsNAV80.
-        [ValidateNotNullOrEmpty()]
         [string] $NavServerInstance = "DynamicsNAV80",
 
         # Specifies the port on the Microsoft Dynamics NAV Server server that the Microsoft Dynamics NAV Windows PowerShell cmdlets access. The default value is 7045.
