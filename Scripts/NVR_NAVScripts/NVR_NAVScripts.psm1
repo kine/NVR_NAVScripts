@@ -404,8 +404,12 @@ function Compile-NAVApplicationObjectFilesMulti
         # Specifies the schema synchronization behaviour. The default value is 'Yes'.
         [Parameter(ValueFromPipelinebyPropertyName = $true)]
         [ValidateSet('Yes','No','Force')]
-        [string] $SynchronizeSchemaChanges = 'Yes'
-    )
+        [string] $SynchronizeSchemaChanges = 'Yes',
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
+        [String]$NavServerName,
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
+        [String]$NavServerInstance
+            )
     
     $CPUs = (Get-WmiObject -Class Win32_Processor -Property 'NumberOfLogicalProcessors' | Select-Object -Property 'NumberOfLogicalProcessors').NumberOfLogicalProcessors
     if ($NavIde -eq '') 
@@ -443,12 +447,12 @@ function Compile-NAVApplicationObjectFilesMulti
         if ($AsJob -eq $true) 
         {
             Write-Host -Object "Compiling $Filter as Job..."
-            $jobs += Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -Filter $Filter -Recompile -AsJob -SynchronizeSchemaChanges $SynchronizeSchemaChanges
+            $jobs += Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -Filter $Filter -Recompile -AsJob -SynchronizeSchemaChanges $SynchronizeSchemaChanges -NavServerName $NavServerName -NavServerInstance $NavServerInstance
         }
         else 
         {
             Write-Host -Object "Compiling $Filter..."
-            Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -Filter $Filter -Recompile -SynchronizeSchemaChanges $SynchronizeSchemaChanges
+            Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -Filter $Filter -Recompile -SynchronizeSchemaChanges $SynchronizeSchemaChanges -NavServerName $NavServerName -NavServerInstance $NavServerInstance
         }
     }
     if ($AsJob -eq $true) 
@@ -523,8 +527,12 @@ function Compile-NAVApplicationObjectMulti
         # Specifies the schema synchronization behaviour. The default value is 'Yes'.
         [ValidateSet('Yes','No','Force')]
         [string] $SynchronizeSchemaChanges = 'Yes',
-        [int]$ParallelismLimit = 5
-    )
+        [int]$ParallelismLimit = 5,
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
+        [String]$NavServerName,
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
+        [String]$NavServerInstance
+            )
     
     $CPUs = (Get-WmiObject -Class Win32_Processor -Property 'NumberOfLogicalProcessors' | Select-Object -Property 'NumberOfLogicalProcessors').NumberOfLogicalProcessors
     if ($NavIde -eq '') 
@@ -569,12 +577,12 @@ function Compile-NAVApplicationObjectMulti
         if ($AsJob -eq $true) 
         {
             Write-Host -Object "Compiling $Filter as Job..."
-            $jobs += Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile -AsJob -SynchronizeSchemaChanges $SynchronizeSchemaChanges
+            $jobs += Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile -AsJob -SynchronizeSchemaChanges $SynchronizeSchemaChanges -NavServerName $NavServerName -NavServerInstance $NavServerInstance
         }
         else 
         {
             Write-Host -Object "Compiling $Filter..."
-            Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile -SynchronizeSchemaChanges $SynchronizeSchemaChanges
+            Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFile -Filter $Filter -Recompile -SynchronizeSchemaChanges $SynchronizeSchemaChanges -NavServerName $NavServerName -NavServerInstance $NavServerInstance
         }
     }
     if ($AsJob -eq $true) 

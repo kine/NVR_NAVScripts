@@ -1,18 +1,18 @@
 ﻿function Set-NAVObjectAsDeleted
 {
     <#
-        .SYNOPSIS
-        Short Description
-        .DESCRIPTION
-        Detailed Description
-        .EXAMPLE
-        Set-NAVObjectAsDeleted
-        explains how to use the command
-        can be multiple lines
-        .EXAMPLE
-        Set-NAVObjectAsDeleted
-        another example
-        can have as many examples as you like
+            .SYNOPSIS
+            Short Description
+            .DESCRIPTION
+            Detailed Description
+            .EXAMPLE
+            Set-NAVObjectAsDeleted
+            explains how to use the command
+            can be multiple lines
+            .EXAMPLE
+            Set-NAVObjectAsDeleted
+            another example
+            can have as many examples as you like
     #>
     param
     (
@@ -73,7 +73,11 @@ function Update-NAVApplicationFromTxt
         [String]$LogFolder,
         #Disable progress dialog
         [Parameter(ValueFromPipelinebyPropertyName = $true)]
-        [switch]$NoProgress
+        [switch]$NoProgress,
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
+        [String]$NavServerName,
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
+        [String]$NavServerInstance
 
     )
 
@@ -262,7 +266,7 @@ function Update-NAVApplicationFromTxt
                     Write-Host "Importing $($ObjToImport.FileName.FileName)"
                 }
                 #Import-NAVApplicationObjectFiles -files $ObjToImport.FileName.FileName -Server $Server -Database $Database -NavIde (Get-NAVIde) -LogFolder $LogFolder
-                Import-NAVApplicationObject2 -Path $ObjToImport.FileName.FileName -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFolder -ImportAction Overwrite -SynchronizeSchemaChanges Force
+                Import-NAVApplicationObject2 -Path $ObjToImport.FileName.FileName -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFolder -ImportAction Overwrite -SynchronizeSchemaChanges Force -NavServerName $NavServerName -NavServerInstance $NavServerInstance
             }
             Invoke-PostImportCompilation -Object $ObjectToImport
         }
@@ -290,7 +294,7 @@ function Update-NAVApplicationFromTxt
                 }
 
                 #NVR_NAVScripts\Compile-NAVApplicationObject -Filter "Type=$($UpdatedObject.Type);Id=$($UpdatedObject.ID)" -Server $Server -Database $Database -NavIde (Get-NAVIde)
-                Compile-NAVApplicationObject2 -Filter "Type=$($UpdatedObject.Type);Id=$($UpdatedObject.ID)" -DatabaseServer $Server -DatabaseName $Database -SynchronizeSchemaChanges Force
+                Compile-NAVApplicationObject2 -Filter "Type=$($UpdatedObject.Type);Id=$($UpdatedObject.ID)" -DatabaseServer $Server -DatabaseName $Database -SynchronizeSchemaChanges Force -NavServerName $NavServerName -NavServerInstance $NavServerInstance
             }
             Write-Host -Object "Compiled $($UpdatedObjects.Count) objects..."
         }
