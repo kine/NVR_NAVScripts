@@ -9,30 +9,31 @@ function Get-NAVCumulativeUpdateFile
 
     Write-Host -Object 'Searching for RSS item' -ForegroundColor Green
 
-    $feed = [xml](Invoke-WebRequest -Uri 'https://blogs.msdn.microsoft.com/nav/feed/')
+    $feed = [xml](Invoke-WebRequest -Uri 'https://blogs.msdn.microsoft.com/nav/category/announcements/cu/feed/')
 
-    $blogurl = $feed.SelectNodes("/rss/channel/item[./category='NAV $version' and ./category='Cumulative Updates']").link
+    if ($CUNo -gt '') {
+        $blogurl = $feed.SelectNodes("/rss/channel/item[./category='NAV $version' and ./category='Cumulative Updates' and contains(./title,'$CUNo')]").link
+    } else {
+        $blogurl = $feed.SelectNodes("/rss/channel/item[./category='NAV $version' and ./category='Cumulative Updates']").link
+    }
 
-    if ($blogurl) {
+    if (!$blogurl) {
         Write-Error 'Blog url not found!'
         return
     }
 
-    Write-Host -Object 'Reading blog page $blogurl' -ForegroundColor Green
-    $ie = New-Object -ComObject 'internetExplorer.Application'
-    $ie.Visible = $true
-    $ie.Navigate($blogurl)
-    while ($ie.Busy -eq $true)
-    {
-        Start-Sleep -Seconds 1
-    }
-
+    Write-Host -Object "Reading blog page $blogurl" -ForegroundColor Green
+    
+    $blogarticle = Invoke-WebRequest -Uri $blogurl
+    
     Write-Host -Object 'Searching for KB link' -ForegroundColor Green
 
-    $kblink = $ie.Document.links | Where-Object -FilterScript {
+    $kblink = $blogarticle.Links | Where-Object -FilterScript {
         $_.innerText -match 'KB'
     }
 
+    $ie = New-Object -ComObject 'internetExplorer.Application'
+    $ie.Visible = $true
     Write-Host -Object "Opening KB link $($kblink.href)" -ForegroundColor Green
     $ie.Navigate($kblink.href)
     while ($ie.Busy -eq $true)
@@ -40,6 +41,13 @@ function Get-NAVCumulativeUpdateFile
         Start-Sleep -Seconds 1
     }
 
+    if ($ie.LocationURL -match 'login.live.com') {
+        Write-Host 'Please, login. Script will continue automatically...' -ForegroundColor Magenta
+        while ($ie.LocationURL -match 'login.live.com') {
+            Start-sleep -Seconds 1
+        }
+    }
+    
     if ($ie.LocationURL -match 'https://corp.sts.microsoft.com') 
     {
         Write-Host -Object 'Trying to login' -ForegroundColor Green
@@ -55,13 +63,11 @@ function Get-NAVCumulativeUpdateFile
     if ($ie.LocationURL -match 'https://mbs2.microsoft.com/UserInfo/SelectProfile.aspx') 
     {
         Write-Host -Object 'Searching for identity selection radiobuttons' -ForegroundColor Green
-        $radiobuttons = $ie.Document.getElementsByTagName('input') | Where-Object -FilterScript {
-            $_.type -eq 'radio' -and $_.name -eq 'radioGroup'
-        }
+        $radiobuttons = $ie.Document.body.getElementsByTagName('input') | Where-Object -FilterScript {$_.type -eq 'radio' -and $_.name -eq 'radioGroup' }
         Write-Host -Object 'Clicking first radio button' -ForegroundColor Green
         $radiobuttons[0].setActive()
         $radiobuttons[0].click()
-        $ie.Document.getElementsByName('continueButton')[0].click()
+        $ie.Document.IHTMLDocument3_getElementsByName('continueButton')[0].click()
         while ($ie.Busy -eq $true)
         {
             Start-Sleep -Seconds 1
@@ -81,7 +87,7 @@ function Get-NAVCumulativeUpdateFile
 
     Write-Host -Object 'Searching for Accept button' -ForegroundColor Green
 
-    $button = $ie.Document.getElementsByName('accept')[0]
+    $button = $ie.Document.IHTMLDocument3_getElementsByName('accept')
 
     if ($button) 
     {
