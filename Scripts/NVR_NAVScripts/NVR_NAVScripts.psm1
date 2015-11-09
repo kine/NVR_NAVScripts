@@ -5,17 +5,10 @@
 #Import-NAVAdminTool
 #Import-NAVModelTool
 
-. (Join-Path -Path $PSScriptRoot -ChildPath 'MSNAV80_CustomFunctions.ps1')
-. (Join-Path -Path $PSScriptRoot -ChildPath 'Compile-NAVTxt2Fob.ps1')
-. (Join-Path -Path $PSScriptRoot -ChildPath 'Export-NAVProfileCaptionML')
-. (Join-Path -Path $PSScriptRoot -ChildPath 'Fix-NAVProfileTriggerNames')
-. (Join-Path -Path $PSScriptRoot -ChildPath 'Get-NAVGITSetup')
-. (Join-Path -Path $PSScriptRoot -ChildPath 'Merge-NAVGIT') 
-. (Join-Path -Path $PSScriptRoot -ChildPath 'Translate-NAVProfileCaptionML') 
-. (Join-Path -Path $PSScriptRoot -ChildPath 'Update-NAVApplicationFromTxt') 
-. (Join-Path -Path $PSScriptRoot -ChildPath 'Update-NAVTxtFromApplication') 
-. (Join-Path -Path $PSScriptRoot -ChildPath 'Publish-NAVObject') 
-. (Join-Path -Path $PSScriptRoot -ChildPath 'Test-NAVDatabase') 
+Get-Item $PSScriptRoot  | Get-ChildItem -Recurse -file -Include '*.ps1' |  Sort Name | foreach {
+    Write-Verbose "Loading $($_.Name)"  
+    . $_.fullname
+}
 
 Add-Type -Language CSharp -TypeDefinition @"
   public enum VersionListMergeMode
@@ -1161,37 +1154,4 @@ $NavIde = Get-NAVIde
 #-targetserver devel -targetdb Adast2013 -targetfilefolder target -targetclientfolder $client -commonversionsource common
 
 #Get-NAVDatabaseObjects -sourceserver devel -sourcedb NVR2013R2_CSY -sourcefilefolder d:\ksacek\TFS\Realizace\NAV\NAV2013R2\CSY_NVR_Essentials\ -sourceclientfolder $client
-Export-ModuleMember -Function Merge-NAVVersionListString
-Export-ModuleMember -Function Merge-NAVObjectVersionList
-Export-ModuleMember -Function Merge-NAVDatabaseObjects
-Export-ModuleMember -Function Get-NAVDatabaseObjects
-Export-ModuleMember -Function Import-NAVApplicationObjectFiles
-Export-ModuleMember -Function Compile-NAVApplicationObjectFiles
-Export-ModuleMember -Function Compile-NAVApplicationObjectFilesMulti
-Export-ModuleMember -Function Compile-NAVApplicationObject
-Export-ModuleMember -Function Compile-NAVApplicationObjectMulti
-Export-ModuleMember -Function Export-NAVApplicationObject
-Export-ModuleMember -Function New-NAVLocalApplication
-Export-ModuleMember -Function Remove-NAVLocalApplication
-Export-ModuleMember -Function Set-ServicePortSharing
-Export-ModuleMember -Function Get-GITModifiedFiles
-Export-ModuleMember -Function Convert-NAVLogFileToErrors 
-Export-ModuleMember -Function Find-NAVVersion
-Export-ModuleMember -Function Compile-NAVTxt2Fob
-Export-ModuleMember -Function Export-NAVProfileCaptionML
-Export-ModuleMember -Function Fix-NAVProfileTriggerNames
-Export-ModuleMember -Function Get-NAVGITSetup
-Export-ModuleMember -Function Merge-NAVGIT
-Export-ModuleMember -Function Translate-NAVProfileCaptionML
-Export-ModuleMember -Function Update-NAVApplicationFromTxt
-Export-ModuleMember -Function Update-NAVTxtFromApplication
-Export-ModuleMember -Function Compile-NAVApplicationObject2
-Export-ModuleMember -Function Create-NAVDatabase2
-Export-ModuleMember -Function Delete-NAVApplicationObject2
-Export-ModuleMember -Function Export-NAVApplicationObject2
-Export-ModuleMember -Function Import-NAVApplicationObject2
-Export-ModuleMember -Function Set-NAVObjectAsDeleted
-Export-ModuleMember -Function Set-NAVUIDOffset
-Export-ModuleMember -Function Publish-NAVObject
-Export-ModuleMember -Function Test-NAVDatabase
-Export-ModuleMember -Function Upgrade-NAVServerInstance
+Export-ModuleMember -Function *-*
