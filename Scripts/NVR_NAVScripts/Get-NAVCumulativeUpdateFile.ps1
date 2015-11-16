@@ -7,9 +7,9 @@
     Download the Cumulative Update File for specified NAV version and localization, with possibility to 
     select specific cumulative update
     .EXAMPLE
-    Get-NAVCumulativeUpdateFile -langcodes 'intl','CSY' -versions '2013 R2','2015','2016'
+    Get-NAVCumulativeUpdateFile -CountryCodes 'intl','CSY' -versions '2013 R2','2015','2016'
     .EXAMPLE
-    Get-NAVCumulativeUpdateFile -langcodes 'CSY' -versions '2013 R2' -CUNo 23
+    Get-NAVCumulativeUpdateFile -CountryCodes 'CSY' -versions '2013 R2' -CUNo 23
     .OUTPUT
     Objects with info about the downloaded cumulative updates
 #>
