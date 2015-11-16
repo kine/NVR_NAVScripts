@@ -1,4 +1,4 @@
-﻿#requires -Version 3 -Modules BitsTransfer
+#requires -Version 3 -Modules BitsTransfer
 
 <#
     .Synopsis
@@ -17,11 +17,12 @@ function Get-NAVCumulativeUpdateFile
 {
     param (
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]
-        [string[]]$langcodes = 'intl',
+        $CountryCodes = 'W1',
         [Parameter(Mandatory,ValueFromPipelineByPropertyName)]
-        [string[]]$versions = '2016',
+        $versions = '2016',
         [Parameter(ValueFromPipelineByPropertyName)]
-        [string]$CUNo = ''
+        $CUNo = '',
+        [Parameter(ValueFromPipelineByPropertyName)]        $DownloadFolder = $env:TEMP
     )
 
     begin {
@@ -30,13 +31,13 @@ function Get-NAVCumulativeUpdateFile
     }
     process
     {
-        foreach ($langcode in $langcodes) 
+        foreach ($CountryCode in $CountryCodes) 
         {
             foreach ($version in $versions) 
             {
                 $url = ''
                 
-                Write-Host -Object "Processing parameters $langcode $version $CUNo" -ForegroundColor Cyan
+                Write-Host -Object "Processing parameters $CountryCode $version $CUNo" -ForegroundColor Cyan
         
                 $feedurl = 'https://blogs.msdn.microsoft.com/nav/category/announcements/cu/feed/'
                 [regex]$titlepattern = 'Cumulative Update (\d+) .*'
@@ -164,10 +165,10 @@ function Get-NAVCumulativeUpdateFile
                 #http://hotfixv4.microsoft.com/Dynamics NAV 2016/latest/W1KB3106089/43402/free/488130_intl_i386_zip.exe
                 #http://hotfixv4.microsoft.com/Dynamics NAV 2015/latest/CZKB3106088/43389/free/488059_CSY_i386_zip.exe
 
-                Write-Host -Object "Searching for update for language $langcode" -ForegroundColor Green
+                Write-Host -Object "Searching for update for language $CountryCode" -ForegroundColor Green
 
                 $hotfix = $hotfixes | Where-Object -FilterScript {
-                    $_.langcode -eq $langcode
+                    $_.filename -like "$($CountryCode)*"
                 }
 
                 Write-Host -Object 'Creating hotfix URL' -ForegroundColor Green
@@ -176,7 +177,7 @@ function Get-NAVCumulativeUpdateFile
 
                 Write-Host -Object "Hotfix URL is $url" -ForegroundColor Green
 
-                $filename = (Join-Path -Path $env:TEMP -ChildPath "$($hotfix.fixid)_$($hotfix.langcode)_i386_zip.exe")
+                $filename = (Join-Path -Path $DownloadFolder -ChildPath "$($hotfix.fixid)_$($hotfix.langcode)_i386_zip.exe")
                 Write-Host -Object "Downloading hotfix to $filename" -ForegroundColor Green
     
                 if (-not (Test-Path $filename)) 
@@ -188,10 +189,10 @@ function Get-NAVCumulativeUpdateFile
                 $null = Unblock-File -Path $filename
 
                 $result = New-Object -TypeName System.Object
-                $null = $result | Add-Member -TypeName NoteProperty -Name filename -Value "$filename"
-                $null = $result | Add-Member -TypeName NoteProperty -Name version -Value "$version"
-                $null = $result | Add-Member -TypeName NoteProperty -Name CUNo -Value "$updateno"
-                $null = $result | Add-Member -TypeName NoteProperty -Name langcode -Value "$langcode"
+                $null = $result | Add-Member -MemberType NoteProperty -Name filename -Value "$filename" 
+                $null = $result | Add-Member -MemberType NoteProperty -Name version -Value "$version"
+                $null = $result | Add-Member -MemberType NoteProperty -Name CUNo -Value "$updateno"
+                $null = $result | Add-Member -MemberType NoteProperty -Name CountryCode -Value "$CountryCode"
         
                 Write-Output -InputObject $result
             }
