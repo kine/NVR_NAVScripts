@@ -1,11 +1,11 @@
-﻿#import-module -Name Microsoft.Dynamics.Nav.Ide -Verbose
+#import-module -Name Microsoft.Dynamics.Nav.Ide -Verbose
 #. "Merge-NAVVersionListString script.ps1"
 
 #Import-Module 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\Microsoft.Dynamics.Nav.Model.Tools.psd1' -WarningAction SilentlyContinue | Out-Null
 #Import-NAVAdminTool
 #Import-NAVModelTool
 
-Get-Item $PSScriptRoot  | Get-ChildItem -Recurse -file -Include '*.ps1' |  Sort Name | foreach {
+Get-Item $PSScriptRoot  | Get-ChildItem -Recurse -file -Filter '*.ps1' |  Sort Name | foreach {
     Write-Verbose "Loading $($_.Name)"  
     . $_.fullname
 }
