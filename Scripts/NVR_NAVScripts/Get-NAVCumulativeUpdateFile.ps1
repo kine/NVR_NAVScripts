@@ -63,14 +63,22 @@ function Get-NAVCumulativeUpdateFile
                 Write-Host -Object "Reading blog page $blogurl" -ForegroundColor Green
                 
                 $blogarticle = ''
-                $blogarticle = Invoke-WebRequest -Uri $blogurl
+                #$blogarticle = Invoke-WebRequest -Uri $blogurl
+                $null = $ie.Navigate($blogurl)
+                while ($ie.Busy -eq $true)
+                {
+                    $null = Start-Sleep -Seconds 1
+                }
+                
     
                 Write-Host -Object 'Searching for KB link' -ForegroundColor Green
-                
-                $titlematches = $titlepattern.Matches($blogarticle.ParsedHtml.title) 
+                                
+                $titlematches = $titlepattern.Matches($ie.Document.title) 
                 $updateno = $titlematches.Groups[1]
 
-                $kblink = $blogarticle.Links | Where-Object -FilterScript {
+                #$kblink = $blogarticle.Links | Where-Object -FilterScript {
+                $kblink = $ie.Document.links | Where-Object -FilterScript {
+                    Write-Verbose "Link: $($_.href) id: $($_.id)"
                     $_.innerText -match 'KB'
                 }
 
@@ -171,6 +179,11 @@ function Get-NAVCumulativeUpdateFile
                     $_.filename -like "$($CountryCode)*"
                 }
 
+                if (!$hotfix) {
+                    $hotfix = $hotfixes | Where-Object -FilterScript {
+                        $_.langcode -like "$($CountryCode)*"
+                    }
+                }
                 Write-Host -Object 'Creating hotfix URL' -ForegroundColor Green
 
                 $url = "http://hotfixv4.microsoft.com/$($hotfix.product)/$($hotfix.release)/$($hotfix.filename)/$($hotfix.build)/free/$($hotfix.fixid)_$($hotfix.langcode)_i386_zip.exe"
@@ -193,7 +206,8 @@ function Get-NAVCumulativeUpdateFile
                 $null = $result | Add-Member -MemberType NoteProperty -Name version -Value "$version"
                 $null = $result | Add-Member -MemberType NoteProperty -Name CUNo -Value "$updateno"
                 $null = $result | Add-Member -MemberType NoteProperty -Name CountryCode -Value "$CountryCode"
-        
+                $null = $result | Add-Member -MemberType NoteProperty -Name langcode -Value "$($hotfix.langcode)"
+                        
                 Write-Output -InputObject $result
             }
         }        
