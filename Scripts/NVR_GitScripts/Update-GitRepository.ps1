@@ -10,6 +10,8 @@
         [String]$Folder,
         [String]$Remote
     )
+    
+    Import-NAVModelTool
     Get-GitBranch -Repository $Repository -Branch $Branch
     
     $TargetPath = (Join-Path $Repository $Folder)
