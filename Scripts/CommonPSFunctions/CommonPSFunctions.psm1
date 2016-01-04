@@ -1,4 +1,11 @@
-﻿function Get-NAVIde
+﻿Get-Item $PSScriptRoot  | Get-ChildItem -Recurse -file -Filter '*.ps1' |  Sort Name | foreach {
+
+    Write-Verbose "Loading $($_.Name)"
+
+    . $_.fullname
+}
+
+function Get-NAVIde
 {
     if (!$env:NAVIdePath) 
     {
@@ -540,23 +547,4 @@ function Test-Administrator
     return (New-Object Security.Principal.WindowsPrincipal $user).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)  
 }
 
-Export-ModuleMember -Function Import-NAVAdminTool
-Export-ModuleMember -Function Import-NAVModelTool
-Export-ModuleMember -Function Get-MyEmail
-Export-ModuleMember -Function Get-UserEmail
-Export-ModuleMember -Function Send-EmailToMe
-Export-ModuleMember -Function Remove-SQLDatabase
-Export-ModuleMember -Function Get-NAVObjectTypeIdFromName
-Export-ModuleMember -Function Get-NAVObjectTypeNameFromId
-Export-ModuleMember -Function Get-NAVIde
-Export-ModuleMember -Function Get-NAVIdePath
-Export-ModuleMember -Function Get-NAVAdminPath
-Export-ModuleMember -Function Get-SQLCommandResult
-Export-ModuleMember -Function Write-TfsMessage
-Export-ModuleMember -Function Write-TfsError
-Export-ModuleMember -Function Write-TfsWarning
-Export-ModuleMember -Function Get-NAVBlobToString
-Export-ModuleMember -Function Get-StringToNAVBlob
-Export-ModuleMember -Function Get-NAVAdminModuleName
-Export-ModuleMember -Function Get-Confirmation
-Export-ModuleMember -Function Test-Administrator  
+Export-ModuleMember -Function *
