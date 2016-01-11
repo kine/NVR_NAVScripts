@@ -87,9 +87,9 @@ foreach ($cu in $cus) {
         '2016' {$repository = '\\devel\GIT\NAV2015'}
     }
     
-    $commitmessage = {'NAV{0} {1} CU{2}' -f $cu.version,$cu.CountryCode,$cu.CUNo}
+    $commitmessage = ('NAV{0} {1} CU{2}' -f $cu.version,$cu.CountryCode,$cu.CUNo)
     
-    Update-GitRepositoryWithCu -repository $repository -branch $branch -commitmessage $commitmessage
+    Update-GitRepositoryWithCu -repository $repository -branch $branch -commitmessage $commitmessage -buildpath $cu.buildpath
     
     $body = $body + $cu.CountryCode + $cu.version + '   ' +$cu.CUNo +'<br>'
 }
