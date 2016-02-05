@@ -84,7 +84,7 @@ function Merge-NAVGIT
                     $params = $mergetoolparams -f $modified, $source, $target, $result
                     $result = & $mergetool $params.Split(' ')
                     Write-Host -Object "Reuslt: $result"
-                    $answer = Read-Host -Prompt "Was conflict in $filename resolved (Nothing = no, something = yes)?"
+                    $answer = Read-Host -Prompt "$i of $count : Was conflict in $filename resolved (Nothing = no, something = yes)?"
                     if ($answer -gt '') 
                     {
                         if ($answer -eq 'q') 
@@ -417,13 +417,15 @@ function Merge-NAVGIT
         $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
         if (Test-Path -Path (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage2.txt')) {
             Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId
-            $result = Remove-Item -Path $resultfolder -Force -Recurse
+            $result = Rename-Item -Path $resultfolder -NewName "$resultfolder 3" -Force
+            #$result = Remove-Item -Path $resultfolder -Force -Recurse
             $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
         }
         $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
         if (Test-Path -Path (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage2.txt')) {
             Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId
-            $result = Remove-Item -Path $resultfolder -Force -Recurse
+            $result = Rename-Item -Path $resultfolder -NewName "$resultfolder 4" -Force
+            #$result = Remove-Item -Path $resultfolder -Force -Recurse
             $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
         }
     }
