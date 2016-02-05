@@ -167,6 +167,7 @@ function Get-NAVCumulativeUpdateFile
                 } 
 
                 Write-Host -Object 'Converting Json with updates' -ForegroundColor Green
+                Write-Verbose -Message "Matches: $matches"
                 $hotfixes = $matches.Groups[1].Value.Replace('\x','') | ConvertFrom-Json
 
                 #URL examples:

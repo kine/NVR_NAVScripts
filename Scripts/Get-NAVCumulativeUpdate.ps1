@@ -71,13 +71,15 @@ function Update-GitRepositoryWithCu
 Import-Module NVR_NAVScripts -Force -DisableNameChecking
 Import-Module NVR_GitScripts -Force -DisableNameChecking
 
-$cus = Get-NAVCumulativeUpdateFile -CountryCodes 'CSY','intl' -versions '2013 R2','2015','2016' | Expand-NAVCumulativeUpdateFile -targetpathmask '\\brno\Products\Microsoft\NA\Dynamics_NAV_$($version)_$langcode\BUILD$($BuildNo)_CU$formatedCUNo'
+#$cus = Get-NAVCumulativeUpdateFile -CountryCodes 'CSY','intl' -versions '2013 R2','2015','2016' | Expand-NAVCumulativeUpdateFile -targetpathmask '\\brno\Products\Microsoft\NA\Dynamics_NAV_$($version)_$langcode\BUILD$($BuildNo)_CU$formatedCUNo'
+
+$cus = Get-NAVCumulativeUpdateFile -CountryCodes 'CSY' -versions '2015','2016' | Expand-NAVCumulativeUpdateFile -targetpathmask '\\brno\Products\Microsoft\NA\Dynamics_NAV_$($version)_$langcode\BUILD$($BuildNo)_CU$formatedCUNo'
 
 #Save objects into repsitories
 $body = 'Downloaded CUs:<br><br>'
 
 foreach ($cu in $cus) {
-    $cu | Update-WorkInstallFolder
+    #$cu | Update-WorkInstallFolder
     
     
     $branch = "NAV$($cu.version)_$($cu.CountryCode)"
@@ -95,6 +97,6 @@ foreach ($cu in $cus) {
 }
 
 if ($cus.Count -gt 0) {
-    Send-EmailToMe -Subject 'NAV Cumulative Update' -Body $body -SMTPServer 'mail' -FromEmail 'powershell@navertica.com'
+    Send-EmailToMe -Subject 'NAV Cumulative Update' -Body $body -SMTPServer 'exchange' -FromEmail 'powershell@navertica.com'
 }
 

@@ -888,8 +888,9 @@ Function New-NAVLocalApplication
     )
     Test-Administrator
     
+    Write-Host -Object 'Importing NAVAdminTool...'
+    Write-Host -Object "NavServicePath $($env:NavServicePath)"
     Import-NAVAdminTool
-    
     Write-Progress -Activity "Creating new database $Database on $Server..."
     Write-Host -Object "Creating new database $Database on $Server..."
         
