@@ -6,7 +6,8 @@ Param (
     [String]$Server=$env:NAV_SQLSERVER,
     [String]$Database=$env:NAV_SQLSERVERDB,
     [String]$Instance=$env:NAV_SERVERINSTANCE,
-    [String]$ForceNewDB=$env:NAV_FORCENEWDB
+    [String]$ForceNewDB=$env:NAV_FORCENEWDB,
+    [String]$SQLDbFolder=$env:NAV_SQLDBFOLDER
 )
 #Write-Host $PSScriptRoot
 if (Test-Path $TargetPath\setup.xml) {
@@ -28,5 +29,5 @@ if ((Get-NAVServerInstance -ServerInstance $Instance) -and ($ForceNewDB -eq $Fal
     {
         Remove-NAVLocalApplication -Server $Server -Database $Database -ServerInstance $Instance
     }
-    New-NAVLocalApplication -Server $Server -Database $Database -BaseFob $BaseFob -License $LicenseFile -DbBackupFile $DbBackupFile -ServerInstance $Instance -TargetPath $TargetPath
+    New-NAVLocalApplication -Server $Server -Database $Database -BaseFob $BaseFob -License $LicenseFile -DbBackupFile $DbBackupFile -ServerInstance $Instance -TargetPath $SQLDbFolder
 }
