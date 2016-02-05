@@ -44,12 +44,13 @@ function Import-NAVAdminTool
         [Switch]$Force
     )
     $module = Get-Module -Name 'Microsoft.Dynamics.Nav.Management'
+    $modulepath = Get-NAVAdminModuleName
     if ($Force) 
     {
+        Write-Host -Object "Removing module $($module.Path)"
         Remove-Module -Name 'Microsoft.Dynamics.Nav.Management' -Force
     }
-    $modulepath = Get-NAVAdminModuleName
-    if (!($module) -or ($module.Path -ne $modulepath)) 
+    if (!($module) -or ($module.Path -ne $modulepath) -or ($Force)) 
     {
         if (!(Test-Path -Path $modulepath)) 
         {
@@ -57,7 +58,7 @@ function Import-NAVAdminTool
             return
         }
         Write-Host -Object "Importing NAVAdminTool from $modulepath"
-        Import-Module -Global "$modulepath" -DisableNameChecking -Force
+        Import-Module "$modulepath" -DisableNameChecking -Force
         #& $modulepath #| Out-Null
         Write-Verbose -Message 'NAV admin tool imported'
     } else 
@@ -114,12 +115,12 @@ function Write-TfsWarning
 }
 
 <#
-    .Synopsis
-    Get the current user e-mail address from AD
-    .DESCRIPTION
-    Get the current user e-mail address from AD
-    .EXAMPLE
-    Get-MyEmail
+        .Synopsis
+        Get the current user e-mail address from AD
+        .DESCRIPTION
+        Get the current user e-mail address from AD
+        .EXAMPLE
+        Get-MyEmail
 #>
 function Get-MyEmail
 {
@@ -143,12 +144,12 @@ function Get-MyEmail
 }
 
 <#
-    .Synopsis
-    Get the specified user e-mail address from AD
-    .DESCRIPTION
-    Get the specified user e-mail address from AD
-    .EXAMPLE
-    Get-UserEmail
+        .Synopsis
+        Get the specified user e-mail address from AD
+        .DESCRIPTION
+        Get the specified user e-mail address from AD
+        .EXAMPLE
+        Get-UserEmail
 #>
 function Get-UserEmail
 {
@@ -180,12 +181,12 @@ function Get-UserEmail
 }
 
 <#
-    .Synopsis
-    Send e-mail to the current user email address
-    .DESCRIPTION
-    Send e-mail to the current user email address
-    .EXAMPLE
-    Send-EmailToMe -Subject "Hello World" -Body "This is email from powershell" -From "from@address.net" -SMTPServer myserver
+        .Synopsis
+        Send e-mail to the current user email address
+        .DESCRIPTION
+        Send e-mail to the current user email address
+        .EXAMPLE
+        Send-EmailToMe -Subject "Hello World" -Body "This is email from powershell" -From "from@address.net" -SMTPServer myserver
 #>
 function Send-EmailToMe
 {
@@ -206,12 +207,12 @@ function Send-EmailToMe
 }
 
 <#
-    .Synopsis
-    Delete the selected database
-    .DESCRIPTION
-    Delete the selected database from the SQL Server. Automatically kills all active sessions to this database
-    .EXAMPLE
-    Remove-SQLDatabase -Server mysql -Database mydatabase
+        .Synopsis
+        Delete the selected database
+        .DESCRIPTION
+        Delete the selected database from the SQL Server. Automatically kills all active sessions to this database
+        .EXAMPLE
+        Remove-SQLDatabase -Server mysql -Database mydatabase
 #>
 function Remove-SQLDatabase
 {
@@ -232,12 +233,12 @@ function Remove-SQLDatabase
 }
 
 <#
-    .Synopsis
-    Execute T-SQL command on SQL server
-    .DESCRIPTION
-    Execute T-SQL command on SQL server and returns the result back
-    .EXAMPLE
-    Get-SQLCommandResult -Server localhost -Database mydatabase -Command "select * from object"
+        .Synopsis
+        Execute T-SQL command on SQL server
+        .DESCRIPTION
+        Execute T-SQL command on SQL server and returns the result back
+        .EXAMPLE
+        Get-SQLCommandResult -Server localhost -Database mydatabase -Command "select * from object"
 #>
 function Get-SQLCommandResult
 {
@@ -300,12 +301,12 @@ function Get-SQLCommandResult
 }
 
 <#
-    .Synopsis
-    Translate object type names to integer
-    .DESCRIPTION
-    Function takes the ObjectType names and returns the intiger number representing the object type
-    .EXAMPLE
-    Get-NAVObjectTypeIdFrom Name -TypeName "Report"
+        .Synopsis
+        Translate object type names to integer
+        .DESCRIPTION
+        Function takes the ObjectType names and returns the intiger number representing the object type
+        .EXAMPLE
+        Get-NAVObjectTypeIdFrom Name -TypeName "Report"
 #>
 Function Get-NAVObjectTypeIdFromName
 {
@@ -352,12 +353,12 @@ Function Get-NAVObjectTypeIdFromName
 }
 
 <#
-    .Synopsis
-    Translate object type number to object type name
-    .DESCRIPTION
-    Function takes the ObjectType number and returns the name representing the object type
-    .EXAMPLE
-    Get-NAVObjectTypeNameFromId -TypeId 3
+        .Synopsis
+        Translate object type number to object type name
+        .DESCRIPTION
+        Function takes the ObjectType number and returns the name representing the object type
+        .EXAMPLE
+        Get-NAVObjectTypeNameFromId -TypeId 3
 #>
 Function Get-NAVObjectTypeNameFromId
 {
@@ -404,11 +405,11 @@ Function Get-NAVObjectTypeNameFromId
 }
 
 <#
-    .Synopsis
-    Get the content of blob in Byte[] and returns the content as Data and MagicConstant
-    .DESCRIPTION
-    Get the content of blob in Byte[] and returns the content as Data and MagicConstant (first 4 bytes).
-    Can be used to read data from the blob stored by Microsoft Dynamics NAV
+        .Synopsis
+        Get the content of blob in Byte[] and returns the content as Data and MagicConstant
+        .DESCRIPTION
+        Get the content of blob in Byte[] and returns the content as Data and MagicConstant (first 4 bytes).
+        Can be used to read data from the blob stored by Microsoft Dynamics NAV
 #>
 function Get-NAVBlobToString
 {
@@ -452,11 +453,11 @@ function Get-NAVBlobToString
 }
 
 <#
-    .Synopsis
-    Create NAVBlob data from string and MagicConstant
-    .DESCRIPTION
-    Create NAVBlob data from string and MagicConstant. Can be used to prepare data for storin into BLOB field
-    used by Microsoft Dynamics NAV to store data like profiles, images, notes etc.
+        .Synopsis
+        Create NAVBlob data from string and MagicConstant
+        .DESCRIPTION
+        Create NAVBlob data from string and MagicConstant. Can be used to prepare data for storin into BLOB field
+        used by Microsoft Dynamics NAV to store data like profiles, images, notes etc.
     
 #>
 function Get-StringToNAVBlob
@@ -507,14 +508,14 @@ function Get-StringToNAVBlob
 function Get-Confirmation
 {
     <#
-        .SYNOPSIS
-        Display query with answer Yes or No
-        .DESCRIPTION
-        Display query with answer Yes or No and return the result
-        .EXAMPLE
-        Get-Confirmation -title "Question" -message "Do you want to continue?" -yeshint 'It will continue' -nohint 'processing will be cancelled'
+            .SYNOPSIS
+            Display query with answer Yes or No
+            .DESCRIPTION
+            Display query with answer Yes or No and return the result
+            .EXAMPLE
+            Get-Confirmation -title "Question" -message "Do you want to continue?" -yeshint 'It will continue' -nohint 'processing will be cancelled'
 
-        result is 0 for Yes, 1 is for no
+            result is 0 for Yes, 1 is for no
     #>
     [CmdletBinding()]
     param
@@ -545,6 +546,35 @@ function Test-Administrator
 { 
     $user = [Security.Principal.WindowsIdentity]::GetCurrent()
     return (New-Object Security.Principal.WindowsPrincipal $user).IsInRole([Security.Principal.WindowsBuiltinRole]::Administrator)  
+}
+
+function Set-InfoMessageVerbosity
+{
+    [CmdletBinding()]
+    Param(
+        [int]$Verbosity
+    )
+    [global]$VerbosityLevel=$Verbosity
+}
+function Write-InfoMessage
+{
+    
+    [CmdletBinding()]
+    Param(
+        $Message,
+        [int]$Level=0
+    )
+    if (!$VerbosityLevel -or ($VerbosityLevel -eq 0)) {
+        if ($Level -eq 0) {
+            Write-Host $Message -ForegroundColor Green
+        } else {
+            Write-Verbose -Message $Message
+        }
+    } else {
+        if ($Level -le $VerbosityLevel) {
+            Write-Verbose -Message $Message
+        }
+    }
 }
 
 Export-ModuleMember -Function *
