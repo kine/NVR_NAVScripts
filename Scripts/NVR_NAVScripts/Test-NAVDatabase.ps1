@@ -252,7 +252,8 @@ function Test-NAVDatabase
             $TestDefinition = $TestResults.CreateElement('UnitTest')
             $null = $TestDefinitions.AppendChild($TestDefinition)
             $id = [guid]::NewGuid() -replace '{}',''
-            $TestDefinition.SetAttribute('name',$line['Function Name'])
+            $FunctionName=$line['Codeunit ID'].ToString()+':'+$line['Function Name']
+            $TestDefinition.SetAttribute('name',$FunctionName)
             $TestDefinition.SetAttribute('id',$id)
             $TestDefinition.SetAttribute('storage',"$OutFile")
             #$TestDefinition.SetAttribute('nammedCategory',"$TestSuiteName")
@@ -275,7 +276,7 @@ function Test-NAVDatabase
             $TestMethod.SetAttribute('codeBase','COD'+$line['Codeunit ID'].ToString()+'.txt')
             #$TestMethod.SetAttribute('adapterTypeName','')
             $TestMethod.SetAttribute('className',$TestSuiteName)
-            $TestMethod.SetAttribute('name',$line['Function Name'])
+            $TestMethod.SetAttribute('name',$FunctionName)
             $TestEntry = $TestResults.CreateElement('TestEntry')
             $null = $TestEntries.AppendChild($TestEntry)
             $TestEntry.SetAttribute('testId',$id)
@@ -285,7 +286,7 @@ function Test-NAVDatabase
             $null = $Results.AppendChild($Result)
             $Result.SetAttribute('executionId',$executionid)
             $Result.SetAttribute('testId',$id)
-            $Result.SetAttribute('testName',$line['Function Name'])
+            $Result.SetAttribute('testName',$FunctionName)
             $Result.SetAttribute('computerName',$env:COMPUTERNAME)
             if ($line['Execution Time'] -lt 0) 
             {
