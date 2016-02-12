@@ -70,11 +70,11 @@ function Sync-NAVDbWithRepo
     Import-NAVApplicationObject2 -Path $changes -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFolder -ImportAction Overwrite -SynchronizeSchemaChanges Force -NavServerName $NavServerName -NavServerInstance $NavServerInstance
     
     #Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFolder -Filter 'Compiled=0' -SynchronizeSchemaChanges Force -NavServerName $NavServerName -NavServerInstance $NavServerInstance    
-    Write-InfoMessage 'Compiling system tables...'
-    NVR_NAVScripts\Compile-NAVApplicationObjectMulti -Filter 'Type=1&ID=2000000004..' -Server $Server -Database $Database -NavIde (Get-NAVIde) -SynchronizeSchemaChanges No -NavServerName $NavServerName -NavServerInstance $NavServerInstance
-    Write-InfoMessage 'Compiling menusuites...'
-    NVR_NAVScripts\Compile-NAVApplicationObjectMulti -Filter 'Type=7&Compiled=0' -Server $Server -Database $Database -NavIde (Get-NAVIde) -SynchronizeSchemaChanges No -NavServerName $NavServerName -NavServerInstance $NavServerInstance
-    Write-InfoMessage 'Compiling uncompiled objects...'
-    NVR_NAVScripts\Compile-NAVApplicationObjectMulti -Filter 'Compiled=0' -Server $Server -Database $Database -NavIde (Get-NAVIde) -SynchronizeSchemaChanges Force -NavServerName $NavServerName -NavServerInstance $NavServerInstance
+    #Write-InfoMessage 'Compiling system tables...'
+    #NVR_NAVScripts\Compile-NAVApplicationObjectMulti -Filter 'Type=1&ID=2000000004..' -Server $Server -Database $Database -NavIde (Get-NAVIde) -SynchronizeSchemaChanges No -NavServerName $NavServerName -NavServerInstance $NavServerInstance
+    #Write-InfoMessage 'Compiling menusuites...'
+    #NVR_NAVScripts\Compile-NAVApplicationObjectMulti -Filter 'Type=7&Compiled=0' -Server $Server -Database $Database -NavIde (Get-NAVIde) -SynchronizeSchemaChanges No -NavServerName $NavServerName -NavServerInstance $NavServerInstance
+    #Write-InfoMessage 'Compiling uncompiled objects...'
+    #NVR_NAVScripts\Compile-NAVApplicationObjectMulti -Filter 'Compiled=0' -Server $Server -Database $Database -NavIde (Get-NAVIde) -SynchronizeSchemaChanges Force -NavServerName $NavServerName -NavServerInstance $NavServerInstance
     
 }
