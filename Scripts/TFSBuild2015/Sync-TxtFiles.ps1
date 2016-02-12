@@ -26,4 +26,4 @@ Import-Module -Name NVR_NAVScripts -DisableNameChecking -Force
 Import-Module -Name CommonPSFunctions
 Import-Module (Get-NAVAdminModuleName)
 
-Sync-NAVDbWithRepo -Files $env:NAV_OBJECTFILES -Repository '.' -Server $Server -Database $Database -NavServerName $NavServerName -NavServerInstance $NavServerInstance
+Sync-NAVDbWithRepo -Files (Join-Path '.' $env:NAV_OBJECTFILES) -Repository '.' -Server $Server -Database $Database -NavServerName $NavServerName -NavServerInstance $NavServerInstance

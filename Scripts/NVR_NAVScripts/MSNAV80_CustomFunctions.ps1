@@ -79,7 +79,10 @@ function Import-NAVApplicationObject2
         # Specifies the port on the Microsoft Dynamics NAV Server server that the Microsoft Dynamics NAV Windows PowerShell cmdlets access. The default value is 7045.
         [ValidateNotNullOrEmpty()]
         [int16]  $NavServerManagementPort = 7045)
-
+    BEGIN
+    {
+        Import-Module CommonPSFunctions
+    }
     PROCESS
     {
         if ($Path.Count -eq 1)
@@ -97,6 +100,7 @@ function Import-NAVApplicationObject2
 
             foreach ($file in $Path)
             {
+                Write-InfoMessage "Importing $file"
                 # Log file name is based on the name of the imported file.
                 $logFile = "$LogPath\$((Get-Item $file).BaseName).log"
                 if ((Get-NavIdeMajorVersion) -ge 8) {

@@ -45,26 +45,29 @@ function Sync-NAVDbWithRepo
     $Filter='Compiled=1|0'    
     $AllFile=(Join-Path -Path '.\' -ChildPath 'all.txt')
     
+    Import-NAVModelTool
+    $LogFolder = (Join-Path $env:TEMP 'NAVSyncLog')
+        
     Write-InfoMessage 'Exporting all from DB to compare with repo...'
-    NVR_NAVScripts\Export-NAVApplicationObject -Filter $Filter -Server $Server -Database $Database -LogFolder $LogFolder -path $AllFile -NavIde (Get-NAVIde)
+    NVR_NAVScripts\Export-NAVApplicationObject -Filter $Filter -Server $Server -Database $Database -LogFolder $LogFolder -path $AllFile -NavIde (Get-NAVIde) -NavServerName $NavServerName -NavServerInstance $NavServerInstance
     
     #Remove-Item $setup.Files -Force
-    
-    Write-InfoMessage 'Splitting the file...'
-    Split-NAVApplicationObjectFile -Source $AllFile -Destination $Files -Force
+    $TargetFolder = Split-Path ((Join-Path (Get-Location) $Files))
+    Write-InfoMessage "Splitting the file into $Files..."
+    Split-NAVApplicationObjectFile -Source $AllFile -Destination $TargetFolder -Force
     
     Write-InfoMessage "Removing the file $AllFile..."
     
     Remove-Item $AllFile
     
     Write-InfoMessage 'Getting the changes...'
-    $changes = git.exe status --porcelain | ForEach-Object {Write-Output $_.Substring(3)}
+    $changes = git.exe status --porcelain | ForEach-Object {Write-Output $_.Substring(3)} | Where-Object {($_ -notlike '*MEN1010.TXT') -and ($_ -notlike '*MEN1030.TXT')}
     Write-InfoMessage "$($changes.Count) changed objects detected"
         
     Write-InfoMessage 'Reseting the repository...'
-    $result = git.exe reset --hard
+    $result = git.exe reset --hard --quiet 
     Write-InfoMessage 'Reseting untracked files...'
-    $result = git.exe clean -fd
+    $result = git.exe clean -fd --quiet
     
     Write-InfoMessage 'Importing changed objects...'
     Import-NAVApplicationObject2 -Path $changes -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFolder -ImportAction Overwrite -SynchronizeSchemaChanges Force -NavServerName $NavServerName -NavServerInstance $NavServerInstance

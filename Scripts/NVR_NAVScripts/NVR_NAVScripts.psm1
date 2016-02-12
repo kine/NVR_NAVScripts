@@ -628,7 +628,14 @@ function Export-NAVApplicationObject
         [Parameter(ValueFromPipelinebyPropertyName = $true)]
         [String]$NavIde = '',
         [Parameter(ValueFromPipelinebyPropertyName = $true)]
-        [String]$ClientFolder = ''
+        [String]$ClientFolder = '',
+        #Name of the NAV Server
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
+        [String]$NavServerName,
+        #Name of the NAV Server Instance
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
+        [String]$NavServerInstance
+        
 
     )
     if ($NavIde -eq '') 
@@ -641,6 +648,11 @@ function Export-NAVApplicationObject
     $LogFile = (Join-Path -Path $LogFolder -ChildPath naverrorlog.txt)
 
     $params = "Command=ExportObjects`,Filter=`"$Filter`"`,ServerName=$Server`,Database=`"$Database`"`,LogFile=`"$LogFile`"`,File=`"$path`""
+    if ($NavServerName -gt '') {
+      $params = $params+@"
+`,NavServerName="$NavServerName"`,NavServerInstance="$NavServerInstance"`"
+"@
+    }
     & $NavIde $params | Write-Output
 
     if (Test-Path -Path "$LogFolder\navcommandresult.txt")
