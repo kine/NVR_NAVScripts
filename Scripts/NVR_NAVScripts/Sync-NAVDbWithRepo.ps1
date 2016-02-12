@@ -1,0 +1,80 @@
+﻿<#
+        .Synopsis
+        Expand the CU archive to selected folder
+        .DESCRIPTION
+        Expand the downloaded CU archive to selected folder. Targetpathmask can include variables $version $langcode $BuildNo and $formatedCUNo to 
+        create target folder.
+
+        .EXAMPLE
+        Get-NAVCumulativeUpdateFile -langcodes 'CSY','intl' -versions '2013 R2','2015','2016' | Expand-NAVCumulativeUpdateFile -targetpathmask '\\server\Microsoft\NAV\Dynamics_NAV_$($version)_$langcode\BUILD$($BuildNo)_CU$formatedCUNo'
+
+        .EXAMPLE
+        Expand-NAVCumulativeUpdateFile -filename '488130_intl_i386_zip.exe' -targetpathmask 'c:\NAV\NAV2015\CU2'
+#>
+function Sync-NAVDbWithRepo
+{
+    [CmdletBinding()]
+    param (
+        #GIT Repository path
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
+        [String]$Repository='.',        
+        #Object files from which to update. Should be complete set of objects
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
+        [String]$Files,
+        #SQL Server used for creating the database. Default is localhost (.)
+        [Parameter(ValueFromPipelinebyPropertyName = $True)]
+        [string] $Server = '.',
+        [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $True)]
+        #Name for the SQL Db created.
+        [string] $Database,
+        #Name of the NAV Server
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
+        [String]$NavServerName,
+        #Name of the NAV Server Instance
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
+        [String]$NavServerInstance
+               
+    )
+    #test that the repository is clean, without uncommited changes
+    $gitstatus = git.exe status -s
+    if ($gitstatus -gt '') 
+    {
+        Throw 'There are uncommited changes!!!'
+    }
+    
+    $Filter='Compiled=1|0'    
+    $AllFile=(Join-Path -Path '.\' -ChildPath 'all.txt')
+    
+    Write-InfoMessage 'Exporting all from DB to compare with repo...'
+    NVR_NAVScripts\Export-NAVApplicationObject -Filter $Filter -Server $Server -Database $Database -LogFolder $LogFolder -path $AllFile -NavIde (Get-NAVIde)
+    
+    #Remove-Item $setup.Files -Force
+    
+    Write-InfoMessage 'Splitting the file...'
+    Split-NAVApplicationObjectFile -Source $AllFile -Destination $Files -Force
+    
+    Write-InfoMessage "Removing the file $AllFile..."
+    
+    Remove-Item $AllFile
+    
+    Write-InfoMessage 'Getting the changes...'
+    $changes = git.exe status --porcelain | ForEach-Object {Write-Output $_.Substring(3)}
+    Write-InfoMessage "$($changes.Count) changed objects detected"
+        
+    Write-InfoMessage 'Reseting the repository...'
+    $result = git.exe reset --hard
+    Write-InfoMessage 'Reseting untracked files...'
+    $result = git.exe clean -fd
+    
+    Write-InfoMessage 'Importing changed objects...'
+    Import-NAVApplicationObject2 -Path $changes -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFolder -ImportAction Overwrite -SynchronizeSchemaChanges Force -NavServerName $NavServerName -NavServerInstance $NavServerInstance
+    
+    #Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFolder -Filter 'Compiled=0' -SynchronizeSchemaChanges Force -NavServerName $NavServerName -NavServerInstance $NavServerInstance    
+    Write-InfoMessage 'Compiling system tables...'
+    NVR_NAVScripts\Compile-NAVApplicationObjectMulti -Filter 'Type=1&ID=2000000004..' -Server $Server -Database $Database -NavIde (Get-NAVIde) -SynchronizeSchemaChanges No -NavServerName $NavServerName -NavServerInstance $NavServerInstance
+    Write-InfoMessage 'Compiling menusuites...'
+    NVR_NAVScripts\Compile-NAVApplicationObjectMulti -Filter 'Type=7&Compiled=0' -Server $Server -Database $Database -NavIde (Get-NAVIde) -SynchronizeSchemaChanges No -NavServerName $NavServerName -NavServerInstance $NavServerInstance
+    Write-InfoMessage 'Compiling uncompiled objects...'
+    NVR_NAVScripts\Compile-NAVApplicationObjectMulti -Filter 'Compiled=0' -Server $Server -Database $Database -NavIde (Get-NAVIde) -SynchronizeSchemaChanges Force -NavServerName $NavServerName -NavServerInstance $NavServerInstance
+    
+}
