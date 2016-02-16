@@ -70,7 +70,9 @@ function Sync-NAVDbWithRepo
     $result = git.exe clean -fd --quiet
     
     Write-InfoMessage 'Importing changed objects...'
-    Import-NAVApplicationObject2 -Path $changes -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFolder -ImportAction Overwrite -SynchronizeSchemaChanges Force -NavServerName $NavServerName -NavServerInstance $NavServerInstance
+    if ($changes.Count -gt 0) {
+        Import-NAVApplicationObject2 -Path $changes -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFolder -ImportAction Overwrite -SynchronizeSchemaChanges Force -NavServerName $NavServerName -NavServerInstance $NavServerInstance
+    }
     
     #Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -LogPath $LogFolder -Filter 'Compiled=0' -SynchronizeSchemaChanges Force -NavServerName $NavServerName -NavServerInstance $NavServerInstance    
     #Write-InfoMessage 'Compiling system tables...'
