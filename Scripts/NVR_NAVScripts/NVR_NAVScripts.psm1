@@ -896,7 +896,11 @@ Function New-NAVLocalApplication
 
         #Path to place DB files
         [Parameter(ValueFromPipelineByPropertyName = $true)]
-        [string] $TargetPath
+        [string] $TargetPath,
+        
+        [Parameter(ValueFromPipelineByPropertyName = $true,Alias)]
+        [Alias('NAVVersion')]
+        [string] $Version=''        
     )
     Test-Administrator
     
@@ -938,6 +942,11 @@ Function New-NAVLocalApplication
     Set-ServicePortSharing -Name $("MicrosoftDynamicsNavServer`$$ServerInstance")
     
     Set-NAVServerConfiguration -ServerInstance $ServerInstance -KeyName 'ClientServicesEnabled' -KeyValue 'true'
+
+    if ($Version -gt '') {
+        Write-Host -Object 'Updating version of the service...'
+        Update-NAVServiceVersion -ServerInstance $ServerInstance -Version $Version
+    }
 
     Write-Verbose -Message 'Server instance created'
     Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance") -ErrorAction Stop
