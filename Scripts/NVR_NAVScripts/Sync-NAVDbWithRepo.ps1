@@ -49,10 +49,16 @@ function Sync-NAVDbWithRepo
     $LogFolder = (Join-Path $env:TEMP 'NAVSyncLog')
         
     Write-InfoMessage 'Exporting all from DB to compare with repo...'
-    Export-NAVApplicationObject2 -Filter $Filter -DatabaseServer $Server -DatabaseName $Database -LogPath $LogFolder -Path $AllFile -ExportTxtSkipUnlicensed #-NavIde (Get-NAVIde) -NavServerName $NavServerName -NavServerInstance $NavServerInstance
+    $result = Export-NAVApplicationObject2 -Filter $Filter -DatabaseServer $Server -DatabaseName $Database -LogPath $LogFolder -Path $AllFile -ExportTxtSkipUnlicensed
+    
+    #-NavIde (Get-NAVIde) -NavServerName $NavServerName -NavServerInstance $NavServerInstance
 
     #Remove-Item $setup.Files -Force
-    $TargetFolder = Split-Path ((Join-Path (Get-Location) $Files))
+    if ($Files.Contains(':')) {
+        $TargetFolder = Split-Path $Files
+    } else {
+        $TargetFolder = Split-Path ((Join-Path (Get-Location) $Files))
+    }
     Write-InfoMessage "Splitting the file into $Files..."
     Split-NAVApplicationObjectFile -Source $AllFile -Destination $TargetFolder -Force
     

@@ -282,7 +282,15 @@ function Export-NAVApplicationObject2
 
         # The password to use with the username parameter to authenticate to the database. If you do not specify a user name and password, then the command uses the credentials of the current Windows user to authenticate to the database.
         [Parameter(Mandatory=$true, ParameterSetName='DatabaseAuthentication')]
-        [string] $Password)
+        [string] $Password,
+        
+        #Name of the NAV Server
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
+        [String]$NavServerName,
+        #Name of the NAV Server Instance
+        [Parameter(ValueFromPipelinebyPropertyName = $true)]
+        [String]$NavServerInstance
+    )
 
     #if ($PSCmdlet.ShouldProcess(
     #        "Export application objects from $DatabaseName database to $Path.",
@@ -320,21 +328,26 @@ function Export-NAVApplicationObject2
     {
         $command = "$command`,Filter=`"$Filter`""
     }
-
+    if ($NavServerName -gt '') {
+        $command = $command+@"
+`,NavServerName=$NavServerName`,NavServerInstance=$NavServerInstance
+"@
+    }
+    
     $logFile = (Join-Path $logPath naverrorlog.txt)
 
     try
     {
         RunNavIdeCommand -Command $command `
-                         -DatabaseServer $DatabaseServer `
-                         -DatabaseName $DatabaseName `
-                         -NTAuthentication:($Username -eq $null) `
-                         -Username $Username `
-                         -Password $Password `
-                         -NavServerInfo '' `
-                         -LogFile $logFile `
-                         -ErrText "Error while exporting $Filter" `
-                         -Verbose:$VerbosePreference
+        -DatabaseServer $DatabaseServer `
+        -DatabaseName $DatabaseName `
+        -NTAuthentication:($Username -eq $null) `
+        -Username $Username `
+        -Password $Password `
+        -NavServerInfo '' `
+        -LogFile $logFile `
+        -ErrText "Error while exporting $Filter" `
+        -Verbose:$VerbosePreference
         Get-Item $Path 
     }
     catch
