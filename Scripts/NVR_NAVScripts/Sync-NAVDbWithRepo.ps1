@@ -42,7 +42,7 @@ function Sync-NAVDbWithRepo
         Throw 'There are uncommited changes!!!'
     }
     
-    $Filter='Compiled=1|0'    
+    $Filter='Name=<>#DELETE*'    
     $AllFile=(Join-Path -Path '.\' -ChildPath 'all.txt')
     
     Import-NAVModelTool
