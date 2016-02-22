@@ -1,5 +1,4 @@
-﻿#requires -Version 2 -Modules CommonPSFunctions, NVR_NAVScripts
-function Update-NAVServiceVersion
+﻿function Update-NAVServiceVersion
 {
     param (
         [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true, HelpMessage = 'Name of the service to upgrade')]
