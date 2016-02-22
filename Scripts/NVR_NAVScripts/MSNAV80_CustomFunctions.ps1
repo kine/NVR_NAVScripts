@@ -37,7 +37,7 @@
 #>
 function Import-NAVApplicationObject2
 {
-    [CmdletBinding(DefaultParameterSetName="All", SupportsShouldProcess=$true, ConfirmImpact='High')]
+    [CmdletBinding(DefaultParameterSetName='All', SupportsShouldProcess=$true, ConfirmImpact='High')]
     Param(
         # Specifies one or more files to import.  
         [Parameter(Mandatory=$true, Position=0, ValueFromPipeline=$true, ValueFromPipelineByPropertyName=$true)]
@@ -63,18 +63,18 @@ function Import-NAVApplicationObject2
         [ValidateSet('Yes','No','Force')] [string] $SynchronizeSchemaChanges = 'Yes',
 
         # The user name to use to authenticate to the database. The user name must exist in the database. If you do not specify a user name and password, then the command uses the credentials of the current Windows user to authenticate to the database.
-        [Parameter(Mandatory=$true, ParameterSetName="DatabaseAuthentication")]
+        [Parameter(Mandatory=$true, ParameterSetName='DatabaseAuthentication')]
         [string] $Username,
 
         # The password to use with the username parameter to authenticate to the database. If you do not specify a user name and password, then the command uses the credentials of the current Windows user to authenticate to the database.
-        [Parameter(Mandatory=$true, ParameterSetName="DatabaseAuthentication")]
+        [Parameter(Mandatory=$true, ParameterSetName='DatabaseAuthentication')]
         [string] $Password,
 
         # Specifies the name of the server that hosts the Microsoft Dynamics NAV Server instance, such as MyServer.
         [string] $NavServerName,
 
         # Specifies the Microsoft Dynamics NAV Server instance that is being used.The default value is DynamicsNAV80.
-        [string] $NavServerInstance = "DynamicsNAV80",
+        [string] $NavServerInstance = 'DynamicsNAV80',
 
         # Specifies the port on the Microsoft Dynamics NAV Server server that the Microsoft Dynamics NAV Windows PowerShell cmdlets access. The default value is 7045.
         [ValidateNotNullOrEmpty()]
@@ -138,7 +138,7 @@ function GetNavServerInfo
     [int16]  $NavServerManagementPort
 )
 {
-    $navServerInfo = ""
+    $navServerInfo = ''
     if ($navServerName)
     {
         $navServerInfo = @"
@@ -249,7 +249,7 @@ function RunNavIdeCommand
 #>
 function Export-NAVApplicationObject2
 {
-    [CmdletBinding(DefaultParameterSetName="All",SupportsShouldProcess = $true)]
+    [CmdletBinding(DefaultParameterSetName='All',SupportsShouldProcess = $true)]
     Param(
         # Specifies the name of the database from which you want to export.
         [Parameter(Mandatory=$true, Position=0)]
@@ -277,11 +277,11 @@ function Export-NAVApplicationObject2
         [Switch] $ExportTxtSkipUnlicensed,
 
         # The user name to use to authenticate to the database. The user name must exist in the database. If you do not specify a user name and password, then the command uses the credentials of the current Windows user to authenticate to the database.
-        [Parameter(Mandatory=$true, ParameterSetName="DatabaseAuthentication")]
+        [Parameter(Mandatory=$true, ParameterSetName='DatabaseAuthentication')]
         [string] $Username,
 
         # The password to use with the username parameter to authenticate to the database. If you do not specify a user name and password, then the command uses the credentials of the current Windows user to authenticate to the database.
-        [Parameter(Mandatory=$true, ParameterSetName="DatabaseAuthentication")]
+        [Parameter(Mandatory=$true, ParameterSetName='DatabaseAuthentication')]
         [string] $Password)
 
     #if ($PSCmdlet.ShouldProcess(
@@ -304,10 +304,10 @@ function Export-NAVApplicationObject2
         return
     }
 
-    $skipUnlicensed = "No"
+    $skipUnlicensed = '0'
     if($ExportTxtSkipUnlicensed)
     {
-        $skipUnlicensed = "Yes"
+        $skipUnlicensed = '1'
     }
 
     if ((Get-NavIdeMajorVersion) -ge 8) {
@@ -331,7 +331,7 @@ function Export-NAVApplicationObject2
                          -NTAuthentication:($Username -eq $null) `
                          -Username $Username `
                          -Password $Password `
-                         -NavServerInfo "" `
+                         -NavServerInfo '' `
                          -LogFile $logFile `
                          -ErrText "Error while exporting $Filter" `
                          -Verbose:$VerbosePreference
@@ -363,7 +363,7 @@ function Export-NAVApplicationObject2
 #>
 function Delete-NAVApplicationObject2
 {
-    [CmdletBinding(DefaultParameterSetName="All", SupportsShouldProcess=$true, ConfirmImpact='High')]
+    [CmdletBinding(DefaultParameterSetName='All', SupportsShouldProcess=$true, ConfirmImpact='High')]
     Param(
         # Specifies the name of the database from which you want to delete objects.
         [Parameter(Mandatory=$true, Position=0)]
@@ -385,18 +385,18 @@ function Delete-NAVApplicationObject2
         [string] $SynchronizeSchemaChanges = 'Yes',
 
         # The user name to use to authenticate to the database. The user name must exist in the database. If you do not specify a user name and password, then the command uses the credentials of the current Windows user to authenticate to the database.
-        [Parameter(Mandatory=$true, ParameterSetName="DatabaseAuthentication")]
+        [Parameter(Mandatory=$true, ParameterSetName='DatabaseAuthentication')]
         [string] $Username,
 
         # The password to use with the username parameter to authenticate to the database. If you do not specify a user name and password, then the command uses the credentials of the current Windows user to authenticate to the database.
-        [Parameter(Mandatory=$true, ParameterSetName="DatabaseAuthentication")]
+        [Parameter(Mandatory=$true, ParameterSetName='DatabaseAuthentication')]
         [string] $Password,
 
         # Specifies the name of the server that hosts the Microsoft Dynamics NAV Server instance, such as MyServer.
         [string] $NavServerName,
 
         # Specifies the Microsoft Dynamics NAV Server instance that is being used.The default value is DynamicsNAV80.
-        [string] $NavServerInstance = "DynamicsNAV80",
+        [string] $NavServerInstance = 'DynamicsNAV80',
 
         # Specifies the port on the Microsoft Dynamics NAV Server server that the Microsoft Dynamics NAV Windows PowerShell cmdlets access. The default value is 7045.
         [ValidateNotNullOrEmpty()]
@@ -411,7 +411,7 @@ function Delete-NAVApplicationObject2
         if ((Get-NavIdeMajorVersion) -ge 8) {
             $command = "Command=DeleteObjects`,SynchronizeSchemaChanges=$SynchronizeSchemaChanges"
         } else {
-            Write-Error "DeleteObjects command not supported!"
+            Write-Error 'DeleteObjects command not supported!'
         }
         if($Filter)
         {
@@ -470,7 +470,7 @@ function Delete-NAVApplicationObject2
 #>
 function Compile-NAVApplicationObject2
 {
-    [CmdletBinding(DefaultParameterSetName="All")]
+    [CmdletBinding(DefaultParameterSetName='All')]
     Param(
         # Specifies the name of the Dynamics NAV database.
         [Parameter(Mandatory=$true, Position=0,ValueFromPipelinebyPropertyName = $true)]
@@ -503,18 +503,18 @@ function Compile-NAVApplicationObject2
         [string] $SynchronizeSchemaChanges = 'Yes',
 
         # The user name to use to authenticate to the database. The user name must exist in the database. If you do not specify a user name and password, then the command uses the credentials of the current Windows user to authenticate to the database.
-        [Parameter(Mandatory=$true, ParameterSetName="DatabaseAuthentication")]
+        [Parameter(Mandatory=$true, ParameterSetName='DatabaseAuthentication')]
         [string] $Username,
 
         # The password to use with the username parameter to authenticate to the database. If you do not specify a user name and password, then the command uses the credentials of the current Windows user to authenticate to the database.
-        [Parameter(Mandatory=$true, ParameterSetName="DatabaseAuthentication")]
+        [Parameter(Mandatory=$true, ParameterSetName='DatabaseAuthentication')]
         [string] $Password,
 
         # Specifies the name of the server that hosts the Microsoft Dynamics NAV Server instance, such as MyServer.
         [string] $NavServerName,
 
         # Specifies the Microsoft Dynamics NAV Server instance that is being used.The default value is DynamicsNAV80.
-        [string] $NavServerInstance = "DynamicsNAV80",
+        [string] $NavServerInstance = 'DynamicsNAV80',
 
         # Specifies the port on the Microsoft Dynamics NAV Server server that the Microsoft Dynamics NAV Windows PowerShell cmdlets access. The default value is 7045.
         [ValidateNotNullOrEmpty()]
@@ -547,15 +547,15 @@ function Compile-NAVApplicationObject2
 
             if($Username)
             {
-                $args.Add("Username",$Username)
-                $args.Add("Password",$Password)
+                $args.Add('Username',$Username)
+                $args.Add('Password',$Password)
             }
 
             if($NavServerName)
             {
-                $args.Add("NavServerName",$NavServerName)
-                $args.Add("NavServerInstance",$NavServerInstance)
-                $args.Add("NavServerManagementPort",$NavServerManagementPort)
+                $args.Add('NavServerName',$NavServerName)
+                $args.Add('NavServerInstance',$NavServerInstance)
+                $args.Add('NavServerManagementPort',$NavServerManagementPort)
             }
             Import-Module NVR_NAVScripts -DisableNameChecking
             Compile-NAVApplicationObject2 @args -Verbose:$VerbosePreference
@@ -573,7 +573,7 @@ function Compile-NAVApplicationObject2
             if ((Get-NavIdeMajorVersion) -ge 8) {
                 $command = "Command=CompileObjects`,SynchronizeSchemaChanges=$SynchronizeSchemaChanges"
             } else {
-                $command = "Command=CompileObjects"
+                $command = 'Command=CompileObjects'
             }
 
             if($Filter)
@@ -623,7 +623,7 @@ function Compile-NAVApplicationObject2
 #>
 function Create-NAVDatabase2
 {
-    [CmdletBinding(DefaultParameterSetName="All")]
+    [CmdletBinding(DefaultParameterSetName='All')]
     Param(
          # Specifies the name of the Dynamics NAV database that will be created.
         [Parameter(Mandatory=$true, Position=0)]
@@ -643,11 +643,11 @@ function Create-NAVDatabase2
 
 
         # The user name to use to authenticate to the database. The user name must exist in the database. If you do not specify a user name and password, then the command uses the credentials of the current Windows user to authenticate to the database.
-        [Parameter(Mandatory=$true, ParameterSetName="DatabaseAuthentication")]
+        [Parameter(Mandatory=$true, ParameterSetName='DatabaseAuthentication')]
         [string] $Username,
 
         # The password to use with the username parameter to authenticate to the database. If you do not specify a user name and password, then the command uses the credentials of the current Windows user to authenticate to the database.
-        [Parameter(Mandatory=$true, ParameterSetName="DatabaseAuthentication")]
+        [Parameter(Mandatory=$true, ParameterSetName='DatabaseAuthentication')]
         [string] $Password)
 
     $logFile = (Join-Path $LogPath naverrorlog.txt)
@@ -655,7 +655,7 @@ function Create-NAVDatabase2
     if ((Get-NavIdeMajorVersion) -ge 8) {
        $command = "Command=CreateDatabase`,Collation=$Collation"
     } else {
-       $command = "Command=CreateDatabase"
+       $command = 'Command=CreateDatabase'
     }
 
     try
@@ -701,7 +701,7 @@ function Create-NAVDatabase2
 #>
 function Invoke-NAVDatabaseConversion2
 {
-    [CmdletBinding(DefaultParameterSetName="All")]
+    [CmdletBinding(DefaultParameterSetName='All')]
     Param(
          # Specifies the name of the Dynamics NAV database that will be created.
         [Parameter(Mandatory=$true, Position=0)]
@@ -716,16 +716,16 @@ function Invoke-NAVDatabaseConversion2
         [string] $LogPath = "$Env:TEMP\NavIde\$([GUID]::NewGuid().GUID)",
 
         # The user name to use to authenticate to the database. The user name must exist in the database. If you do not specify a user name and password, then the command uses the credentials of the current Windows user to authenticate to the database.
-        [Parameter(Mandatory=$true, ParameterSetName="DatabaseAuthentication")]
+        [Parameter(Mandatory=$true, ParameterSetName='DatabaseAuthentication')]
         [string] $Username,
 
         # The password to use with the username parameter to authenticate to the database. If you do not specify a user name and password, then the command uses the credentials of the current Windows user to authenticate to the database.
-        [Parameter(Mandatory=$true, ParameterSetName="DatabaseAuthentication")]
+        [Parameter(Mandatory=$true, ParameterSetName='DatabaseAuthentication')]
         [string] $Password)
 
     $logFile = (Join-Path $LogPath naverrorlog.txt)
 
-    $command = "Command=UpgradeDatabase"
+    $command = 'Command=UpgradeDatabase'
 
     try
     {
@@ -735,7 +735,7 @@ function Invoke-NAVDatabaseConversion2
                          -NTAuthentication:($Username -eq $null) `
                          -Username $Username `
                          -Password $Password `
-                         -NavServerInfo "" `
+                         -NavServerInfo '' `
                          -LogFile $logFile `
                          -ErrText "Error while converting $DatabaseName" `
                          -Verbose:$VerbosePreference

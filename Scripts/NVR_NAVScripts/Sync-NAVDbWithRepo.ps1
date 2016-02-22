@@ -49,8 +49,8 @@ function Sync-NAVDbWithRepo
     $LogFolder = (Join-Path $env:TEMP 'NAVSyncLog')
         
     Write-InfoMessage 'Exporting all from DB to compare with repo...'
-    NVR_NAVScripts\Export-NAVApplicationObject -Filter $Filter -Server $Server -Database $Database -LogFolder $LogFolder -path $AllFile -NavIde (Get-NAVIde) -NavServerName $NavServerName -NavServerInstance $NavServerInstance
-    
+    Export-NAVApplicationObject2 -Filter $Filter -DatabaseServer $Server -DatabaseName $Database -LogPath $LogFolder -Path $AllFile -ExportTxtSkipUnlicensed #-NavIde (Get-NAVIde) -NavServerName $NavServerName -NavServerInstance $NavServerInstance
+
     #Remove-Item $setup.Files -Force
     $TargetFolder = Split-Path ((Join-Path (Get-Location) $Files))
     Write-InfoMessage "Splitting the file into $Files..."
