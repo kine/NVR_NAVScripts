@@ -650,7 +650,7 @@ function Export-NAVApplicationObject
     $params = "Command=ExportObjects`,Filter=`"$Filter`"`,ServerName=$Server`,Database=`"$Database`"`,LogFile=`"$LogFile`"`,File=`"$path`""
     if ($NavServerName -gt '') {
       $params = $params+@"
-`,NavServerName="$NavServerName"`,NavServerInstance="$NavServerInstance"`"
+`,NavServerName=$NavServerName`,NavServerInstance=$NavServerInstance
 "@
     }
     & $NavIde $params | Write-Output
@@ -898,7 +898,7 @@ Function New-NAVLocalApplication
         [Parameter(ValueFromPipelineByPropertyName = $true)]
         [string] $TargetPath,
         
-        [Parameter(ValueFromPipelineByPropertyName = $true,Alias)]
+        [Parameter(ValueFromPipelineByPropertyName = $true)]
         [Alias('NAVVersion')]
         [string] $Version=''        
     )
