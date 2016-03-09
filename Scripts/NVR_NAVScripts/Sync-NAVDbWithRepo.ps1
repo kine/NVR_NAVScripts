@@ -35,10 +35,13 @@ function Sync-NAVDbWithRepo
         [String]$NavServerInstance
                
     )
+    Push-Location
+    Set-Location -Path $Repository
     #test that the repository is clean, without uncommited changes
     $gitstatus = git.exe status -s
     if ($gitstatus -gt '') 
     {
+        Write-Host $gitstatus
         Throw 'There are uncommited changes!!!'
     }
     
@@ -67,7 +70,7 @@ function Sync-NAVDbWithRepo
     Remove-Item $AllFile
     
     Write-InfoMessage 'Getting the changes...'
-    $changes = git.exe status --porcelain | ForEach-Object {Write-Output $_.Substring(3)} | Where-Object {($_ -notlike '*MEN1010.TXT') -and ($_ -notlike '*MEN1030.TXT')}
+    $changes = git.exe status --porcelain | ForEach-Object {if ($_.Substring(0,2) -ne '??') {Write-Output $_.Substring(3)}} | Where-Object {($_ -notlike '*MEN1010.TXT') -and ($_ -notlike '*MEN1030.TXT')}
     Write-InfoMessage "$($changes.Count) changed objects detected"
         
     Write-InfoMessage 'Reseting the repository...'
@@ -87,5 +90,5 @@ function Sync-NAVDbWithRepo
     #NVR_NAVScripts\Compile-NAVApplicationObjectMulti -Filter 'Type=7&Compiled=0' -Server $Server -Database $Database -NavIde (Get-NAVIde) -SynchronizeSchemaChanges No -NavServerName $NavServerName -NavServerInstance $NavServerInstance
     #Write-InfoMessage 'Compiling uncompiled objects...'
     #NVR_NAVScripts\Compile-NAVApplicationObjectMulti -Filter 'Compiled=0' -Server $Server -Database $Database -NavIde (Get-NAVIde) -SynchronizeSchemaChanges Force -NavServerName $NavServerName -NavServerInstance $NavServerInstance
-    
+    Pop-Location
 }
