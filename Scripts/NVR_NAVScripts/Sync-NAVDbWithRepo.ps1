@@ -1,4 +1,4 @@
-﻿<#
+<#
         .Synopsis
         Expand the CU archive to selected folder
         .DESCRIPTION
@@ -56,14 +56,14 @@ function Sync-NAVDbWithRepo
     
     #-NavIde (Get-NAVIde) -NavServerName $NavServerName -NavServerInstance $NavServerInstance
 
-    #Remove-Item $setup.Files -Force
+    Remove-Item $Files -Force -Exclude $AllFile
     if ($Files.Contains(':')) {
         $TargetFolder = Split-Path $Files
     } else {
         $TargetFolder = Split-Path ((Join-Path (Get-Location) $Files))
     }
     Write-InfoMessage "Splitting the file into $Files..."
-    Split-NAVApplicationObjectFile -Source $AllFile -Destination $TargetFolder -Force
+    Split-NAVApplicationObjectFile -Source $AllFile -Destination $TargetFolder -Force -ErrorAction Stop
     
     Write-InfoMessage "Removing the file $AllFile..."
     
