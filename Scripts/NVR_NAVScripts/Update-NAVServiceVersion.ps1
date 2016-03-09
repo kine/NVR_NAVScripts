@@ -10,8 +10,8 @@
     begin {
     }
     process {
-        Write-InfoMessage "Getting service for instance $InstanceName"
-        $service = Get-Service ("MicrosoftDynamicsNavServer`$$InstanceName")
+        Write-InfoMessage "Getting service for instance $ServerInstance"
+        $service = Get-Service ("MicrosoftDynamicsNavServer`$$ServerInstance")
     
         if ($service.Status -eq 'Running') {
             Write-InfoMessage "Stopping the service $($service.Name)"
@@ -20,7 +20,7 @@
     
         Write-InfoMessage 'Getting current path for the service...'
         $currentPath = (Get-ItemProperty -Path ('HKLM:\System\CurrentControlSet\Services\'+$service.Name) -Name ImagePath).ImagePath
-        $originalPath = (Split-Path $currentPath.Split('$')[0]).Replace('"','')
+        $originalPath = (Split-Path $currentPath.Split('$')[0]).Replace('"','').Replace('''','')
     
         Write-InfoMessage 'Getting target path...'
         $TargetFolder = Find-NAVVersion -path $originalPath -Version $Version
