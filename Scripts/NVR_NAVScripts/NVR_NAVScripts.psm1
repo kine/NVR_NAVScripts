@@ -944,8 +944,8 @@ Function New-NAVLocalApplication
     Set-NAVServerConfiguration -ServerInstance $ServerInstance -KeyName 'ClientServicesEnabled' -KeyValue 'true'
 
     if ($Version -gt '') {
-        Write-Host -Object 'Updating version of the service...'
-        Update-NAVServiceVersion -ServerInstance $ServerInstance -Version $Version
+        Write-Host -Object "Updating version of the service $ServerInstance..."
+        Update-NAVServiceVersion -ServerInstance $ServerInstance -Version $Version 
     }
 
     Write-Verbose -Message 'Server instance created'
@@ -1078,94 +1078,6 @@ Function Set-NAVUIDOffset
         [int]$UIDOffset
     )
     Get-SQLCommandResult -Server $Server -Database $Database -Command "UPDATE [`$ndo`$dbproperty] SET [uidoffset] = $UIDOffset" | Out-Null
-}
-
-<#
-        .Synopsis
-        Change version on existing NAV Server Instance
-        .DESCRIPTION
-        Change version on Existing NAV Server Instance by moving the config to new folder and setting the service to new .exe file
-        .EXAMPLE
-        Update-NAVServiceVersion -Name MicrosoftDynamicsNavServer$ServerInstance -TargetPath "C:\Program Files\Microsoft Dynamics NAV\80\Service_42222"
-#>
-function Update-NAVServiceVersion
-{
-    [CmdletBinding()]
-    param (
-        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true, HelpMessage = 'Name of the service to upgrade')]
-        $Name,
-        [Parameter(Mandatory = $true, Position = 1, HelpMessage = 'Path to the target service folder')]
-        $TargetFolder
-    )
-
-    begin {
-    }
-    process {
-        $service = Get-Service $Name
-        Write-Host "$($Service.DisplayName)"
-        if ($service.Status -eq 'Running') {
-            $service.Stop()
-        }
-        
-        #Update registry - path to the exe file and config file
-        $currentPath = (Get-ItemProperty -Path ('HKLM:\System\CurrentControlSet\Services\'+$service.Name) -Name ImagePath).ImagePath
-        $originalPath = (Split-Path $currentPath.Split('$')[0]).Replace('"','')
-        $newPath = $currentPath.Replace($originalPath,$TargetFolder)
-        Set-ItemProperty -Path ('HKLM:\System\CurrentControlSet\Services\'+$service.Name) -Name ImagePath -Value $newPath
-        
-        #move config files to new folder
-        Move-Item -Path "$originalPath\Instances\$($Name.Split('$')[1])" -Destination "$TargetFolder\Instances\"
-
-
-        $option=[System.StringSplitOptions]::RemoveEmptyEntries
-        $separator = " config ","DUMMY"
-        $configFile = $newPath.Split($separator,$option)[1].Replace('"','')
-        
-        #modify content of the config file
-        $config = [xml](Get-Content $configFile)
-        $config.configuration.appSettings.file = $config.configuration.appSettings.file.Replace($originalPath,$TargetFolder)
-        $config.configuration.tenants.file = $config.configuration.tenants.file.Replace($originalPath,$TargetFolder)
-        $config.Save($configFile)
-        
-        Write-Host "Service $($Service.Name) moved from $originaPath to $TargetPath"
-    }
-    end{
-    }
-}
-
-function Upgrade-NAVServerInstance
-{
-    param (
-        [Parameter(Mandatory = $true, Position = 0, ValueFromPipelineByPropertyName = $true, HelpMessage = 'Name of the service to upgrade')]
-        $Name,
-        [Parameter(Mandatory = $true, Position = 1, HelpMessage = 'Path to the target service folder')]
-        $TargetFolder
-    )
-
-    begin {
-    }
-    process {
-        $service = Get-Service $Name
-        Write-Host "$($Service.DisplayName)"
-        if ($service.Status -eq 'Running') {
-            $service.Stop()
-        }
-        $currentPath = (Get-ItemProperty -Path ('HKLM:\System\CurrentControlSet\Services\'+$service.Name) -Name ImagePath).ImagePath
-        $originalPath = (Split-Path $currentPath.Split('$')[0]).Replace('"','')
-        $newPath = $currentPath.Replace($originalPath,$TargetFolder)
-        Set-ItemProperty -Path ('HKLM:\System\CurrentControlSet\Services\'+$service.Name) -Name ImagePath -Value $newPath
-        Move-Item -Path "$originalPath\Instances\$($Name.Split('$')[1])" -Destination "$TargetFolder\Instances\"
-
-        $option=[System.StringSplitOptions]::RemoveEmptyEntries
-        $separator = " config ","DUMMY"
-        $configFile = $newPath.Split($separator,$option)[1].Replace('"','')
-        $config = [xml](Get-Content $configFile)
-        $config.configuration.appSettings.file = $config.configuration.appSettings.file.Replace($originalPath,$TargetFolder)
-        $config.configuration.tenants.file = $config.configuration.tenants.file.Replace($originalPath,$TargetFolder)
-        $config.Save($configFile)
-    }
-    end{
-    }
 }
 
 $client = Split-Path (Get-NAVIde)
