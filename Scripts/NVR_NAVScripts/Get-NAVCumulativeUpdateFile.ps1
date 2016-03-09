@@ -48,7 +48,7 @@ function Get-NAVCumulativeUpdateFile
 
                 if ($CUNo -gt '') 
                 {
-                    $blogurl = $feed.SelectNodes("/rss/channel/item[./category='NAV $version' and ./category='Cumulative Updates' and contains(./title,'$CUNo')]").link | Select-Object -First 1
+                    $blogurl = $feed.SelectNodes("/rss/channel/item[./category='NAV $version' and ./category='Cumulative Updates' and contains(./title,' $CUNo ')]").link | Select-Object -First 1
                 } else 
                 {
                     $blogurl = $feed.SelectNodes("/rss/channel/item[./category='NAV $version' and ./category='Cumulative Updates']").link | Select-Object -First 1
@@ -159,6 +159,11 @@ function Get-NAVCumulativeUpdateFile
                 Write-Host -Object 'Searching for list of updates' -ForegroundColor Green
 
                 [regex]$pattern = 'hfList = (\[.+\}\])'
+                while ($ie.Busy -eq $true)
+                {
+                    $null = Start-Sleep -Seconds 1
+                }   
+                $null = Start-Sleep -Seconds 5
                 $matches = $pattern.Matches($ie.Document.body.innerText) 
                 if (!$matches) 
                 {
