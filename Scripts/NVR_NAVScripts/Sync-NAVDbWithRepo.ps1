@@ -1,4 +1,4 @@
-<#
+﻿<#
         .Synopsis
         Expand the CU archive to selected folder
         .DESCRIPTION
@@ -37,6 +37,11 @@ function Sync-NAVDbWithRepo
     )
     Push-Location
     Set-Location -Path $Repository
+    
+    $AllFile=(Join-Path -Path '.\' -ChildPath 'all.txt')
+    if (Test-Path $AllFile) {
+        Remove-Item $AllFile
+    }
     #test that the repository is clean, without uncommited changes
     $gitstatus = git.exe status -s
     if ($gitstatus -gt '') 
@@ -46,7 +51,6 @@ function Sync-NAVDbWithRepo
     }
     
     $Filter='Name=<>#DELETE*'    
-    $AllFile=(Join-Path -Path '.\' -ChildPath 'all.txt')
     
     Import-NAVModelTool
     $LogFolder = (Join-Path $env:TEMP 'NAVSyncLog')
