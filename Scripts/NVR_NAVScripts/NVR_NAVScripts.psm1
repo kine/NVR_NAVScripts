@@ -426,7 +426,7 @@ function Compile-NAVApplicationObjectFilesMulti
     $Ranges += '0..2000000999;Type=Table'
     for ($i = 0;$i -lt ($CPUs-1);$i++) 
     {
-        $Ranges += "$($Last+1)..$($FilesSorted[$i*$Step+$Step-1].Id);Type=2.."
+        $Ranges += "$($Last+1)..$($FilesSorted[$i*$Step+$Step-1].Id);Type=2..;Version List=<>*Test*"
         $Last = $FilesSorted[$i*$Step+$Step-1].Id
     }
 
@@ -451,6 +451,19 @@ function Compile-NAVApplicationObjectFilesMulti
     if ($AsJob -eq $true) 
     {
         Receive-Job -Job $jobs -Wait
+        #Compile test objects at the end
+        $TestFilter = 'Version List=*Test*'
+        if ($AsJob -eq $true) 
+        {
+            Write-Host -Object "Compiling $TestFilter as Job..."
+            $jobs += Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -Filter $TestFilter -Recompile -AsJob -SynchronizeSchemaChanges $SynchronizeSchemaChanges -NavServerName $NavServerName -NavServerInstance $NavServerInstance
+            Receive-Job -Job $jobs -Wait
+        }
+        else 
+        {
+            Write-Host -Object "Compiling $TestFilter..."
+            Compile-NAVApplicationObject2 -DatabaseName $Database -DatabaseServer $Server -Filter $TestFilter -Recompile -SynchronizeSchemaChanges $SynchronizeSchemaChanges -NavServerName $NavServerName -NavServerInstance $NavServerInstance
+        }
     }
 }
 
