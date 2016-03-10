@@ -34,10 +34,11 @@
         }
     
         $newPath = $currentPath.Replace($originalPath,$TargetFolder)
+        Write-InfoMessage "Relocating configuration to folder $TargetFolder ..."
+        Move-Item -Path "$originalPath\Instances\$ServerInstance" -Destination "$TargetFolder\Instances\" -ErrorAction Stop
+
         Write-InfoMessage "Relocating service to folder $TargetFolder ..."
         Set-ItemProperty -Path ('HKLM:\System\CurrentControlSet\Services\'+$service.Name) -Name ImagePath -Value $newPath
-        Write-InfoMessage "Relocating configuration to folder $TargetFolder ..."
-        Move-Item -Path "$originalPath\Instances\$($Name.Split('$')[1])" -Destination "$TargetFolder\Instances\"
 
         $option=[System.StringSplitOptions]::RemoveEmptyEntries
         $separator = ' config ','DUMMY'
