@@ -27,7 +27,7 @@ function Merge-NAVGIT
         #If used, objects are not copied from repo to temp folders and existing temp folders are used to merge
         [switch]$remerge,
         #Languages, which will be removed from modified version and added after merge back (when merging with version without this language)
-        [String]$RemoveLanguageId
+        $RemoveLanguageId
     )
     Import-Module -Name NVR_NAVScripts -WarningAction SilentlyContinue
     Import-NAVModelTool
