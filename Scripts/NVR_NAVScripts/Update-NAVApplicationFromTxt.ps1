@@ -70,7 +70,7 @@ function Update-NAVApplicationFromTxt
         [switch]$SkipDeleteCheck,
         #Logfile path used to write the log files for each imported file
         [Parameter(ValueFromPipelinebyPropertyName = $true)]
-        [String]$LogFolder,
+        [String]$LogFolder="$Env:TEMP\NavIde\$([GUID]::NewGuid().GUID)",
         #Disable progress dialog
         [Parameter(ValueFromPipelinebyPropertyName = $true)]
         [switch]$NoProgress,
