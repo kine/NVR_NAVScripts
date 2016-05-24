@@ -10,7 +10,7 @@ Param (
 )
 #Write-Host $PSScriptRoot
 if (Test-Path $TargetPath\src\setup.xml) {
-  . "$PSScriptRoot\..\Get-NAVGITSetup.ps1" -SetupFile "$TargetPath\src\setup.xml" | Out-Null
+  $config= (. "$PSScriptRoot\..\Get-NAVGITSetup.ps1" -SetupFile "$TargetPath\src\setup.xml")
 }
 Import-Module -Name NVR_NAVScripts -DisableNameChecking -Force
 Import-Module -Name CommonPSFunctions
@@ -23,5 +23,5 @@ if ((Get-NAVServerInstance -ServerInstance $Instance) -and (-not $ForceNewDB)) {
     {
         Remove-NAVLocalApplication -Server $Server -Database $Database -ServerInstance $Instance
     }
-    New-NAVLocalApplication -Server $Server -Database $Database -BaseFob $BaseFob -License $LicenseFile -DbBackupFile $DbBackupFile -ServerInstance $Instance -TargetPath $TargetPath
+    New-NAVLocalApplication -Server $Server -Database $Database -BaseFob $BaseFob -License $LicenseFile -DbBackupFile $DbBackupFile -ServerInstance $Instance -TargetPath $TargetPath -Version $config.NAVVersion
 }
