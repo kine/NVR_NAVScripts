@@ -56,7 +56,7 @@ function Sync-NAVDbWithRepo
     $LogFolder = (Join-Path $env:TEMP 'NAVSyncLog')
         
     Write-InfoMessage 'Exporting all from DB to compare with repo...'
-    $result = Export-NAVApplicationObject2 -Filter $Filter -DatabaseServer $Server -DatabaseName $Database -LogPath $LogFolder -Path $AllFile -ExportTxtSkipUnlicensed
+    $result = Export-NAVApplicationObject2 -Filter $Filter -DatabaseServer $Server -DatabaseName $Database -LogPath $LogFolder -Path $AllFile -ExportTxtSkipUnlicensed -NavServerName $NavServerName -NavServerInstance $NavServerInstance
     
     #-NavIde (Get-NAVIde) -NavServerName $NavServerName -NavServerInstance $NavServerInstance
 
