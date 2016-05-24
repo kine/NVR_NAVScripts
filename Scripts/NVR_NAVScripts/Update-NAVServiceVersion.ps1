@@ -45,7 +45,9 @@
         $configFile = $newPath.Split($separator,$option)[1].Replace('"','')
         $config = [xml](Get-Content $configFile)
         $config.configuration.appSettings.file = $config.configuration.appSettings.file.Replace($originalPath,$TargetFolder)
-        $config.configuration.tenants.file = $config.configuration.tenants.file.Replace($originalPath,$TargetFolder)
+        if ($config.configuration.tenants) {
+            $config.configuration.tenants.file = $config.configuration.tenants.file.Replace($originalPath,$TargetFolder)
+        }
     
         Write-InfoMessage 'Modifying config files to new paths...'
         $config.Save($configFile)
