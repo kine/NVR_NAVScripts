@@ -957,7 +957,7 @@ Function New-NAVLocalApplication
     Set-NAVServerConfiguration -ServerInstance $ServerInstance -KeyName 'ClientServicesEnabled' -KeyValue 'true'
 
     if ($Version -gt '') {
-        Write-Host -Object "Updating version of the service $ServerInstance..."
+        Write-Host -Object "Updating version of the service $ServerInstance to $Version..."
         Update-NAVServiceVersion -ServerInstance $ServerInstance -Version $Version 
     }
 
