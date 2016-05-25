@@ -35,7 +35,7 @@
     
         $newPath = $currentPath.Replace($originalPath,$TargetFolder)
         Write-InfoMessage "Relocating configuration to folder $TargetFolder ..."
-        Move-Item -Path "$originalPath\Instances\$ServerInstance" -Destination "$TargetFolder\Instances\" -ErrorAction Stop
+        Move-Item -Path "$originalPath\Instances\$ServerInstance\" -Destination "$TargetFolder\Instances\" -ErrorAction Stop
 
         Write-InfoMessage "Relocating service to folder $TargetFolder ..."
         Set-ItemProperty -Path ('HKLM:\System\CurrentControlSet\Services\'+$service.Name) -Name ImagePath -Value $newPath
