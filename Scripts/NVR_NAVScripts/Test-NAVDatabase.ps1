@@ -433,7 +433,10 @@ function Test-NAVDatabase
     $ReplaceChars = '."\/%]['''
 
     #microsoft.Dynamics.Nav.Client.exe
-    $RoleTailoredClientExePath = Join-Path -Path $env:NAVIdePath -ChildPath 'Microsoft.Dynamics.Nav.Client.exe'
+    $RoleTailoredClientExePath = Join-Path -Path $env:NAVIdePath -ChildPath 'Microsoft.Dynamics.Nav.Client.x86.exe'
+    if (-not (Test-Path -Path $RoleTailoredClientExePath)) {
+        $RoleTailoredClientExePath = Join-Path -Path $env:NAVIdePath -ChildPath 'Microsoft.Dynamics.Nav.Client.exe'
+    }
 
     if (-not $CompanyName) 
     {

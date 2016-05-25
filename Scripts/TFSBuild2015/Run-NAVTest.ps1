@@ -7,6 +7,11 @@ param (
     [String]$TestFile=$env:NAV_TESTFILENAME,
 	[int]$CodeunitID=$env:NAV_NAVTESTINGCODEUNIT
 )
+
+if (Test-Path $env:BUILD_SOURCESDIRECTORY\setup.xml) {
+    $config = (. "$PSScriptRoot\..\Get-NAVGITSetup.ps1" -SetupFile "$env:BUILD_SOURCESDIRECTORY\setup.xml")
+}
+
 Import-Module -Name NVR_NAVScripts -DisableNameChecking -Force
 Import-Module -Name CommonPSFunctions
 Import-Module (Get-NAVAdminModuleName)
