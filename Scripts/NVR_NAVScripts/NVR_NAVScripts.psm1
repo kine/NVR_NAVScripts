@@ -946,7 +946,7 @@ Function New-NAVLocalApplication
 
     Write-Progress -Activity 'Creating new server instance $ServerInstance...'
     
-    Write-Host 'Converting database...'
+    Write-Host "Converting database...$($env:NAVIdePath)"
     Invoke-NAVDatabaseConversion2 -DatabaseName $Database -DatabaseServer $Server
     
     Write-Host -Object "Creating new server instance $ServerInstance..."
@@ -968,7 +968,8 @@ Function New-NAVLocalApplication
     Import-NAVServerLicense -LicenseFile $LicenseFile -Database NavDatabase -ServerInstance $ServerInstance -WarningAction SilentlyContinue -ErrorAction Stop
     Write-Verbose -Message 'License imported'
         
-   
+    Write-InfoMessage -Message 'Syncing schema'
+    Sync-NAVTenant -ServerInstance $ServerInstance -Mode Sync -Force
     
     Stop-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
     Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance") -ErrorAction Stop
