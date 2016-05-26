@@ -150,7 +150,7 @@ function Merge-NAVGIT
                 $i = $i +1
                 Write-Progress -Id 50 -Status "Processing $i of $count" -Activity 'Mergin GIT repositories...' -CurrentOperation 'Merging version lists' -PercentComplete ($i / $mergeresult.Count*100)
                 $ProgressPreference = 'SilentlyContinue'
-                $newversion = Merge-NAVVersionListString -source $_.Modified.VersionList -target $_.Target.VersionList -mode SourceFirst
+                $newversion = Merge-NAVVersionListString -source $_.Modified.VersionList -target $_.Target.VersionList -mode TargetFirst
                 $newmodified = 'No'
                 if ($_.Modified.Modified -or $_.Target.Modified) 
                 {
@@ -338,13 +338,13 @@ function Merge-NAVGIT
         $result = git.exe checkout --force "$targetbranch" --quiet
 
         Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Copying the $targetbranch to temp folder..."
-        $result = Copy-Item -Path $sourcefilespath -Filter $sourcefiles -Destination $targetfolder -Recurse -Container
+        $result = Copy-Item -Path $sourcefilespath -Filter $sourcefiles -Destination $sourcefolder -Recurse -Container
 
         Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Switching to $sourcebranch"
         $result = git.exe checkout --force "$sourcebranch" --quiet
 
         Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Copying the $sourcebranch to temp folder..."
-        $result = Copy-Item -Path $sourcefilespath -Filter $sourcefiles -Destination $sourcefolder -Recurse -Container
+        $result = Copy-Item -Path $sourcefilespath -Filter $sourcefiles -Destination $targetfolder -Recurse -Container
     }
 
     if ($RemoveLanguageId) 
@@ -365,7 +365,7 @@ function Merge-NAVGIT
         $result = Rename-Item -Path $tempfolder2 -NewName $targetfolder -Force
     }
 
-    Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 'Merging NAV Object files...'
+    Write-InfoMessage -Message 'Merging NAV Object files...'
 
     $mergeresult = Merge-NAVApplicationObject -OriginalPath (Join-Path -Path $commonfolder -ChildPath $sourcefilespath) -Modified (Join-Path -Path $sourcefolder -ChildPath $sourcefilespath) -TargetPath (Join-Path -Path $targetfolder -ChildPath $sourcefilespath) -ResultPath (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -Force -DateTimeProperty FromModified -ModifiedProperty FromModified -DocumentationConflict ModifiedFirst
     $mergeresult | Export-Clixml -Path $resultfolder'..\mergeresult.xml'
@@ -396,9 +396,9 @@ function Merge-NAVGIT
 
     Write-Host  Merged in $TimeSpan
 
-    Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 'Merging version list for merged objects...'
+    Write-InfoMessage -Message 'Merging version list for merged objects...'
     MergeVersionLists($merged)
-    Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 'Merging version list for conflict objects...'
+    Write-InfoMessage -Message 'Merging version list for conflict objects...'
     MergeVersionLists($conflicts)
 
     $enddatetime = Get-Date
