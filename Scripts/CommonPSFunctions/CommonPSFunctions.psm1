@@ -75,7 +75,7 @@ function Import-NAVModelTool
     {
         if (!(Test-Path -Path $modulepath)) 
         {
-            Write-Error -Message "Module $moduelpath not found!"
+            Write-Error -Message "Module $modulepath not found!"
             return
         }
         Write-Host -Object "Importing NAVModelTool from $modulepath"
