@@ -12,7 +12,7 @@
     process {
         Write-InfoMessage "Getting service for instance $ServerInstance"
         $service = Get-Service ("MicrosoftDynamicsNavServer`$$ServerInstance")
-    
+        
         if ($service.Status -eq 'Running') {
             Write-InfoMessage "Stopping the service $($service.Name)"
             $service.Stop()
@@ -51,6 +51,24 @@
     
         Write-InfoMessage 'Modifying config files to new paths...'
         $config.Save($configFile)
+        
+        Import-Module (Join-Path $TargetFolder 'Microsoft.Dynamics.Nav.Management.dll')
+        $env:NAVIdePath = $TargetFolder
+        $serviceconfig=(Get-NAVServerConfiguration -ServerInstance $ServerInstance -AsXml)
+        $Database = $serviceconfig.configuration.appSettings.SelectSingleNode("add[@key='DatabaseName']").Value
+        $Server = $serviceconfig.configuration.appSettings.SelectSingleNode("add[@key='DatabaseServer']").Value
+        $DatabaseInstance = $serviceconfig.configuration.appSettings.SelectSingleNode("add[@key='DatabaseInstance']").Value
+        if ($DatabaseInstance -gt '') {
+            $Server = $Server +'\\'+$ServerInstance
+        }
+        Write-Host "Converting database $Database on $Server...$($env:NAVIdePath)"
+        Invoke-NAVDatabaseConversion2 -DatabaseName $Database -DatabaseServer $Server
+
+        Write-InfoMessage 'Starting service...'
+        Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
+        
+        Write-InfoMessage 'Syncing schema...'
+        Sync-NAVTenant -ServerInstance $ServerInstance -Mode Sync -Force
     }
     end{
     }
