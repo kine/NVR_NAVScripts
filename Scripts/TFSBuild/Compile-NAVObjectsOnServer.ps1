@@ -14,6 +14,8 @@ Compile-NAVApplicationObject2 -DatabaseServer $Server -DatabaseName $Database -F
 #Preventing the error about "Must be compiled..."
 Write-Host 'Compiling uncompiled menusuites...'
 Compile-NAVApplicationObject2 -DatabaseServer $Server -DatabaseName $Database -Filter 'Type=MenuSuite;Compiled=0' -LogPath $LogFolder -SynchronizeSchemaChanges Force -ErrorAction SilentlyContinue
+Write-Host 'Compiling all menusuites...'
+Compile-NAVApplicationObject2 -DatabaseServer $Server -DatabaseName $Database -Filter 'Type=MenuSuite' -LogPath $LogFolder -SynchronizeSchemaChanges Force -ErrorAction SilentlyContinue
 Write-Host 'Compiling rest of objects...'
 if ($CompileAll -eq 1) {
 #	Compile-NAVApplicationObjectFilesMulti -Files $Files -Server $Server -Database $Database -LogFolder $LogFolder -NavIde $NavIde
