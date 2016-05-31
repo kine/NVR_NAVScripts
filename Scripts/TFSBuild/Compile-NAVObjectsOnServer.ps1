@@ -19,8 +19,14 @@ Compile-NAVApplicationObject2 -DatabaseServer $Server -DatabaseName $Database -F
 Write-Host 'Compiling rest of objects...'
 if ($CompileAll -eq 1) {
 #	Compile-NAVApplicationObjectFilesMulti -Files $Files -Server $Server -Database $Database -LogFolder $LogFolder -NavIde $NavIde
-	Compile-NAVApplicationObjectMulti -Server $Server -Database $Database -Filter 'Compiled=0|1'-LogFolder $LogFolder -NavIde $NavIde  -SynchronizeSchemaChanges Force -AsJob
+    Write-Host 'Compiling non-test objects...'
+    Compile-NAVApplicationObjectMulti -Server $Server -Database $Database -Filter 'Compiled=0|1;Version List=<>*Test*'-LogFolder $LogFolder -NavIde $NavIde  -SynchronizeSchemaChanges Force -AsJob
+    Write-Host 'Compiling test objects...'
+    Compile-NAVApplicationObjectMulti -Server $Server -Database $Database -Filter 'Compiled=0|1;Version List=*Test*'-LogFolder $LogFolder -NavIde $NavIde  -SynchronizeSchemaChanges Force -AsJob
 } else {
-	Compile-NAVApplicationObject2 -DatabaseServer $Server -DatabaseName $Database -Filter 'Compiled=0' -LogPath $LogFolder -SynchronizeSchemaChanges Force
+    Write-Host 'Compiling non-test objects...'
+    Compile-NAVApplicationObject2 -DatabaseServer $Server -DatabaseName $Database -Filter 'Compiled=0;Version List=<>*Test*' -LogPath $LogFolder -SynchronizeSchemaChanges Force
+    Write-Host 'Compiling test objects...'
+    Compile-NAVApplicationObject2 -DatabaseServer $Server -DatabaseName $Database -Filter 'Compiled=0;Version List=*Test*' -LogPath $LogFolder -SynchronizeSchemaChanges Force
 }
 $ProgressPreference="Continue"
