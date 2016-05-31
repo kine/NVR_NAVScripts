@@ -58,7 +58,7 @@ function Import-NAVAdminTool
             return
         }
         Write-Host -Object "Importing NAVAdminTool from $modulepath"
-        Import-Module "$modulepath" -DisableNameChecking -Force
+        Import-Module "$modulepath" -DisableNameChecking -Force -Scope Local
         #& $modulepath #| Out-Null
         Write-Verbose -Message 'NAV admin tool imported'
     } else 
@@ -79,7 +79,7 @@ function Import-NAVModelTool
             return
         }
         Write-Host -Object "Importing NAVModelTool from $modulepath"
-        Import-Module -Global "$modulepath" -ArgumentList (Get-NAVIde) -DisableNameChecking -Force #-WarningAction SilentlyContinue | Out-Null
+        Import-Module "$modulepath" -ArgumentList (Get-NAVIde) -DisableNameChecking -Force -Scope Local #-WarningAction SilentlyContinue | Out-Null
         Write-Verbose -Message 'NAV model tool imported'
     } else 
     {

@@ -108,14 +108,23 @@ function Update-NAVApplicationFromTxt
             $env:PSModulePath = $env:PSModulePath + ";$PSScriptRoot"
         }
         Import-Module -Name NVR_NAVScripts -DisableNameChecking
-        Import-NAVModelTool
+        $modulepath = (Join-Path -Path (Get-NAVIdePath) -ChildPath 'Microsoft.Dynamics.Nav.Model.Tools.psd1')
+        Write-Host -Object "Importing NAVModelTool from $modulepath"
+        Write-Host -Object "NavIde : $(Get-NAVIde)"
+        Import-Module "$modulepath" -ArgumentList (Get-NAVIde) -DisableNameChecking -Force -Scope Local #-WarningAction SilentlyContinue | Out-Null
+
     }    
     Process{
-        if ($NavIde -eq '') 
+        if ($NavIde2 -eq '') 
         {
-            $NavIde = Get-NAVIde
+            $NavIde2 = Get-NAVIde
         }
-        $FileObjects = Get-NAVApplicationObjectProperty -Source $Files
+        Write-InfoMessage -Message "NavIde: $NavIde2"
+        #Import-NAVModelTool
+        $FileObjects = Get-NAVApplicationObjectProperty -Source $Files -ErrorAction Stop
+        if (!$FileObjects) {
+            Write-Error -Message 'Files not readed!' -ErrorAction Stop
+        }
         $FileObjectsHash = $null
         $FileObjectsHash = @{}
         $i = 0
