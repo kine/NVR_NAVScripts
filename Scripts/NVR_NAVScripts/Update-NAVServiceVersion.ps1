@@ -27,6 +27,17 @@
     
         if ($TargetFolder -eq $originalPath) {
             Write-InfoMessage 'Path is same. No change or version not found...'
+            Import-Module (Join-Path $TargetFolder 'Microsoft.Dynamics.Nav.Management.dll')
+            $env:NAVIdePath = $TargetFolder
+            $serviceconfig=(Get-NAVServerConfiguration -ServerInstance $ServerInstance -AsXml)
+            $Database = $serviceconfig.configuration.appSettings.SelectSingleNode("add[@key='DatabaseName']").Value
+            $Server = $serviceconfig.configuration.appSettings.SelectSingleNode("add[@key='DatabaseServer']").Value
+            $DatabaseInstance = $serviceconfig.configuration.appSettings.SelectSingleNode("add[@key='DatabaseInstance']").Value
+            if ($DatabaseInstance -gt '') {
+                $Server = $Server +'\\'+$ServerInstance
+            }
+            Write-Host "Converting database $Database on $Server...$($env:NAVIdePath)"
+            Invoke-NAVDatabaseConversion2 -DatabaseName $Database -DatabaseServer $Server
             Return
         }
         if ($TargetFolder -eq '') {
