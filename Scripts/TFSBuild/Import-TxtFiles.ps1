@@ -13,6 +13,11 @@
     [String]$LogFolder
 )
 
+$srcpath = (Split-Path (Split-Path $Files))
+if (Test-Path (Join-Path $srcpath 'setup.xml')) {
+    $config = (. "$PSScriptRoot\..\Get-NAVGITSetup.ps1" -SetupFile (Join-Path $srcpath 'setup.xml'))
+}
+
 Import-Module -Name NVR_NAVScripts -DisableNameChecking -Force
 Import-Module -Name CommonPSFunctions
 Import-Module (Get-NAVAdminModuleName)
