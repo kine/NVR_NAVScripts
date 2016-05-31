@@ -13,9 +13,20 @@
     [String]$LogFolder
 )
 
+$srcpath = (Split-Path (Split-Path $Files))
+if (Test-Path (Join-Path $srcpath 'setup.xml')) {
+    $config = (. "$PSScriptRoot\..\Get-NAVGITSetup.ps1" -SetupFile (Join-Path $srcpath 'setup.xml'))
+}
+
+Write-Host 'Importing NVR_NAVScripts'
 Import-Module -Name NVR_NAVScripts -DisableNameChecking -Force
+Write-Host 'Importing CommonPSFunctions'
 Import-Module -Name CommonPSFunctions
-Import-Module (Get-NAVAdminModuleName)
+$AdminModule = (Get-NAVAdminModuleName)
+Write-Host "Importing $AdminModule"
+Import-Module $AdminModule
+Write-Host "Imported"
+Write-Host "NAVIdePath: $($env:NAVIdePath)"
 
 $ProgressPreference="SilentlyContinue"
 Update-NAVApplicationFromTxt -Files $Files -Server $Server -Database $Database -LogFolder $LogFolder -MarkToDelete -NoProgress -All
