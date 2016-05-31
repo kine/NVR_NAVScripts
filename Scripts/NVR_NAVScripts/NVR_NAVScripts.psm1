@@ -564,11 +564,19 @@ function Compile-NAVApplicationObjectMulti
     
     $Last = 0
     #Adding one CPU for compilation of tables (preventing deadlocks?)
-    $Ranges += '0..2000000999;Type=Table'
+    if ($Filter) {
+        $Ranges += "0..2000000999;Type=Table;$Filter"
+    } else {
+        $Ranges += '0..2000000999;Type=Table'
+    }
     
     for ($i = 0;$i -lt ($CPUs-1);$i++) 
     {
-        $Ranges += "$($Last+1)..$($ObjectProperty[$i*$Step+$Step-1].ID);Type=2.."
+        if ($Filter) {
+            $Ranges += "$($Last+1)..$($ObjectProperty[$i*$Step+$Step-1].ID);Type=2..;$Filter"
+        } else {
+            $Ranges += "$($Last+1)..$($ObjectProperty[$i*$Step+$Step-1].ID);Type=2.."
+        }
         $Last = $ObjectProperty[$i*$Step+$Step-1].ID
     }
 
