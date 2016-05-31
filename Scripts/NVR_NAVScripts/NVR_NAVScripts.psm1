@@ -946,22 +946,23 @@ Function New-NAVLocalApplication
 
     Write-Progress -Activity 'Creating new server instance $ServerInstance...'
     
-    Write-Host "Converting database...$($env:NAVIdePath)"
-    Invoke-NAVDatabaseConversion2 -DatabaseName $Database -DatabaseServer $Server
-    
+   
     Write-Host -Object "Creating new server instance $ServerInstance..."
     $null = New-NAVServerInstance -DatabaseServer $Server -DatabaseName $Database -ServerInstance $ServerInstance -ManagementServicesPort 7045 -DatabaseInstance ''
     
     Set-ServicePortSharing -Name $("MicrosoftDynamicsNavServer`$$ServerInstance")
     
     Set-NAVServerConfiguration -ServerInstance $ServerInstance -KeyName 'ClientServicesEnabled' -KeyValue 'true'
+    Write-Verbose -Message 'Server instance created'
 
     if ($Version -gt '') {
         Write-Host -Object "Updating version of the service $ServerInstance to $Version..."
         Update-NAVServiceVersion -ServerInstance $ServerInstance -Version $Version 
+    } else {
+        Write-Host "Converting database...$($env:NAVIdePath)"
+        Invoke-NAVDatabaseConversion2 -DatabaseName $Database -DatabaseServer $Server
     }
 
-    Write-Verbose -Message 'Server instance created'
     Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance") -ErrorAction Stop
         
     Write-Progress -Activity 'Importing License $LicenseFile...'
@@ -971,8 +972,8 @@ Function New-NAVLocalApplication
     Write-InfoMessage -Message 'Syncing schema'
     Sync-NAVTenant -ServerInstance $ServerInstance -Mode Sync -Force
     
-    Stop-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
-    Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance") -ErrorAction Stop
+    #Stop-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
+    #Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance") -ErrorAction Stop
     Write-Verbose -Message 'Server instance restarted'
     
     Write-Host -Object 'Adding current user as SUPER'
@@ -991,6 +992,7 @@ Function New-NAVLocalApplication
                 Write-Progress -Activity "Importing FOB File $fob..."
                 Import-NAVApplicationObject2 -Path $fob -DatabaseServer $Server -DatabaseName $Database -LogPath (Join-Path -Path $env:TEMP -ChildPath 'NVR_NAVScripts') -ImportAction Overwrite -SynchronizeSchemaChanges Force
                 Write-Host -Object "FOB Objects from $fob imported"
+                Start-Sleep -Seconds 5
             }
         }
     }
