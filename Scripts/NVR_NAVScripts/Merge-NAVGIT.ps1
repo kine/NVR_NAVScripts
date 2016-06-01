@@ -30,7 +30,7 @@ function Merge-NAVGIT
         $RemoveLanguageId
     )
     Import-Module -Name NVR_NAVScripts -WarningAction SilentlyContinue
-    Import-NAVModelTool
+    Import-NAVModelTool -Global
     #Import-Module 'c:\Program Files (x86)\Microsoft Dynamics NAV\71\RoleTailored Client\Microsoft.Dynamics.Nav.Model.Tools.psd1' -WarningAction SilentlyContinue
 
 

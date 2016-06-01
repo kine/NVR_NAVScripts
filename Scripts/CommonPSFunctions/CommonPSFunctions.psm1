@@ -69,6 +69,10 @@ function Import-NAVAdminTool
 
 function Import-NAVModelTool
 {
+    [CmdletBinding()]
+    param (
+        [Switch]$Global
+    )
     $modulepath = (Join-Path -Path (Get-NAVIdePath) -ChildPath 'Microsoft.Dynamics.Nav.Model.Tools.psd1')
     $module = Get-Module -Name 'Microsoft.Dynamics.Nav.Model.Tools'
     if (!($module) -or ($module.Path -ne $modulepath)) 
@@ -78,9 +82,15 @@ function Import-NAVModelTool
             Write-Error -Message "Module $modulepath not found!"
             return
         }
-        Write-Host -Object "Importing NAVModelTool from $modulepath"
-        Import-Module "$modulepath" -ArgumentList (Get-NAVIde) -DisableNameChecking -Force -Scope Local #-WarningAction SilentlyContinue | Out-Null
-        Write-Verbose -Message 'NAV model tool imported'
+        if ($Global) {
+            Write-Host -Object "Importing Globally NAVModelTool from $modulepath"
+            Import-Module "$modulepath" -ArgumentList (Get-NAVIde) -DisableNameChecking -Force -Scope Global #-WarningAction SilentlyContinue | Out-Null
+            Write-Verbose -Message 'NAV model tool imported'
+        } else {
+            Write-Host -Object "Importing NAVModelTool from $modulepath"
+            Import-Module "$modulepath" -ArgumentList (Get-NAVIde) -DisableNameChecking -Force -Scope Local #-WarningAction SilentlyContinue | Out-Null
+            Write-Verbose -Message 'NAV model tool imported'
+        }
     } else 
     {
         Write-Verbose -Message 'NAV model tool already imported'
