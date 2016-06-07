@@ -998,7 +998,7 @@ Function New-NAVLocalApplication
             if ($fob -gt '') 
             {
                 Write-Progress -Activity "Importing FOB File $fob..."
-                Import-NAVApplicationObject2 -Path $fob -DatabaseServer $Server -DatabaseName $Database -LogPath (Join-Path -Path $env:TEMP -ChildPath 'NVR_NAVScripts') -ImportAction Overwrite -SynchronizeSchemaChanges Force
+                Import-NAVApplicationObject2 -Path $fob -DatabaseServer $Server -DatabaseName $Database -LogPath (Join-Path -Path $env:TEMP -ChildPath 'NVR_NAVScripts') -ImportAction Overwrite -SynchronizeSchemaChanges Force -NavServerInstance $ServerInstance -NavServerName localhost
                 Write-Host -Object "FOB Objects from $fob imported"
                 Start-Sleep -Seconds 5
             }
@@ -1076,6 +1076,7 @@ function Find-NAVVersion
     {
         $searchfile = 'finsql.exe'
     } 
+    Write-InfoMessage "Searching for version $Version in $(Split-Path $path)"
     $result = Split-Path $path |
     Get-ChildItem -Filter $searchfile -Recurse |
     Where-Object -FilterScript {
@@ -1084,10 +1085,13 @@ function Find-NAVVersion
     if ($result) 
     {
         if ($result.Count -gt 1) {
+            Write-InfoMessage "Found $($result[0].DirectoryName)"
             return $result[0].DirectoryName
         }
+        Write-InfoMessage "Found $($result.DirectoryName)"
         return $result.DirectoryName
     }
+    Write-InfoMessage "Not found, returning $path"
     return $path
 }
 

@@ -100,7 +100,7 @@ function Import-NAVApplicationObject2
 
             foreach ($file in $Path)
             {
-                Write-InfoMessage "Importing $file"
+                Write-InfoMessage "Importing $file on $NavServerName : $NavServerManagementPort/$NavServerInstance"
                 # Log file name is based on the name of the imported file.
                 $logFile = "$LogPath\$((Get-Item $file).BaseName).log"
                 if ((Get-NavIdeMajorVersion) -ge 8) {
