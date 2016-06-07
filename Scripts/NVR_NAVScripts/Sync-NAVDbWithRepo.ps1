@@ -52,7 +52,7 @@ function Sync-NAVDbWithRepo
     
     $Filter='Name=<>#DELETE*'    
     
-    Import-NAVModelTool
+    Import-NAVModelTool -Global
     $LogFolder = (Join-Path $env:TEMP 'NAVSyncLog')
         
     Write-InfoMessage 'Exporting all from DB to compare with repo...'
