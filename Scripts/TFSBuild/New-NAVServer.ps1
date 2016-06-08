@@ -14,6 +14,7 @@ if (Test-Path $TargetPath\src\setup.xml) {
 }
 Import-Module -Name NVR_NAVScripts -DisableNameChecking -Force
 Import-Module -Name CommonPSFunctions
+Write-Host "Importing Admin module $(Get-NAVAdminModuleName)"
 Import-Module (Get-NAVAdminModuleName)
 
 if ((Get-NAVServerInstance -ServerInstance $Instance) -and (-not $ForceNewDB)) {
