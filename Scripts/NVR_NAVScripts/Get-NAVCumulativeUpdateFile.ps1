@@ -1,4 +1,7 @@
 #requires -Version 3 -Modules BitsTransfer
+if ($env:TF_BUILD) {
+  return
+}
 
 <#
     .Synopsis

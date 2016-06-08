@@ -1,4 +1,9 @@
-﻿<#
+
+if ($env:TF_BUILD) {
+  return
+}
+
+<#
         .Synopsis
         Expand the CU archive to selected folder
         .DESCRIPTION
