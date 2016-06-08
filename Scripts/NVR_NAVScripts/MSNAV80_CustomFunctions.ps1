@@ -1,6 +1,6 @@
 ﻿function Get-NavIdeMajorVersion
 {
-    $IdeFile = Get-NavIde
+    $IdeFile = (Get-NavIde)
     $IdeFileVersion= (Get-Command $IdeFile).FileVersionInfo.FileVersion
     return ($IdeFileVersion.Split('.')[0])
 }
@@ -183,7 +183,7 @@ function RunNavIdeCommand
     {
         $databaseInfo = "ntauthentication=No`,username=`"$Username`",password=`"$Password`",$databaseInfo"
     }
-    $NavIde=Get-NavIde
+    $NavIde=(Get-NavIde)
     $finSqlCommand = "& `"$NavIde`" --% $Command`,LogFile=`"$LogFile`"`,${databaseInfo}${NavServerInfo} | Out-Null" 
 
     Write-Verbose "Running command: $finSqlCommand"
@@ -574,7 +574,7 @@ function Compile-NAVApplicationObject2
             Compile-NAVApplicationObject2 @args -Verbose:$VerbosePreference
         }
 
-        $job = Start-Job $scriptBlock -ArgumentList $PSScriptRoot,Get-NavIde,$DatabaseName,$DatabaseServer,$LogPath,$Filter,$Recompile,$SynchronizeSchemaChanges,$Username,$Password,$NavServerName,$NavServerInstance,$NavServerManagementPort,$VerbosePreference
+        $job = Start-Job $scriptBlock -ArgumentList $PSScriptRoot,(Get-NavIde),$DatabaseName,$DatabaseServer,$LogPath,$Filter,$Recompile,$SynchronizeSchemaChanges,$Username,$Password,$NavServerName,$NavServerInstance,$NavServerManagementPort,$VerbosePreference
         return $job
     }
     else
