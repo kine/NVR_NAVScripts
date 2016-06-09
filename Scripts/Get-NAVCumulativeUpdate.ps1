@@ -73,7 +73,7 @@ Import-Module NVR_GitScripts -Force -DisableNameChecking
 
 #$cus = Get-NAVCumulativeUpdateFile -CountryCodes 'CSY','intl' -versions '2013 R2','2015','2016' | Expand-NAVCumulativeUpdateFile -targetpathmask '\\brno\Products\Microsoft\NA\Dynamics_NAV_$($version)_$langcode\BUILD$($BuildNo)_CU$formatedCUNo'
 
-$cus = Get-NAVCumulativeUpdateFile -CountryCodes 'CSY' -versions '2015','2016' | Expand-NAVCumulativeUpdateFile -targetpathmask '\\brno\Products\Microsoft\NA\Dynamics_NAV_$($version)_$langcode\BUILD$($BuildNo)_CU$formatedCUNo'
+$cus = Get-NAVCumulativeUpdateFile -CountryCodes 'CSY','intl' -versions '2015','2016' | Expand-NAVCumulativeUpdateFile -targetpathmask '\\brno\Products\Microsoft\NA\Dynamics_NAV_$($version)_$langcode\BUILD$($BuildNo)_CU$formatedCUNo'
 
 #Save objects into repsitories
 $body = 'Downloaded CUs:<br><br>'

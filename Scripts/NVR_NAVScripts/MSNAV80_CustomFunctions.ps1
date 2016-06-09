@@ -183,7 +183,10 @@ function RunNavIdeCommand
     {
         $databaseInfo = "ntauthentication=No`,username=`"$Username`",password=`"$Password`",$databaseInfo"
     }
+    #Write-InfoMessage -Message "RunNavIdeCommand1:$NavIde"
     $NavIde=(Get-NavIde)
+    #Write-InfoMessage -Message "RunNavIdeCommand2:$NavIde"
+
     $finSqlCommand = "& `"$NavIde`" --% $Command`,LogFile=`"$LogFile`"`,${databaseInfo}${NavServerInfo} | Out-Null" 
 
     Write-Verbose "Running command: $finSqlCommand"
