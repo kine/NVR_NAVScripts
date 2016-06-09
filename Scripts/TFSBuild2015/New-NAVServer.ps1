@@ -10,9 +10,43 @@ Param (
     [String]$SQLDbFolder=$env:NAV_SQLDBFOLDER
 
 )
-#Write-Host $PSScriptRoot
+
 if (Test-Path $TargetPath\setup.xml) {
     $config = (. "$PSScriptRoot\..\Get-NAVGITSetup.ps1" -SetupFile "$TargetPath\setup.xml")
+}
+
+if (-not $BaseFob) {
+    $BaseFob = $config.BaseFob
+}
+
+if (-not $DbBackupFile)
+{
+    $DbBackupFile = $config.DBBackupFile
+}
+
+if (-not $LicenseFile)
+{
+    $LicenseFile = $config.LicenseFile
+}
+
+if (-not $Server)
+{
+    $Server = $config.Server
+}
+
+if (-not $Database)
+{
+    $Database = $config.Database
+}
+
+if (-not $Instance)
+{
+    $Instance = $config.ServerInstance
+}
+
+if (-not $SQLDbFolder)
+{
+    $SQLDbFolder = $config.TargetPath
 }
 
 Import-Module -Name NVR_NAVScripts -DisableNameChecking -Force
@@ -28,7 +62,9 @@ if ((Get-NAVServerInstance -ServerInstance $Instance) -and ($ForceNewDB -eq $Fal
 } else {
     if (Get-NAVServerInstance -ServerInstance $Instance) 
     {
+        Write-InfoMessage -Message "Remove-NAVLocalApplication -Server $Server -Database $Database -ServerInstance $Instance"
         Remove-NAVLocalApplication -Server $Server -Database $Database -ServerInstance $Instance
     }
+    Write-InfoMessage -Message "New-NAVLocalApplication -Server $Server -Database $Database -BaseFob $BaseFob -License $LicenseFile -DbBackupFile $DbBackupFile -ServerInstance $Instance -TargetPath $SQLDbFolder -Version $($config.NAVVersion))"
     New-NAVLocalApplication -Server $Server -Database $Database -BaseFob $BaseFob -License $LicenseFile -DbBackupFile $DbBackupFile -ServerInstance $Instance -TargetPath $SQLDbFolder -Version $config.NAVVersion
 }

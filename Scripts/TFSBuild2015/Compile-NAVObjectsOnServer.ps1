@@ -9,7 +9,20 @@ Param (
 if (Test-Path $env:BUILD_SOURCESDIRECTORY\setup.xml) {
     $config = (. "$PSScriptRoot\..\Get-NAVGITSetup.ps1" -SetupFile "$env:BUILD_SOURCESDIRECTORY\setup.xml")
 }
-$env:NavIdePath | Write-Host
+if (-not $Files) {
+    $Files = $config.Files
+}
+
+if (-not $Server)
+{
+    $Server = $config.Server
+}
+
+if (-not $Database)
+{
+    $Database = $config.Database
+}
+
 
 Import-Module NVR_NAVScripts -Force -DisableNameChecking
 $ProgressPreference="SilentlyContinue"

@@ -110,7 +110,7 @@ Begin {
     $setup = Convert-NAVPathByVersion -Setup $setup
     
     $env:NAVIdePath = "$($setup.NavIdePath)"
-    Set-Variable -Name NavIde -Value (Join-Path "$($setup.NavIdePath)" "finsql.exe") -Scope 1
+    Set-Variable -Name NavIde -Value (Join-Path "$($setup.NavIdePath)" "finsql.exe") -Scope 0
     try 
     {
         #        if ([Environment]::GetEnvironmentVariable('NAVIdePath', 'Machine') -ne "$($setup.NavIdePath)") {

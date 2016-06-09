@@ -20,10 +20,31 @@
 if (Test-Path $env:BUILD_SOURCESDIRECTORY\setup.xml) {
     $config = (. "$PSScriptRoot\..\Get-NAVGITSetup.ps1" -SetupFile "$env:BUILD_SOURCESDIRECTORY\setup.xml")
 }
-$env:NavIdePath | Write-Host
+#$env:NavIdePath | Write-Host
+
+if (-not $Server)
+{
+    $Server = $config.Server
+}
+
+if (-not $Database)
+{
+    $Database = $config.Database
+}
+
+if (-not $NavServerName)
+{
+    $NavServerName = $config.NAVServer
+}
+
+if (-not $NavServerInstance)
+{
+    $NavServerInstance = $config.ServerInstance
+}
 
 Import-Module -Name NVR_NAVScripts -DisableNameChecking -Force
 Import-Module -Name CommonPSFunctions
 Import-Module (Get-NAVAdminModuleName)
 
-Sync-NAVDbWithRepo -Files (Join-Path '.' $env:NAV_OBJECTFILES) -Repository '.' -Server $Server -Database $Database -NavServerName $NavServerName -NavServerInstance $NavServerInstance
+Write-InfoMessage -Message "Sync-NAVDbWithRepo -Files $(Join-Path '.' $config.Files) -Repository '.' -Server $Server -Database $Database -NavServerName $NavServerName -NavServerInstance $NavServerInstance"
+Sync-NAVDbWithRepo -Files (Join-Path '.' $config.Files) -Repository '.' -Server $Server -Database $Database -NavServerName $NavServerName -NavServerInstance $NavServerInstance
