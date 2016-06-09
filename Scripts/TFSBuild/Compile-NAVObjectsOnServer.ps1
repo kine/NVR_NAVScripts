@@ -13,6 +13,7 @@ if (Test-Path (Join-Path $srcpath 'setup.xml')) {
 }
 
 Import-Module NVR_NAVScripts -Force -DisableNameChecking
+Import-NAVModelTool
 $ProgressPreference="SilentlyContinue"
 Write-Host 'Compiling uncompiled system tables...'
 Compile-NAVApplicationObject2 -DatabaseServer $Server -DatabaseName $Database -Filter 'Type=Table;Id=2000000000..' -LogPath $LogFolder -SynchronizeSchemaChanges Force -NavServerName localhost -NavServerInstance $config.ServerInstance

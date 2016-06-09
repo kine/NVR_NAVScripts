@@ -91,7 +91,6 @@ Begin {
         return $setup
         
     }
-    Write-Host 'Importing module'
     Import-Module NVR_NAVScripts -DisableNameChecking -ErrorAction Stop
     #Write-Host 'Creating setup file path'
     #$SetupFile = (Join-Path -Path $PSScriptRoot -ChildPath '..\..\setup.xml')
@@ -111,6 +110,7 @@ Begin {
     $setup = Convert-NAVPathByVersion -Setup $setup
     
     $env:NAVIdePath = "$($setup.NavIdePath)"
+    $NavIde = Join-Path "$($setup.NavIdePath)" "finsql.exe"
     try 
     {
         #        if ([Environment]::GetEnvironmentVariable('NAVIdePath', 'Machine') -ne "$($setup.NavIdePath)") {

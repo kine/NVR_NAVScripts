@@ -81,7 +81,7 @@ function Import-NAVApplicationObject2
         [int16]  $NavServerManagementPort = 7045)
     BEGIN
     {
-        Import-Module CommonPSFunctions
+        #Import-Module CommonPSFunctions
     }
     PROCESS
     {
@@ -187,6 +187,8 @@ function RunNavIdeCommand
     $finSqlCommand = "& `"$NavIde`" --% $Command`,LogFile=`"$LogFile`"`,${databaseInfo}${NavServerInfo} | Out-Null" 
 
     Write-Verbose "Running command: $finSqlCommand"
+    Write-InfoMessage -Message "Running command: $finSqlCommand"
+
     Invoke-Expression -Command  $finSqlCommand
   
     if (Test-Path "$logPath\navcommandresult.txt")
@@ -547,7 +549,7 @@ function Compile-NAVApplicationObject2
         {
             Param($ScriptPath,$NavIde,$DatabaseName,$DatabaseServer,$LogPath,$Filter,$Recompile,$SynchronizeSchemaChanges,$Username,$Password,$NavServerName,$NavServerInstance,$NavServerManagementPort,$VerbosePreference)
 
-            Import-NAVModelTool
+            #Import-NAVModelTool
 
             $args = @{
                 DatabaseName = $DatabaseName
@@ -570,7 +572,7 @@ function Compile-NAVApplicationObject2
                 $args.Add('NavServerInstance',$NavServerInstance)
                 $args.Add('NavServerManagementPort',$NavServerManagementPort)
             }
-            Import-Module NVR_NAVScripts -DisableNameChecking
+            #Import-Module NVR_NAVScripts -DisableNameChecking
             Compile-NAVApplicationObject2 @args -Verbose:$VerbosePreference
         }
 

@@ -8,30 +8,30 @@
 function Get-NAVIde
 {
     if ($NavIde) {
-      Write-InfoMessage -Message "Get-NavIde = $NavIde"
+      #Write-InfoMessage -Message "Get-NavIde = $NavIde"
       return $NavIde
     }
     if (!$env:NAVIdePath) 
     {
-    Write-InfoMessage -Message "Get-NavIdePath = 'c:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client\finsql.exe'"
+        #Write-InfoMessage -Message "Get-NavIde = 'c:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client\finsql.exe'"
         return 'c:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client\finsql.exe'
     }
-    Write-InfoMessage -Message "Get-NavIdePath = $((Join-Path -Path $env:NAVIdePath -ChildPath 'finsql.exe'))"
+    #Write-InfoMessage -Message "Get-NavIde = $((Join-Path -Path $env:NAVIdePath -ChildPath 'finsql.exe'))"
     return (Join-Path -Path $env:NAVIdePath -ChildPath 'finsql.exe')
 }
 
 function Get-NAVIdePath
 {
     if ($NavIde) {
-      Write-InfoMessage -Message "Get-NavIdePath = $(Split-Path $NavIde)"
+      #Write-InfoMessage -Message "Get-NavIdePath = $(Split-Path $NavIde)"
       return (Split-Path $NavIde)
     }
     if (!$env:NAVIdePath) 
     {
-        Write-InfoMessage -Message "Get-NavIdePath = 'c:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client'" -Level 10
+        #Write-InfoMessage -Message "Get-NavIdePath = 'c:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client'" -Level 10
         return 'c:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client'
     }
-    Write-InfoMessage -Message "Get-NavIdePath = $($env:NAVIdePath)"
+    #Write-InfoMessage -Message "Get-NavIdePath = $($env:NAVIdePath)"
     return $env:NAVIdePath
 }
 

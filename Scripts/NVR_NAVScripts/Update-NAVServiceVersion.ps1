@@ -27,7 +27,7 @@
     
         if ($TargetFolder -eq $originalPath) {
             Write-InfoMessage 'Path is same. No change or version not found...'
-            Import-Module (Join-Path $TargetFolder 'Microsoft.Dynamics.Nav.Management.dll')
+            #Import-Module (Join-Path $TargetFolder 'Microsoft.Dynamics.Nav.Management.dll')
             $env:NAVIdePath = $TargetFolder
             $serviceconfig=(Get-NAVServerConfiguration -ServerInstance $ServerInstance -AsXml)
             $Database = $serviceconfig.configuration.appSettings.SelectSingleNode("add[@key='DatabaseName']").Value
@@ -63,7 +63,7 @@
         Write-InfoMessage 'Modifying config files to new paths...'
         $config.Save($configFile)
         
-        Import-Module (Join-Path $TargetFolder 'Microsoft.Dynamics.Nav.Management.dll')
+        #Import-Module (Join-Path $TargetFolder 'Microsoft.Dynamics.Nav.Management.dll')
         $env:NAVIdePath = $TargetFolder
         $serviceconfig=(Get-NAVServerConfiguration -ServerInstance $ServerInstance -AsXml)
         $Database = $serviceconfig.configuration.appSettings.SelectSingleNode("add[@key='DatabaseName']").Value

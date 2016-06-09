@@ -107,11 +107,11 @@ function Update-NAVApplicationFromTxt
         {
             $env:PSModulePath = $env:PSModulePath + ";$PSScriptRoot"
         }
-        Import-Module -Name NVR_NAVScripts -DisableNameChecking
+        #Import-Module -Name NVR_NAVScripts -DisableNameChecking
         $modulepath = (Join-Path -Path (Get-NAVIdePath) -ChildPath 'Microsoft.Dynamics.Nav.Model.Tools.psd1')
         Write-Host -Object "Importing NAVModelTool from $modulepath"
         Write-Host -Object "NavIde : $(Get-NAVIde)"
-        Import-Module "$modulepath" -ArgumentList (Get-NAVIde) -DisableNameChecking -Force -Scope Local #-WarningAction SilentlyContinue | Out-Null
+        #Import-Module "$modulepath" -ArgumentList (Get-NAVIde) -DisableNameChecking -Force -Scope Local #-WarningAction SilentlyContinue | Out-Null
 
     }    
     Process{
@@ -119,7 +119,7 @@ function Update-NAVApplicationFromTxt
         {
             $NavIde2 = Get-NAVIde
         }
-        Write-InfoMessage -Message "NavIde: $NavIde2"
+        #Write-InfoMessage -Message "NavIde: $NavIde2"
         #Import-NAVModelTool
         $FileObjects = Get-NAVApplicationObjectProperty -Source $Files -ErrorAction Stop
         if (!$FileObjects) {

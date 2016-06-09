@@ -21,6 +21,7 @@ if (Test-Path (Join-Path $srcpath 'setup.xml')) {
 Import-Module -Name NVR_NAVScripts -DisableNameChecking -Force
 Import-Module -Name CommonPSFunctions
 Import-Module (Get-NAVAdminModuleName)
+Import-NAVModelTool -Global
 
 $ProgressPreference="SilentlyContinue"
 Update-NAVApplicationFromTxt -Files $Files -Server $Server -Database $Database -LogFolder $LogFolder -MarkToDelete -NoProgress

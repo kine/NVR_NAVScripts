@@ -1,8 +1,8 @@
-#requires -Version 3 -Modules BitsTransfer
 if ($env:TF_BUILD) {
   return
 }
 
+#requires -Version 3 -Modules BitsTransfer
 <#
     .Synopsis
     Download the Cumulative Update File for specified NAV version and localization

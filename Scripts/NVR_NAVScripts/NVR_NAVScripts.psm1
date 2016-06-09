@@ -674,6 +674,7 @@ function Export-NAVApplicationObject
 `,NavServerName=$NavServerName`,NavServerInstance=$NavServerInstance
 "@
     }
+    Write-InfoMessage -Message "Exporting objects by $NavIde $params"
     & $NavIde $params | Write-Output
 
     if (Test-Path -Path "$LogFolder\navcommandresult.txt")
@@ -925,9 +926,9 @@ Function New-NAVLocalApplication
     )
     Test-Administrator
     
-    Write-Host -Object 'Importing NAVAdminTool...'
-    Write-Host -Object "NavServicePath $($env:NavServicePath)"
-    Import-NAVAdminTool
+    #Write-Host -Object 'Importing NAVAdminTool...'
+    #Write-Host -Object "NavServicePath $($env:NavServicePath)"
+    #Import-NAVAdminTool
     Write-Progress -Activity "Creating new database $Database on $Server..."
     Write-Host -Object "Creating new database $Database on $Server..."
         
@@ -973,23 +974,23 @@ Function New-NAVLocalApplication
 
     Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance") -ErrorAction Stop
         
-    Write-Progress -Activity 'Importing License $LicenseFile...'
-    Import-NAVServerLicense -LicenseFile $LicenseFile -Database NavDatabase -ServerInstance $ServerInstance -WarningAction SilentlyContinue -ErrorAction Stop
+    Write-InfoMessage -Message "Importing License $LicenseFile..."
+    Import-NAVServerLicense -LicenseFile $LicenseFile -Database Default -ServerInstance $ServerInstance -WarningAction SilentlyContinue -ErrorAction Stop
     Write-Verbose -Message 'License imported'
         
     Write-InfoMessage -Message 'Syncing schema'
     Sync-NAVTenant -ServerInstance $ServerInstance -Mode Sync -Force
+    Write-InfoMessage -Message 'Syncing schema finished'
     
     #Stop-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")
     #Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance") -ErrorAction Stop
-    Write-Verbose -Message 'Server instance restarted'
+    #Write-Verbose -Message 'Server instance restarted'
     
-    Write-Host -Object 'Adding current user as SUPER'
+    Write-InfoMessage -Message 'Adding current user as SUPER'
     New-NAVServerUser -WindowsAccount "$($env:USERDOMAIN)\$($env:USERNAME)" -ServerInstance $ServerInstance  
     New-NAVServerUserPermissionSet -WindowsAccount "$($env:USERDOMAIN)\$($env:USERNAME)" -ServerInstance $ServerInstance -PermissionSetId 'SUPER'
+    Write-InfoMessage -Message 'Adding current user as SUPER finished'
     
-    #Sync-NAVTenant -ServerInstance $ServerInstance -Force
-
     if ($BaseFob -gt '') 
     {
         $BaseFobs = $BaseFob.Split(';')
