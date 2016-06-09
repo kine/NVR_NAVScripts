@@ -27,6 +27,7 @@ Write-Host "Importing $AdminModule"
 Import-Module $AdminModule
 Write-Host "Imported"
 Write-Host "NAVIdePath: $($env:NAVIdePath)"
+Import-NAVModelTool -Global
 
 $ProgressPreference="SilentlyContinue"
 Update-NAVApplicationFromTxt -Files $Files -Server $Server -Database $Database -LogFolder $LogFolder -MarkToDelete -NoProgress -All

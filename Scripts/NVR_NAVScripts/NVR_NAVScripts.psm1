@@ -263,7 +263,7 @@ function Import-NAVApplicationObjectFiles
     )
     if ($NavIde -eq '') 
     {
-        $NavIde = Get-NAVIde
+        $NavIde = (Get-NAVIde)
     }
 
     $finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
@@ -407,7 +407,7 @@ function Compile-NAVApplicationObjectFilesMulti
     $CPUs = (Get-WmiObject -Class Win32_Processor -Property 'NumberOfLogicalProcessors' | Select-Object -Property 'NumberOfLogicalProcessors').NumberOfLogicalProcessors
     if ($NavIde -eq '') 
     {
-        $NavIde = Get-NAVIde
+        $NavIde = (Get-NAVIde)
     }
 
     #$finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
@@ -486,7 +486,7 @@ function Compile-NAVApplicationObject
     )
     if ($NavIde -eq '') 
     {
-        $NavIde = Get-NAVIde
+        $NavIde = (Get-NAVIde)
     }
 
     #$finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
@@ -543,7 +543,7 @@ function Compile-NAVApplicationObjectMulti
     $CPUs = (Get-WmiObject -Class Win32_Processor -Property 'NumberOfLogicalProcessors' | Select-Object -Property 'NumberOfLogicalProcessors').NumberOfLogicalProcessors
     if ($NavIde -eq '') 
     {
-        $NavIde = Get-NAVIde
+        $NavIde = (Get-NAVIde)
     }
 
     #$finsqlparams = "command=importobjects,servername=$Server,database=$Database,file="
@@ -674,7 +674,7 @@ function Export-NAVApplicationObject
 `,NavServerName=$NavServerName`,NavServerInstance=$NavServerInstance
 "@
     }
-    Write-InfoMessage -Message "Exporting objects by $NavIde $params"
+    Write-InfoMessage -Message "Exporting objects b$NavIde $params"
     & $NavIde $params | Write-Output
 
     if (Test-Path -Path "$LogFolder\navcommandresult.txt")
@@ -998,7 +998,7 @@ Function New-NAVLocalApplication
         {
             if ($fob -gt '') 
             {
-                Write-Progress -Activity "Importing FOB File $fob..."
+                Write-InfoMessage -Message "Importing FOB File $fob..."
                 Import-NAVApplicationObject2 -Path $fob -DatabaseServer $Server -DatabaseName $Database -LogPath (Join-Path -Path $env:TEMP -ChildPath 'NVR_NAVScripts') -ImportAction Overwrite -SynchronizeSchemaChanges Force -NavServerInstance $ServerInstance -NavServerName localhost
                 Write-Host -Object "FOB Objects from $fob imported"
                 Start-Sleep -Seconds 5
@@ -1110,7 +1110,7 @@ Function Set-NAVUIDOffset
 }
 
 $client = Split-Path (Get-NAVIde)
-$NavIde = Get-NAVIde
+$NavIde = (Get-NAVIde)
 
 #$result=Merge-NAVDatabaseObjects -sourceserver devel -sourcedb NVR2013R2_CSY -sourcefilefolder source -sourceclientfolder $client `
 #-modifiedserver devel -modifieddb Adast2013 -modifiedfilefolder modified -modifiedclientfolder $client `
