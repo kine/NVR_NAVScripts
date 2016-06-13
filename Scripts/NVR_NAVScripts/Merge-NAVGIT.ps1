@@ -279,7 +279,7 @@ function Merge-NAVGIT
     Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 'Clearing temp folders...'
     if (!$remerge) 
     {
-        if (Get-Item $tempfolder) {
+        if (Test-Path $tempfolder) {
             $result = Remove-Item -Path $tempfolder -Force -Recurse
         }
         $result = New-Item -Path $tempfolder -ItemType directory -Force
@@ -299,7 +299,7 @@ function Merge-NAVGIT
         $result = New-Item -Path $languagefolder -ItemType directory -Force
     }
 
-    if (Get-Item $resultfolder) {
+    if (Test-Path $resultfolder) {
         $result = Remove-Item -Path $resultfolder -Force -Recurse
     }
     $result = New-Item -Path $resultfolder -ItemType directory -Force
