@@ -24,6 +24,7 @@
     
         Write-InfoMessage 'Getting target path...'
         $TargetFolder = Find-NAVVersion -path $originalPath -Version $Version
+        $OldNavIdePath = $env:NAVIdePath
     
         if ($TargetFolder -eq $originalPath) {
             Write-InfoMessage 'Path is same. No change or version not found...'
@@ -82,5 +83,6 @@
         Sync-NAVTenant -ServerInstance $ServerInstance -Mode Sync -Force
     }
     end{
+        $env:NAVIdePath = $OldNavIdePath
     }
 }
