@@ -999,13 +999,14 @@ Function New-NAVLocalApplication
             if ($fob -gt '') 
             {
                 Write-InfoMessage -Message "Importing FOB File $fob..."
-                Import-NAVApplicationObject2 -Path $fob -DatabaseServer $Server -DatabaseName $Database -LogPath (Join-Path -Path $env:TEMP -ChildPath 'NVR_NAVScripts') -ImportAction Overwrite -SynchronizeSchemaChanges Force -NavServerInstance $ServerInstance -NavServerName localhost
+                Import-NAVApplicationObject2 -Path $fob -DatabaseServer $Server -DatabaseName $Database -LogPath (Join-Path -Path $env:TEMP -ChildPath "NVR_NAVScripts$pid") -ImportAction Overwrite -SynchronizeSchemaChanges No -NavServerInstance $ServerInstance -NavServerName localhost
                 Write-Host -Object "FOB Objects from $fob imported"
                 Start-Sleep -Seconds 5
             }
         }
     }
-    #Sync-NAVTenant -ServerInstance $ServerInstance -Force
+    #Write-InfoMessage -Message 'Syncing Schema by Force...'
+    #Sync-NAVTenant -ServerInstance $ServerInstance -Mode ForceSync
 }
 
 <#
