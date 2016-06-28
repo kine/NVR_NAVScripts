@@ -191,9 +191,13 @@ function RunNavIdeCommand
 
     Write-Verbose "Running command: $finSqlCommand"
     Write-InfoMessage -Message "Running command: $finSqlCommand"
-
-    Invoke-Expression -Command  $finSqlCommand
-  
+   
+    $Result = Invoke-Expression -Command  $finSqlCommand | Out-Null
+    if ($global:LASTEXITCODE -ne 0) {
+        Write-InfoMessage -Message "Last Exit Code: $LastExitCode - force to 0"
+        $global:LASTEXITCODE = 0
+    }
+      
     if (Test-Path "$logPath\navcommandresult.txt")
     {
         if (Test-Path $LogFile)
