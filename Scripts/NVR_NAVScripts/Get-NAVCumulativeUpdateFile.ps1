@@ -85,11 +85,26 @@ function Get-NAVCumulativeUpdateFile
                     $_.innerText -match 'KB'
                 } | Select-Object -First 1
 
-                Write-Host -Object "Opening KB link $($kblink.href)" -ForegroundColor Green
-                $null = $ie.Navigate($kblink.href)
+                $kblinkurl = $($kblink.href).ToString()
+                Write-Host -Object "Opening KB link $kblinkurl" -ForegroundColor Green
+
+                $ie.Quit()
+                $ie = New-Object -ComObject 'internetExplorer.Application'
+                $ie.Visible = $true
+
+                $null = $ie.Navigate($kblinkurl)
                 while ($ie.Busy -eq $true)
                 {
                     $null = Start-Sleep -Seconds 1
+                }
+
+                if ($ie.Url -ne $kblinkurl) {
+                    Write-Host -Object "Navigating again to the url..." -ForegroundColor Green
+                    $null = $ie.Navigate($kblinkurl)
+                    while ($ie.Busy -eq $true)
+                    {
+                        $null = Start-Sleep -Seconds 1
+                    }
                 }
 
                 if ($ie.LocationURL -match 'https://corp.sts.microsoft.com') 
