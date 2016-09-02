@@ -7,56 +7,78 @@
 
 function Get-NAVIde
 {
+    [CmdletBinding()]
+    param (
+        [Parameter(ValueFromPipelineByPropertyName = $true, HelpMessage = 'Version which we are looking for')]
+        [String]$NAVVersion
+    )
     if ($NavIde) {
-      #Write-InfoMessage -Message "Get-NavIde = $NavIde"
-      return $NavIde
+        #Write-InfoMessage -Message "Get-NavIde = $NavIde"
+        return (Find-NAVVersion -Path $NavIde -Version $NAVVersion)
     }
     if (!$env:NAVIdePath) 
     {
         #Write-InfoMessage -Message "Get-NavIde = 'c:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client\finsql.exe'"
-        return 'c:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client\finsql.exe'
+        return (Find-NAVVersion -Path 'c:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client\finsql.exe' -Version $NAVVersion)
     }
     #Write-InfoMessage -Message "Get-NavIde = $((Join-Path -Path $env:NAVIdePath -ChildPath 'finsql.exe'))"
-    return (Join-Path -Path $env:NAVIdePath -ChildPath 'finsql.exe')
+    return (Find-NAVVersion -Path (Join-Path -Path $env:NAVIdePath -ChildPath 'finsql.exe') -Version $NAVVersion)
 }
 
 function Get-NAVIdePath
 {
+    [CmdletBinding()]
+    param (
+        [Parameter(ValueFromPipelineByPropertyName = $true, HelpMessage = 'Version which we are looking for')]
+        [String]$NAVVersion
+    )
     if ($NavIde) {
-      #Write-InfoMessage -Message "Get-NavIdePath = $(Split-Path $NavIde)"
-      return (Split-Path $NavIde)
+        #Write-InfoMessage -Message "Get-NavIdePath = $(Split-Path $NavIde)"
+        return (Split-Path (Find-NAVVersion -Path $NavIde -Version $NAVVersion))
     }
     if (!$env:NAVIdePath) 
     {
         #Write-InfoMessage -Message "Get-NavIdePath = 'c:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client'" -Level 10
-        return 'c:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client'
+        return (Find-NAVVersion -Path 'c:\Program Files (x86)\Microsoft Dynamics NAV\80\RoleTailored Client' -Version $NAVVersion)
     }
     #Write-InfoMessage -Message "Get-NavIdePath = $($env:NAVIdePath)"
-    return $env:NAVIdePath
+    return (Find-NAVVersion -Path $env:NAVIdePath -Version $NAVVersion)
 }
 
 function Get-NAVAdminPath
 {
+    [CmdletBinding()]
+    param (
+        [Parameter(ValueFromPipelineByPropertyName = $true, HelpMessage = 'Version which we are looking for')]
+        [String]$NAVVersion
+    )
     if (!$env:NAVServicePath) 
     {
-        return 'c:\Program Files\Microsoft Dynamics NAV\80\Service'
+        return (Find-NAVVersion -Path 'c:\Program Files\Microsoft Dynamics NAV\80\Service' -Version $NAVVersion)
     }
-    return $env:NAVServicePath
+    return (Find-NAVVersion -Path $env:NAVServicePath -Version $NAVVersion)
 }
 
 function Get-NAVAdminModuleName
 {
+    [CmdletBinding()]
+    param (
+        [Parameter(ValueFromPipelineByPropertyName = $true, HelpMessage = 'Version which we are looking for')]
+        [String]$NAVVersion
+    )
     #    return (Join-Path -Path (Get-NAVAdminPath) -ChildPath 'Microsoft.Dynamics.Nav.Management.dll')
-    return (Join-Path -Path (Get-NAVAdminPath) -ChildPath 'Microsoft.Dynamics.Nav.Management.dll')
+    return (Join-Path -Path (Get-NAVAdminPath -NAVVersion $NAVVersion) -ChildPath 'Microsoft.Dynamics.Nav.Management.dll')
 }
 function Import-NAVAdminTool
 {
     [CmdletBinding()]
     param (
-        [Switch]$Force
+        [Switch]$Force,
+        [Parameter(ValueFromPipelineByPropertyName = $true, HelpMessage = 'Version which we are looking for')]
+        [String]$NAVVersion
     )
     $module = Get-Module -Name 'Microsoft.Dynamics.Nav.Management'
-    $modulepath = Get-NAVAdminModuleName
+    $modulepath = Get-NAVAdminModuleName -NAVVersion $NAVVersion
     if ($Force) 
     {
         Write-Host -Object "Removing module $($module.Path)"
@@ -83,9 +105,11 @@ function Import-NAVModelTool
 {
     [CmdletBinding()]
     param (
-        [Switch]$Global
+        [Switch]$Global,
+        [Parameter(ValueFromPipelineByPropertyName = $true, HelpMessage = 'Version which we are looking for')]
+        [String]$NAVVersion
     )
-    $modulepath = (Join-Path -Path (Get-NAVIdePath) -ChildPath 'Microsoft.Dynamics.Nav.Model.Tools.psd1')
+    $modulepath = (Join-Path -Path (Get-NAVIdePath -NAVVersion $NAVVersion) -ChildPath 'Microsoft.Dynamics.Nav.Model.Tools.psd1')
     $module = Get-Module -Name 'Microsoft.Dynamics.Nav.Model.Tools'
     if (!($module) -or ($module.Path -ne $modulepath)) 
     {
@@ -96,11 +120,11 @@ function Import-NAVModelTool
         }
         if ($Global) {
             Write-Host -Object "Importing Globally NAVModelTool from $modulepath"
-            Import-Module "$modulepath" -ArgumentList (Get-NAVIde) -DisableNameChecking -Force -Scope Global #-WarningAction SilentlyContinue | Out-Null
+            Import-Module "$modulepath" -ArgumentList (Get-NAVIde -NAVVersion $NAVVersion) -DisableNameChecking -Force -Scope Global #-WarningAction SilentlyContinue | Out-Null
             Write-Verbose -Message 'NAV model tool imported'
         } else {
             Write-Host -Object "Importing NAVModelTool from $modulepath"
-            Import-Module "$modulepath" -ArgumentList (Get-NAVIde) -DisableNameChecking -Force -Scope Local #-WarningAction SilentlyContinue | Out-Null
+            Import-Module "$modulepath" -ArgumentList (Get-NAVIde -NAVVersion $NAVVersion) -DisableNameChecking -Force -Scope Local #-WarningAction SilentlyContinue | Out-Null
             Write-Verbose -Message 'NAV model tool imported'
         }
     } else 

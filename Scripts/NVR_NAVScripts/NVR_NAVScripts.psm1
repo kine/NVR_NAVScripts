@@ -938,17 +938,17 @@ Function New-NAVLocalApplication
         if ($backupinfo.Count -gt 2)
         {
             Write-Host -Object "Trying to restore under folder $TargetPath..."
-            $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -DataFilesDestinationPath $TargetPath -LogFilesDestinationPath $TargetPath -ErrorAction Stop
+            $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -DataFilesDestinationPath $TargetPath -LogFilesDestinationPath $TargetPath -ErrorAction Stop -Timeout 360000
         }
         else 
         {
             Write-Host -Object "Trying to restore under new file names in folder $TargetPath..."
-            $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -DataFilesDestinationPath ( [IO.Path]::Combine($TargetPath,($Database+'.mdf'))) -LogFilesDestinationPath ( [IO.Path]::Combine($TargetPath,($Database+'.ldf'))) 
+            $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -DataFilesDestinationPath ( [IO.Path]::Combine($TargetPath,($Database+'.mdf'))) -LogFilesDestinationPath ( [IO.Path]::Combine($TargetPath,($Database+'.ldf'))) -Timeout 360000
         }
     }
     else 
     {
-        $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -ErrorAction Stop
+        $null = New-NAVDatabase -DatabaseName $Database -FilePath $DbBackupFile -DatabaseServer $Server -Force -ErrorAction Stop -Timeout 360000
     }
     
     Write-Verbose -Message 'Database Restored'
@@ -1070,6 +1070,10 @@ function Find-NAVVersion
         return $path
     }
     
+    if ($path -like '*.exe') {
+        $filename = (Split-Path -Path $path -Leaf)
+        $path = (Split-Path -Path $path)
+    }
     if (Test-Path -Path (Join-Path -Path $path -ChildPath 'Microsoft.Dynamics.Nav.Server.exe')) 
     {
         $searchfile = 'Microsoft.Dynamics.Nav.Server.exe'
@@ -1088,10 +1092,10 @@ function Find-NAVVersion
     {
         if ($result.Count -gt 1) {
             Write-InfoMessage "Found $($result[0].DirectoryName)"
-            return $result[0].DirectoryName
+            return (Join-Path $result[0].DirectoryName $filename)
         }
         Write-InfoMessage "Found $($result.DirectoryName)"
-        return $result.DirectoryName
+        return (Join-Path $result.DirectoryName $filename)
     }
     Write-InfoMessage "Not found, returning $path"
     return $path
