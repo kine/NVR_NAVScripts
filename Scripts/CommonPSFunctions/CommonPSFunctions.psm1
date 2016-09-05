@@ -5,6 +5,17 @@
     . $_.fullname
 }
 
+function Set-NAVVersion
+{
+    [CmdletBinding()]
+    param (
+        [Parameter(ValueFromPipelineByPropertyName = $true, HelpMessage = 'Version which we are looking for')]
+        [String]$NAVVersion
+    )
+    Set-Variable -Name NavIde -Value (Get-NAVIde -NAVVersion $NAVVersion) -Visibility Public -Scope Global
+    $env:NAVIdePath = (Get-NAVIde -NAVVersion $NAVVersion)
+    $env:NAVServicePath = (Get-NAVAdminPath -NAVVersion $NAVVersion)
+}
 function Get-NAVIde
 {
     [CmdletBinding()]
