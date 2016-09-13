@@ -18,7 +18,7 @@ Import-Module (Get-NAVAdminModuleName)
 
 if ($CodeunitID -gt 0) {
     Write-Output "Running test codeunit $CodeunitID"
-    Test-NAVDatabase -SQLServer $SQLServer -SQLDb $SQLDB -NAVServerName $NAVServerName -NAVServerInstance $NAVServerInstance -CompanyName $CompanyName -CodeunitId $CodeunitID -OutTestFile $TestFile
+    Test-NAVDatabase -SQLServer $SQLServer -SQLDb $SQLDB -NAVServerName $NAVServerName -NAVServerInstance $NAVServerInstance -CompanyName $CompanyName -CodeunitId $CodeunitID -OutTestFile $TestFile -ReportFailures $False
 } else {
     Write-Output 'No testing codeunit set, skipping tests...'
 }
