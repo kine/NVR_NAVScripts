@@ -963,7 +963,9 @@ Function New-NAVLocalApplication
     
     Set-NAVServerConfiguration -ServerInstance $ServerInstance -KeyName 'ClientServicesEnabled' -KeyValue 'true'
     Write-Verbose -Message 'Server instance created'
-
+    
+    Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance") -ErrorAction SilentlyContinue
+    
     if ($Version -gt '') {
         Write-Host -Object "Updating version of the service $ServerInstance to $Version..."
         Update-NAVServiceVersion -ServerInstance $ServerInstance -Version $Version 
@@ -1098,7 +1100,7 @@ function Find-NAVVersion
         return (Join-Path $result.DirectoryName $filename)
     }
     Write-InfoMessage "Not found, returning $path"
-    return $path
+    return (Join-Path $path $filename)
 }
 
 Function Set-NAVUIDOffset
