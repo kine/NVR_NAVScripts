@@ -18,7 +18,7 @@ function Publish-NAVObject
     )
     $DateTimeProperty = Get-Date -Format g
     
-    Import-NAVModelTool -Global
+    Import-NAVModelTool
     Get-NAVApplicationObjectProperty -Source $Source | `
     Where-Object {$_.Modified -eq $True} | `
     ForEach-Object {
