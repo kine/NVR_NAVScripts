@@ -15,7 +15,8 @@
         
         if ($service.Status -eq 'Running') {
             Write-InfoMessage "Stopping the service $($service.Name)"
-            $service.Stop()
+            #$service.Stop()
+            Set-NAVServerInstance -Stop -ServerInstance $ServerInstance -Force
         }
     
         Write-InfoMessage 'Getting current path for the service...'
@@ -38,7 +39,7 @@
                 $Server = $Server +'\\'+$ServerInstance
             }
             Write-Host "Converting database $Database on $Server...$($env:NAVIdePath)"
-            Invoke-NAVDatabaseConversion2 -DatabaseName $Database -DatabaseServer $Server
+            Invoke-NAVDatabaseConversion2 -DatabaseName $Database -DatabaseServer $Server #-NavServerName localhost -NavServerInstance $ServerInstance
             Return
         }
         if ($TargetFolder -eq '') {
@@ -74,7 +75,7 @@
             $Server = $Server +'\\'+$ServerInstance
         }
         Write-Host "Converting database $Database on $Server...$($env:NAVIdePath)"
-        Invoke-NAVDatabaseConversion2 -DatabaseName $Database -DatabaseServer $Server
+        Invoke-NAVDatabaseConversion2 -DatabaseName $Database -DatabaseServer $Server #-NavServerName localhost -NavServerInstance $ServerInstance
 
         Write-InfoMessage 'Starting service...'
         Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")

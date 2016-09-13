@@ -73,16 +73,21 @@ Import-Module NVR_GitScripts -Force -DisableNameChecking
 
 #$cus = Get-NAVCumulativeUpdateFile -CountryCodes 'CSY','intl' -versions '2013 R2','2015','2016' | Expand-NAVCumulativeUpdateFile -targetpathmask '\\brno\Products\Microsoft\NA\Dynamics_NAV_$($version)_$langcode\BUILD$($BuildNo)_CU$formatedCUNo'
 
-$cus = Get-NAVCumulativeUpdateFile -CountryCodes 'CSY','intl' -versions '2015','2016' | Expand-NAVCumulativeUpdateFile -targetpathmask '\\brno\Products\Microsoft\NA\Dynamics_NAV_$($version)_$langcode\BUILD$($BuildNo)_CU$formatedCUNo'
+$cus = Get-NAVCumulativeUpdateFile -CountryCodes 'CSY','intl' -versions '2016','2015' | Expand-NAVCumulativeUpdateFile -targetpathmask '\\brno\Products\Microsoft\NA\Dynamics_NAV_$($version)_$langcode\BUILD$($BuildNo)_CU$formatedCUNo'
+#$cus = Get-NAVCumulativeUpdateFile -CountryCodes 'CSY' -versions '2016' | Expand-NAVCumulativeUpdateFile -targetpathmask '\\brno\Products\Microsoft\NA\Dynamics_NAV_$($version)_$langcode\BUILD$($BuildNo)_CU$formatedCUNo'
+#$cus = Get-NAVCumulativeUpdateFile -CountryCodes 'RUS' -versions '2016' | Expand-NAVCumulativeUpdateFile -targetpathmask '\\brno\Products\Microsoft\NA\Dynamics_NAV_$($version)_$langcode\BUILD$($BuildNo)_CU$formatedCUNo'
 
 #Save objects into repsitories
 $body = 'Downloaded CUs:<br><br>'
 
 foreach ($cu in $cus) {
-    #$cu | Update-WorkInstallFolder
+    $cu | Update-WorkInstallFolder
     
-    
-    $branch = "NAV$($cu.version)_$($cu.CountryCode)"
+    if ($cu.CountryCode -eq 'intl') {
+        $branch = "NAV$($cu.version)_W1"
+    } else {
+        $branch = "NAV$($cu.version)_$($cu.CountryCode)"
+    }
     switch ($cu.version) {
         '2013' {$repository = '\\devel\GIT\NAV2013'}
         '2015' {$repository = '\\devel\GIT\NAV2015'}
