@@ -725,7 +725,7 @@ function Invoke-NAVDatabaseConversion2
 {
     [CmdletBinding(DefaultParameterSetName='All')]
     Param(
-         # Specifies the name of the Dynamics NAV database that will be created.
+        # Specifies the name of the Dynamics NAV database that will be created.
         [Parameter(Mandatory=$true, Position=0)]
         [string] $DatabaseName,
 
@@ -743,24 +743,35 @@ function Invoke-NAVDatabaseConversion2
 
         # The password to use with the username parameter to authenticate to the database. If you do not specify a user name and password, then the command uses the credentials of the current Windows user to authenticate to the database.
         [Parameter(Mandatory=$true, ParameterSetName='DatabaseAuthentication')]
-        [string] $Password)
+        [string] $Password,
+        
+        # Specifies the name of the server that hosts the Microsoft Dynamics NAV Server instance, such as MyServer.
+        [string] $NavServerName,
+
+        # Specifies the Microsoft Dynamics NAV Server instance that is being used.The default value is DynamicsNAV80.
+        [string] $NavServerInstance = 'DynamicsNAV80',
+        # Specifies the port on the Microsoft Dynamics NAV Server server that the Microsoft Dynamics NAV Windows PowerShell cmdlets access. The default value is 7045.
+        [ValidateNotNullOrEmpty()]
+        [int16]  $NavServerManagementPort = 7045
+    )
 
     $logFile = (Join-Path $LogPath naverrorlog.txt)
 
     $command = 'Command=UpgradeDatabase'
-
+    $navServerInfo = GetNavServerInfo $NavServerName $NavServerInstance $NavServerManagementPort
+    
     try
     {
         RunNavIdeCommand -Command $command `
-                         -DatabaseServer $DatabaseServer `
-                         -DatabaseName $DatabaseName `
-                         -NTAuthentication:($Username -eq $null) `
-                         -Username $Username `
-                         -Password $Password `
-                         -NavServerInfo '' `
-                         -LogFile $logFile `
-                         -ErrText "Error while converting $DatabaseName" `
-                         -Verbose:$VerbosePreference
+        -DatabaseServer $DatabaseServer `
+        -DatabaseName $DatabaseName `
+        -NTAuthentication:($Username -eq $null) `
+        -Username $Username `
+        -Password $Password `
+        -NavServerInfo $navServerInfo `
+        -LogFile $logFile `
+        -ErrText "Error while converting $DatabaseName" `
+        -Verbose:$VerbosePreference `
     }
     catch
     {
