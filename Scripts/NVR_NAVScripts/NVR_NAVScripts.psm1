@@ -1084,8 +1084,8 @@ function Find-NAVVersion
     {
         $searchfile = 'finsql.exe'
     } 
-    Write-InfoMessage "Searching for version $Version in $(Split-Path $path)"
-    $result = Split-Path $path |
+    Write-InfoMessage "Searching for version $Version in $(Split-Path (Split-Path $path))"
+    $result = Split-Path (Split-Path $path) |
     Get-ChildItem -Filter $searchfile -Recurse |
     Where-Object -FilterScript {
         $_.VersionInfo.FileVersion -eq $Version
