@@ -22,14 +22,12 @@
         Write-InfoMessage 'Getting current path for the service...'
         $currentPath = (Get-ItemProperty -Path ('HKLM:\System\CurrentControlSet\Services\'+$service.Name) -Name ImagePath).ImagePath
         $originalPath = (Split-Path $currentPath.Split('$')[0]).Replace('"','').Replace('''','')
-        Write-InfoMessage "Original path: $originalPath"
     
         Write-InfoMessage 'Getting target path...'
         $TargetFolder = Find-NAVVersion -path $originalPath -Version $Version
         $OldNavIdePath = $env:NAVIdePath
-        Write-InfoMessage "Target path: $TargetFolder"
     
-        if ($TargetFolder -eq $originalPath) {
+        if ($TargetFolder -eq (Join-Path $originalPath '')) {
             Write-InfoMessage 'Path is same. No change or version not found...'
             #Import-Module (Join-Path $TargetFolder 'Microsoft.Dynamics.Nav.Management.dll')
             $env:NAVIdePath = $TargetFolder
