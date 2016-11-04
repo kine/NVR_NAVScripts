@@ -363,12 +363,19 @@ function Merge-NAVGIT
         Remove-NAVApplicationObjectLanguage -Source (Join-Path -Path $targetfolder -ChildPath $sourcefilespath) -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId -DevelopmentLanguageId 'ENU' -RemoveRedundant
         $result = Remove-Item -Path $targetfolder -Force -Recurse
         $result = Rename-Item -Path $tempfolder2 -NewName $targetfolder -Force
+
+        $result = New-Item -Path $tempfolder2 -ItemType directory -Force
+        $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
+        Export-NAVApplicationObjectLanguage -Source (Join-Path -Path $commonfolder -ChildPath $sourcefilespath) -Destination (Join-Path -Path $commonfolder -ChildPath '..\CommonLanguage.txt') -LanguageId $RemoveLanguageId -DevelopmentLanguageId 'ENU'
+        Remove-NAVApplicationObjectLanguage -Source (Join-Path -Path $commonfolder -ChildPath $sourcefilespath) -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId -DevelopmentLanguageId 'ENU' -RemoveRedundant
+        $result = Remove-Item -Path $commonfolder -Force -Recurse
+        $result = Rename-Item -Path $tempfolder2 -NewName $commonfolder -Force
     }
 
     Write-InfoMessage -Message 'Merging NAV Object files...'
 
     $mergeresult = Merge-NAVApplicationObject -OriginalPath (Join-Path -Path $commonfolder -ChildPath $sourcefilespath) -Modified (Join-Path -Path $sourcefolder -ChildPath $sourcefilespath) -TargetPath (Join-Path -Path $targetfolder -ChildPath $sourcefilespath) -ResultPath (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -Force -DateTimeProperty FromModified -ModifiedProperty FromModified -DocumentationConflict ModifiedFirst
-    $mergeresult | Export-Clixml -Path $resultfolder'..\mergeresult.xml'
+    $mergeresult | Export-Clixml -Path (Join-path $resultfolder '..\mergeresult.xml')
 
     $merged = $mergeresult | Where-Object -FilterScript {
         $_.MergeResult -eq 'Merged'
@@ -413,6 +420,15 @@ function Merge-NAVGIT
     {
         Remove-NAVEmptyTranslation -Path (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage.txt') -Result (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage2.txt')
         Remove-NAVEmptyTranslation -Path (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage.txt') -Result (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage2.txt')
+        Remove-NAVEmptyTranslation -Path (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage.txt') -Result (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage2.txt')
+
+        $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
+        if (Test-Path -Path (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage2.txt')) {
+            Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId
+            $result = Rename-Item -Path $resultfolder -NewName "$resultfolder 22" -Force
+            #$result = Remove-Item -Path $resultfolder -Force -Recurse
+            $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
+        }
         
         $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
         if (Test-Path -Path (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage2.txt')) {
