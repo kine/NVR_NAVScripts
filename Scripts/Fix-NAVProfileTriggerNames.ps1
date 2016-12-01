@@ -22,7 +22,7 @@ param(
     [string]$Server,
     [parameter(ValueFromPipelinebyPropertyName = $True,Mandatory = $True)]
     [string]$Database,
-    [parameter(ValueFromPipelinebyPropertyName = $True,Mandatory = $True)]
+    [parameter(ValueFromPipelinebyPropertyName = $True,Mandatory = $False)]
     [switch]$Test
 )
 
@@ -82,6 +82,7 @@ foreach ($delta in $metadata)
                         {
                             $triggername.Value = $newtriggername
                             $modifed = $True
+                            Write-Host "FIXED" -ForegroundColor Green
                         }
                     }
                 }
