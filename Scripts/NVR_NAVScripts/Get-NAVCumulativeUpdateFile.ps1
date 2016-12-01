@@ -153,6 +153,9 @@ function Get-NAVCumulativeUpdateFile
                 $downloadlink = $ie.Document.links | Where-Object -FilterScript {
                     $_.id -match 'kb_hotfix_link'
                 }
+                if (-not $downloadlink.href) {
+                    Write-Error -Message 'Download link not found!' -ErrorAction Stop
+                }
                 Write-Host -Object "Opening download link $($downloadlink.href)" -ForegroundColor Green
                 $null = $ie.Navigate($downloadlink.href)
                 while ($ie.Busy -eq $true)

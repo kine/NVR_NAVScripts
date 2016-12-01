@@ -81,8 +81,11 @@ $body = 'Downloaded CUs:<br><br>'
 foreach ($cu in $cus) {
     #$cu | Update-WorkInstallFolder
     
-    
-    $branch = "NAV$($cu.version)_$($cu.CountryCode)"
+    if ($cu.CountryCode -eq 'intl') {
+        $branch = "NAV$($cu.version)_W1"
+    } else {
+        $branch = "NAV$($cu.version)_$($cu.CountryCode)"
+    }
     switch ($cu.version) {
         '2013' {$repository = '\\devel\GIT\NAV2013'}
         '2015' {$repository = '\\devel\GIT\NAV2015'}
