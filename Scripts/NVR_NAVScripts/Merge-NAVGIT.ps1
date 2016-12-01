@@ -420,7 +420,9 @@ function Merge-NAVGIT
     {
         Remove-NAVEmptyTranslation -Path (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage.txt') -Result (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage2.txt')
         Remove-NAVEmptyTranslation -Path (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage.txt') -Result (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage2.txt')
-        Remove-NAVEmptyTranslation -Path (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage.txt') -Result (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage2.txt')
+        if (Test-Path (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage.txt')) {
+            Remove-NAVEmptyTranslation -Path (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage.txt') -Result (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage2.txt')
+        }
 
         $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
         if (Test-Path -Path (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage2.txt')) {
