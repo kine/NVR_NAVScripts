@@ -611,7 +611,8 @@ function Set-InfoMessageVerbosity
     Param(
         [int]$Verbosity
     )
-    [global]$VerbosityLevel=$Verbosity
+    Set-Variable -Name VerbosityLevel -Value ($Verbosity) -Scope Global
+    #[global]$VerbosityLevel=$Verbosity
 }
 function Write-InfoMessage
 {
