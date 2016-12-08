@@ -2,6 +2,79 @@ if ($env:TF_BUILD) {
   return
 }
 
+function GetLanguageForContryCode
+{
+    param(
+        $CountryCode
+    )
+    $mapping = @{
+        "CZ"='cs-CZ';
+        "BE"='fr-FR';
+        "GB"='en-GB';
+        "FR"='fr-FR';
+        "W1"='en-US';
+        "NA" ='en-US';
+        "AU" = 'en-US';
+        "NZ" = 'en-US'; 
+        "intl"='en-US';
+    }
+    return $mapping[$CountryCode]
+}
+
+
+function DownloadFromDownloadCenter
+{
+    param(
+        $downloadurl,
+        $CountryCode
+    )
+#https://www.microsoft.com/en-us/download/details.aspx?id=54317
+#https://www.microsoft.com/es-ES/download/confirmation.aspx?id=54314
+    $language = GetLanguageForContryCode $CountryCode 
+    $downloadurl = $downloadurl.Replace('en-us',$language)
+    $downloadurl = $downloadurl.Replace('details','confirmation')
+    $WebClient = New-Object System.Net.WebClient
+    $data = $WebClient.DownloadString($downloadurl);
+    if (-not $data) {
+        Return $false
+    }
+    #meta http-equiv="refresh" content="
+    #<span class="file-link-view1"><a href="
+    [regex]$pattern = '<span class="file-link-view1"><a href="(\S+'+$CountryCode+'\S+)"'
+    $matches = $pattern.Matches($data)
+    if (-not $matches.Groups[1]) {
+      #<span class="file-link-view1"><a href="
+      #  [regex]$pattern = 'file-link-view1"><a href="(.+)"'
+      #  $matches = $pattern.Matches($data)
+      #  if (-not $matches) {
+            Write-Host -Object 'Download url not found...'
+            Return $false
+      #  }
+      #  Write-Host -Object $matches
+    }
+    $url = $matches.Groups[1].Value
+    $filename = Split-Path -Leaf $url
+
+    if (-not (Test-Path $filename)) 
+    {
+        Write-Host -Object "Downloading from $url into $filename..."
+        $null = Start-BitsTransfer -Source $url -Destination $filename
+    }
+    
+    Write-Host -Object 'Hotfix downloaded' -ForegroundColor Green
+    $null = Unblock-File -Path $filename
+
+    $result = New-Object -TypeName System.Object
+    $null = $result | Add-Member -MemberType NoteProperty -Name filename -Value "$filename" 
+    $null = $result | Add-Member -MemberType NoteProperty -Name version -Value "$version"
+    $null = $result | Add-Member -MemberType NoteProperty -Name CUNo -Value "$updateno"
+    $null = $result | Add-Member -MemberType NoteProperty -Name CountryCode -Value "$CountryCode"
+    $null = $result | Add-Member -MemberType NoteProperty -Name langcode -Value "$($hotfix.langcode)"
+                        
+    Write-Output -InputObject $result
+    Return $true
+}
+
 #requires -Version 3 -Modules BitsTransfer
 <#
     .Synopsis
@@ -10,9 +83,9 @@ if ($env:TF_BUILD) {
     Download the Cumulative Update File for specified NAV version and localization, with possibility to 
     select specific cumulative update
     .EXAMPLE
-    Get-NAVCumulativeUpdateFile -CountryCodes 'intl','CSY' -versions '2013 R2','2015','2016'
+    Get-NAVCumulativeUpdateFile -CountryCodes 'W1','CZ' -versions '2013 R2','2015','2016'
     .EXAMPLE
-    Get-NAVCumulativeUpdateFile -CountryCodes 'CSY' -versions '2013 R2' -CUNo 23
+    Get-NAVCumulativeUpdateFile -CountryCodes 'CZ' -versions '2013 R2' -CUNo 23
     .OUTPUT
     Objects with info about the downloaded cumulative updates
 #>
@@ -29,51 +102,8 @@ function Get-NAVCumulativeUpdateFile
     )
 
     begin {
-        $ie = New-Object -ComObject 'internetExplorer.Application'
-        $ie.Visible = $true
-    }
-    process
-    {
-        foreach ($CountryCode in $CountryCodes) 
+        function DownloadFromKB($ie,$CountryCode)
         {
-            foreach ($version in $versions) 
-            {
-                $url = ''
-                
-                Write-Host -Object "Processing parameters $CountryCode $version $CUNo" -ForegroundColor Cyan
-        
-                $feedurl = 'https://blogs.msdn.microsoft.com/nav/category/announcements/cu/feed/'
-                [regex]$titlepattern = 'Cumulative Update (\d+) .*'
-
-                Write-Host -Object 'Searching for RSS item' -ForegroundColor Green
-
-                $feed = [xml](Invoke-WebRequest -Uri $feedurl)
-
-                if ($CUNo -gt '') 
-                {
-                    $blogurl = $feed.SelectNodes("/rss/channel/item[./category='NAV $version' and ./category='Cumulative Updates' and contains(./title,' $CUNo ')]").link | Select-Object -First 1
-                } else 
-                {
-                    $blogurl = $feed.SelectNodes("/rss/channel/item[./category='NAV $version' and ./category='Cumulative Updates']").link | Select-Object -First 1
-                }
-
-                if (!$blogurl) 
-                {
-                    Write-Error -Message 'Blog url not found!'
-                    return
-                }
-
-                Write-Host -Object "Reading blog page $blogurl" -ForegroundColor Green
-                
-                $blogarticle = ''
-                #$blogarticle = Invoke-WebRequest -Uri $blogurl
-                $null = $ie.Navigate($blogurl)
-                while ($ie.Busy -eq $true)
-                {
-                    $null = Start-Sleep -Seconds 1
-                }
-                
-    
                 Write-Host -Object 'Searching for KB link' -ForegroundColor Green
                                 
                 $titlematches = $titlepattern.Matches($ie.Document.title) 
@@ -236,6 +266,73 @@ function Get-NAVCumulativeUpdateFile
                 $null = $result | Add-Member -MemberType NoteProperty -Name langcode -Value "$($hotfix.langcode)"
                         
                 Write-Output -InputObject $result
+            }
+        $ie = New-Object -ComObject 'internetExplorer.Application'
+        $ie.Visible = $true
+    }
+    process
+    {
+        foreach ($CountryCode in $CountryCodes) 
+        {
+            foreach ($version in $versions) 
+            {
+                $url = ''
+                
+                Write-Host -Object "Processing parameters $CountryCode $version $CUNo" -ForegroundColor Cyan
+        
+                $feedurl = 'https://blogs.msdn.microsoft.com/nav/category/announcements/cu/feed/'
+                [regex]$titlepattern = 'Cumulative Update (\d+) .*'
+
+                Write-Host -Object 'Searching for RSS item' -ForegroundColor Green
+
+                $feed = [xml](Invoke-WebRequest -Uri $feedurl)
+
+                if ($CUNo -gt '') 
+                {
+                    $blogurl = $feed.SelectNodes("/rss/channel/item[./category='NAV $version' and ./category='Cumulative Updates' and contains(./title,' $CUNo ')]").link | Select-Object -First 1
+                } else 
+                {
+                    $blogurl = $feed.SelectNodes("/rss/channel/item[./category='NAV $version' and ./category='Cumulative Updates']").link | Select-Object -First 1
+                }
+
+                if (!$blogurl) 
+                {
+                    Write-Error -Message 'Blog url not found!'
+                    return
+                }
+
+                Write-Host -Object "Reading blog page $blogurl" -ForegroundColor Green
+                
+                $blogarticle = ''
+                #$blogarticle = Invoke-WebRequest -Uri $blogurl
+                $null = $ie.Navigate($blogurl)
+                while ($ie.Busy -eq $true)
+                {
+                    $null = Start-Sleep -Seconds 1
+                }
+                
+                Write-Host -Object 'Searching for Download Center link' -ForegroundColor Green
+                                
+                $titlematches = $titlepattern.Matches($ie.Document.title) 
+                $updateno = $titlematches.Groups[1]
+
+                #$kblink = $blogarticle.Links | Where-Object -FilterScript {
+                $kblink = $ie.Document.links | Where-Object -FilterScript {
+                    Write-Verbose "Link: $($_.href) id: $($_.id)"
+                    $_.innerText -match 'Microsoft Download Center'
+                } | Select-Object -First 1
+
+                $kblinkurl = $($kblink.href).ToString()
+
+                if ($kblinkurl) {
+                  Write-Host -Object "Download Center Link found: $kblinkurl $CountryCode"
+                  $downloaded = DownloadFromDownloadCenter $kblinkurl $CountryCode
+                } 
+                if (-not $downloaded) {
+                  Write-Host -Object 'Download Center Link not found, trying KB instead...'
+                  DownloadFromKB $ie $CountryCode
+                }
+
             }
         }        
     }
