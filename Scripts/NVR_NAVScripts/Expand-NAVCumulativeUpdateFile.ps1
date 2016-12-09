@@ -39,7 +39,7 @@ function Expand-NAVCumulativeUpdateFile
     }
     process {
         $archive = [io.compression.zipfile]::OpenRead($filename)
-        $CUArchive = $archive.Entries | Where-Object {$_.Name -match '.zip'}
+        $CUArchive = $archive.Entries | Where-Object {$_.Name -match 'DVD.zip'}
         $BuildNo = $CUArchive.Name.Split('.')[3]
         Write-Host "Build no. is $BuildNo" -ForegroundColor Green
     

@@ -8,15 +8,11 @@ function GetLanguageForContryCode
         $CountryCode
     )
     $mapping = @{
-        "CZ"='cs-CZ';
-        "BE"='fr-FR';
-        "GB"='en-GB';
-        "FR"='fr-FR';
-        "W1"='en-US';
-        "NA" ='en-US';
-        "AU" = 'en-US';
-        "NZ" = 'en-US'; 
-        "intl"='en-US';
+        'CSY'=@{ lang ='cs-CZ'; country = 'CZ'}
+        'BEG'=@{ lang ='fr-FR'; country = 'BE'}
+        'ENG'=@{ lang ='en-GB'; country = 'UK'}
+        'intl'=@{ lang='en-US'; country = 'W1'}
+        'ENU'=@{ lang='en-US'; country = 'NA'}
     }
     return $mapping[$CountryCode]
 }
@@ -31,7 +27,7 @@ function DownloadFromDownloadCenter
 #https://www.microsoft.com/en-us/download/details.aspx?id=54317
 #https://www.microsoft.com/es-ES/download/confirmation.aspx?id=54314
     $language = GetLanguageForContryCode $CountryCode 
-    $downloadurl = $downloadurl.Replace('en-us',$language)
+    $downloadurl = $downloadurl.Replace('en-us',$language["lang"])
     $downloadurl = $downloadurl.Replace('details','confirmation')
     $WebClient = New-Object System.Net.WebClient
     $data = $WebClient.DownloadString($downloadurl);
@@ -40,7 +36,7 @@ function DownloadFromDownloadCenter
     }
     #meta http-equiv="refresh" content="
     #<span class="file-link-view1"><a href="
-    [regex]$pattern = '<span class="file-link-view1"><a href="(\S+'+$CountryCode+'\S+)"'
+    [regex]$pattern = '<span class="file-link-view1"><a href="(\S+'+$language["country"]+'\S+)"'
     $matches = $pattern.Matches($data)
     if (-not $matches.Groups[1]) {
       #<span class="file-link-view1"><a href="
@@ -53,7 +49,7 @@ function DownloadFromDownloadCenter
       #  Write-Host -Object $matches
     }
     $url = $matches.Groups[1].Value
-    $filename = Split-Path -Leaf $url
+    $filename = (Join-Path -Path $DownloadFolder (Split-Path -Leaf $url))
 
     if (-not (Test-Path $filename)) 
     {
@@ -69,7 +65,7 @@ function DownloadFromDownloadCenter
     $null = $result | Add-Member -MemberType NoteProperty -Name version -Value "$version"
     $null = $result | Add-Member -MemberType NoteProperty -Name CUNo -Value "$updateno"
     $null = $result | Add-Member -MemberType NoteProperty -Name CountryCode -Value "$CountryCode"
-    $null = $result | Add-Member -MemberType NoteProperty -Name langcode -Value "$($hotfix.langcode)"
+    $null = $result | Add-Member -MemberType NoteProperty -Name langcode -Value "$CountryCode"
                         
     Write-Output -InputObject $result
     Return $true
@@ -102,8 +98,12 @@ function Get-NAVCumulativeUpdateFile
     )
 
     begin {
-        function DownloadFromKB($ie,$CountryCode)
+        function DownloadFromKB
         {
+            param(
+                $ie,
+                $CountryCode
+            )
                 Write-Host -Object 'Searching for KB link' -ForegroundColor Green
                                 
                 $titlematches = $titlepattern.Matches($ie.Document.title) 
@@ -325,12 +325,15 @@ function Get-NAVCumulativeUpdateFile
                 $kblinkurl = $($kblink.href).ToString()
 
                 if ($kblinkurl) {
-                  Write-Host -Object "Download Center Link found: $kblinkurl $CountryCode"
-                  $downloaded = DownloadFromDownloadCenter $kblinkurl $CountryCode
+                    Write-Host -Object "Download Center Link found: $kblinkurl $CountryCode"
+                    $downloaded = DownloadFromDownloadCenter $kblinkurl $CountryCode
+                    if ($downloaded)  {
+                        Write-Output $downloaded
+                    }
                 } 
                 if (-not $downloaded) {
-                  Write-Host -Object 'Download Center Link not found, trying KB instead...'
-                  DownloadFromKB $ie $CountryCode
+                    Write-Host -Object 'Download Center Link not found, trying KB instead...'
+                    DownloadFromKB $ie $CountryCode
                 }
 
             }
