@@ -1,11 +1,11 @@
 <#
-    .Synopsis
-    Merge two local branches by using NAV Model tools.
-    .DESCRIPTION
-    Merge two local branches by using NAV model tools scripts. Can remove selected language 
-    before merging and add them back after merge.
-    .EXAMPLE
-    Merge-NAVGIT -repository c:\git\myrepo -sourcefiles objects\*.txt -targetbranch master -RemoveLanguageId 'SKY'
+        .Synopsis
+        Merge two local branches by using NAV Model tools.
+        .DESCRIPTION
+        Merge two local branches by using NAV model tools scripts. Can remove selected language 
+        before merging and add them back after merge.
+        .EXAMPLE
+        Merge-NAVGIT -repository c:\git\myrepo -sourcefiles objects\*.txt -targetbranch master -RemoveLanguageId 'SKY'
 #>
 function Merge-NAVGIT
 {
@@ -251,6 +251,45 @@ function Merge-NAVGIT
         Get-Content -Path $Path | Where-Object {$_ -match '.+-L999:.+'} | Set-Content -Path $Result
     }
 
+    function Split-NAVObjectAndLanguage
+    {
+        param(
+            $files,
+            $destination,
+            $languages
+        )
+        $tempfolder = (Join-Path $env:Temp 'NAVGITLang');
+        $result = Remove-Item $tempfolder -Recurse -Force -ErrorAction Ignore
+        $result = New-Item $tempfolder -ItemType Directory
+        Write-InfoMessage "Exporting languages from $files into $destination..."
+        Export-NAVApplicationObjectLanguage -Source $files -Destination $destination -LanguageId $languages 
+        Write-InfoMessage "Removing languages from $files..."
+        Remove-NAVApplicationObjectLanguage -Source $files -Destination $tempfolder -LanguageId $languages
+        Write-InfoMessage "Removing old files..."
+        $result = Remove-Item -Path (Join-Path $files '*.*') -Force -Recurse
+        Write-InfoMessage "Moving new files..."
+        $result = Move-Item -Path (Join-Path $tempfolder '*.*') -Destination $files -Force 
+        $result = Move-Item -Path $destination -Destination "$destination.full"
+        Remove-NAVEmptyTranslation -Path "$destination.full" -Result $destination
+        $result = remove-item -Path "$destination.full"
+    }
+    
+    function Join-NAVObjectAndLanguage
+    {
+        param(
+            $files,
+            $languagePath,
+            $languages
+        )
+        $tempfolder = (Join-Path $env:Temp 'NAVGITLang');
+        $result = Remove-Item $tempfolder -Recurse -Force -ErrorAction Ignore
+        $result = New-Item $tempfolder -ItemType Directory
+        Write-InfoMessage "Importing languages $languagePath into $files..."
+        Import-NAVApplicationObjectLanguage -Source (join-path $files '*.txt') -LanguagePath $languagePath -Destination $tempfolder -LanguageId $languages -WarningAction SilentlyContinue
+        #$result = Remove-Item -Path (Join-Path $files '*.*')-Force
+        $result = Move-Item -Path (Join-Path $tempfolder '*.*') -Destination $files -Force
+    }
+    
     $currentfolder = Get-Location
     Set-Location $repository 
 
@@ -345,31 +384,37 @@ function Merge-NAVGIT
 
         Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation "Copying the $sourcebranch to temp folder..."
         $result = Copy-Item -Path $sourcefilespath -Filter $sourcefiles -Destination $targetfolder -Recurse -Container
+        
+        Write-Progress -ID 50 -Completed -Activity  'Mergin GIT repositories...' 
     }
 
     if ($RemoveLanguageId) 
     {
+        Write-InfoMessage "Removing $RemoveLanguageID from objects..."
         $tempfolder2 = Join-Path -Path $tempfolder -ChildPath 'TEMP'
         $result = New-Item -Path $tempfolder2 -ItemType directory -Force
         $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
-        Export-NAVApplicationObjectLanguage -Source (Join-Path -Path $sourcefolder -ChildPath $sourcefilespath) -Destination (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage.txt') -LanguageId $RemoveLanguageId -DevelopmentLanguageId 'ENU'
-        Remove-NAVApplicationObjectLanguage -Source (Join-Path -Path $sourcefolder -ChildPath $sourcefilespath) -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId -DevelopmentLanguageId 'ENU' -RemoveRedundant
+        Export-NAVApplicationObjectLanguage -Source (Join-Path -Path $sourcefolder -ChildPath $sourcefilespath) -Destination (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage.txt') -LanguageId $RemoveLanguageId 
+        Remove-NAVApplicationObjectLanguage -Source (Join-Path -Path $sourcefolder -ChildPath $sourcefilespath) -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId  
         $result = Remove-Item -Path $sourcefolder -Force -Recurse
         $result = Rename-Item -Path $tempfolder2 -NewName $sourcefolder -Force
     
         $result = New-Item -Path $tempfolder2 -ItemType directory -Force
         $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
-        Export-NAVApplicationObjectLanguage -Source (Join-Path -Path $targetfolder -ChildPath $sourcefilespath) -Destination (Join-Path -Path $targetfolder -ChildPath '..\TargetLanguage.txt') -LanguageId $RemoveLanguageId -DevelopmentLanguageId 'ENU'
-        Remove-NAVApplicationObjectLanguage -Source (Join-Path -Path $targetfolder -ChildPath $sourcefilespath) -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId -DevelopmentLanguageId 'ENU' -RemoveRedundant
+        Export-NAVApplicationObjectLanguage -Source (Join-Path -Path $targetfolder -ChildPath $sourcefilespath) -Destination (Join-Path -Path $targetfolder -ChildPath '..\TargetLanguage.txt') -LanguageId $RemoveLanguageId 
+        Remove-NAVApplicationObjectLanguage -Source (Join-Path -Path $targetfolder -ChildPath $sourcefilespath) -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId 
         $result = Remove-Item -Path $targetfolder -Force -Recurse
         $result = Rename-Item -Path $tempfolder2 -NewName $targetfolder -Force
 
         $result = New-Item -Path $tempfolder2 -ItemType directory -Force
         $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
-        Export-NAVApplicationObjectLanguage -Source (Join-Path -Path $commonfolder -ChildPath $sourcefilespath) -Destination (Join-Path -Path $commonfolder -ChildPath '..\CommonLanguage.txt') -LanguageId $RemoveLanguageId -DevelopmentLanguageId 'ENU'
-        Remove-NAVApplicationObjectLanguage -Source (Join-Path -Path $commonfolder -ChildPath $sourcefilespath) -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId -DevelopmentLanguageId 'ENU' -RemoveRedundant
+        Export-NAVApplicationObjectLanguage -Source (Join-Path -Path $commonfolder -ChildPath $sourcefilespath) -Destination (Join-Path -Path $commonfolder -ChildPath '..\CommonLanguage.txt') -LanguageId $RemoveLanguageId 
+        Remove-NAVApplicationObjectLanguage -Source (Join-Path -Path $commonfolder -ChildPath $sourcefilespath) -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId
         $result = Remove-Item -Path $commonfolder -Force -Recurse
         $result = Rename-Item -Path $tempfolder2 -NewName $commonfolder -Force
+        #Split-NAVObjectAndLanguage -files (Join-Path -Path $sourcefolder -ChildPath $sourcefilespath) -destination (Join-Path $tempfolder 'sourcelanguage.txt') -languages $RemoveLanguageId
+        #Split-NAVObjectAndLanguage -files (Join-Path -Path $targetfolder -ChildPath $sourcefilespath) -destination (Join-Path $tempfolder 'targetlanguage.txt') -languages $RemoveLanguageId
+        #Split-NAVObjectAndLanguage -files (Join-Path -Path $commonfolder -ChildPath $sourcefilespath) -destination (Join-Path $tempfolder 'commonlanguage.txt') -languages $RemoveLanguageId
     }
 
     Write-InfoMessage -Message 'Merging NAV Object files...'
@@ -415,6 +460,7 @@ function Merge-NAVGIT
 
     Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 'Solving conflicts...'
     SolveConflicts($conflicts)
+    Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 'Solving conflicts...' -Completed
 
     if ($RemoveLanguageId) 
     {
@@ -426,7 +472,7 @@ function Merge-NAVGIT
 
         $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
         if (Test-Path -Path (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage2.txt')) {
-            Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId
+            Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId -WarningAction SilentlyContinue
             $result = Rename-Item -Path $resultfolder -NewName "$resultfolder 22" -Force
             #$result = Remove-Item -Path $resultfolder -Force -Recurse
             $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
@@ -434,18 +480,24 @@ function Merge-NAVGIT
         
         $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
         if (Test-Path -Path (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage2.txt')) {
-            Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId
+            Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId -WarningAction SilentlyContinue
             $result = Rename-Item -Path $resultfolder -NewName "$resultfolder 3" -Force
             #$result = Remove-Item -Path $resultfolder -Force -Recurse
             $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
         }
         $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
         if (Test-Path -Path (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage2.txt')) {
-            Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId
+            Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId -WarningAction SilentlyContinue
             $result = Rename-Item -Path $resultfolder -NewName "$resultfolder 4" -Force
             #$result = Remove-Item -Path $resultfolder -Force -Recurse
             $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
         }
+        #Join-NAVObjectAndLanguage -files (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -languagePath (Join-Path $tempfolder 'commonlanguage.txt') -languages $RemoveLanguageId
+        #Join-NAVObjectAndLanguage -files (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -languagePath (Join-Path $tempfolder 'sourcelanguage.txt') -languages $RemoveLanguageId
+        #Join-NAVObjectAndLanguage -files (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -languagePath (Join-Path $tempfolder 'targetlanguage.txt') -languages $RemoveLanguageId
+        #Join-NAVObjectAndLanguage -files (Join-Path (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) 'ConflictModified') -languagePath (Join-Path $tempfolder 'sourcelanguage.txt') -languages $RemoveLanguageId
+        #Join-NAVObjectAndLanguage -files (Join-Path (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) 'ConflictOriginal') -languagePath (Join-Path $tempfolder 'commonlanguage.txt') -languages $RemoveLanguageId
+        #Join-NAVObjectAndLanguage -files (Join-Path (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) 'ConflictTarget') -languagePath (Join-Path $tempfolder 'targetlanguage.txt') -languages $RemoveLanguageId
     }
 
     if (!$skipcopytorep) 
