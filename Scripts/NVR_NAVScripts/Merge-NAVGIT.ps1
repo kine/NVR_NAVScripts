@@ -57,7 +57,7 @@ function Merge-NAVGIT
         $count = $conflicts.Count
         if ($count -gt 0) 
         {
-            $conflicts | ForEach-Object -Process {
+            $conflicts | Sort-Object -Property ObjectType,Id | ForEach-Object -Process {
                 $i++
                 Write-Progress -Id 50 -Status "Processing $i of $count" -Activity 'Mergin GIT repositories...' -CurrentOperation 'Resolving conflicts' -PercentComplete ($i / $count*100)
                 $conflictfile = $_.Result.Filename.Replace('.TXT','') +'.conflict'
@@ -294,7 +294,10 @@ function Merge-NAVGIT
     Set-Location $repository 
 
     $sourcebranch = git.exe rev-parse --abbrev-ref HEAD
-
+    $targetexists = git.exe rev-parse --verify $targetbranch 2>$null
+    if (-not $targetexists) {
+      Throw "The branch/tag $targetbranch does not exists!!!"
+    }
     TestIfFolderClear($repository)
 
     $tempfolder = (Join-Path -Path $env:TEMP -ChildPath 'NAVGIT')
@@ -464,30 +467,34 @@ function Merge-NAVGIT
 
     if ($RemoveLanguageId) 
     {
+        Write-InfoMessage -Message 'Removing empty translations...'
         Remove-NAVEmptyTranslation -Path (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage.txt') -Result (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage2.txt')
         Remove-NAVEmptyTranslation -Path (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage.txt') -Result (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage2.txt')
         if (Test-Path (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage.txt')) {
             Remove-NAVEmptyTranslation -Path (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage.txt') -Result (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage2.txt')
         }
-
+        $sourcefilespath2 = (Join-Path $sourcefilespath '*.*')
+        Write-InfoMessage -Message "Importing Common translations... $(Join-Path -Path $resultfolder -ChildPath $sourcefilespath2)"
         $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
         if (Test-Path -Path (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage2.txt')) {
-            Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId -WarningAction SilentlyContinue
+            Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath2) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\CommonLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId -WarningAction SilentlyContinue -ErrorAction Stop
             $result = Rename-Item -Path $resultfolder -NewName "$resultfolder 22" -Force
             #$result = Remove-Item -Path $resultfolder -Force -Recurse
             $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
         }
         
+        Write-InfoMessage -Message "Importing Source translations... $(Join-Path -Path $resultfolder -ChildPath $sourcefilespath2)"
         $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
         if (Test-Path -Path (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage2.txt')) {
-            Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId -WarningAction SilentlyContinue
+            Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath2) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\SourceLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId -WarningAction SilentlyContinue -ErrorAction Stop
             $result = Rename-Item -Path $resultfolder -NewName "$resultfolder 3" -Force
             #$result = Remove-Item -Path $resultfolder -Force -Recurse
             $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
         }
+        Write-InfoMessage -Message "Importing Target translations... $(Join-Path -Path $resultfolder -ChildPath $sourcefilespath2)"
         $result = New-Item -Path (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -ItemType directory -Force
         if (Test-Path -Path (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage2.txt')) {
-            Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId -WarningAction SilentlyContinue
+            Import-NAVApplicationObjectLanguage -Source (Join-Path -Path $resultfolder -ChildPath $sourcefilespath2) -LanguagePath (Join-Path -Path $sourcefolder -ChildPath '..\TargetLanguage2.txt') -Destination (Join-Path -Path $tempfolder2 -ChildPath $sourcefilespath) -LanguageId $RemoveLanguageId -WarningAction SilentlyContinue -ErrorAction Stop
             $result = Rename-Item -Path $resultfolder -NewName "$resultfolder 4" -Force
             #$result = Remove-Item -Path $resultfolder -Force -Recurse
             $result = Rename-Item -Path $tempfolder2 -NewName $resultfolder -Force
