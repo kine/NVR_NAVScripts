@@ -462,6 +462,7 @@ function Compile-NAVApplicationObjectFilesMulti
             )
     
     $CPUs = ((Get-WmiObject -Class Win32_Processor -Property 'NumberOfLogicalProcessors' | Select-Object -Property 'NumberOfLogicalProcessors').NumberOfLogicalProcessors | Measure-Object -Sum).Sum
+    Write-InfoMessage "$CPUs CPUs detected..."
     if ($NavIde -eq '') 
     {
         $NavIde = (Get-NAVIde)
@@ -597,7 +598,8 @@ function Compile-NAVApplicationObjectMulti
         [String]$NavServerInstance=''
             )
     
-    $CPUs = (Get-WmiObject -Class Win32_Processor -Property 'NumberOfLogicalProcessors' | Select-Object -Property 'NumberOfLogicalProcessors').NumberOfLogicalProcessors
+    $CPUs = ((Get-WmiObject -Class Win32_Processor -Property 'NumberOfLogicalProcessors' | Select-Object -Property 'NumberOfLogicalProcessors').NumberOfLogicalProcessors | Measure-Object -Sum).Sum
+    Write-InfoMessage "$CPUs CPUs detected..."
     if ($NavIde -eq '') 
     {
         $NavIde = (Get-NAVIde)
