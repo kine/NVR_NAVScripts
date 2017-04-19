@@ -973,7 +973,7 @@ Function New-NAVLocalApplication
         [String]$Database,
 
         #FOB files imported before the txt files are imported. Could update the objects stored in the DB Backup file to newer version.
-        [Parameter(Mandatory = $true,ValueFromPipelineByPropertyName = $true)]
+        [Parameter(Mandatory = $false,ValueFromPipelineByPropertyName = $true)]
         [string] $BaseFob,
 
         #FLF file used to start the NAV Service tier. Must have enough permissions to import the txt files.
