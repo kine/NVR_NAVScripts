@@ -48,6 +48,9 @@
     
         $newPath = $currentPath.Replace($originalPath,$TargetFolder)
         Write-InfoMessage "Relocating configuration to folder $TargetFolder ..."
+        if (-not (Test-Path "$TargetFolder\Instances")) {
+          New-Item -Path "$TargetFolder\Instances" -ItemType directory
+        }
         Move-Item -Path "$originalPath\Instances\$ServerInstance\" -Destination "$TargetFolder\Instances\" -ErrorAction Stop
 
         Write-InfoMessage "Relocating service to folder $TargetFolder ..."
