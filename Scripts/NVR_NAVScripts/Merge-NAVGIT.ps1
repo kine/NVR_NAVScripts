@@ -27,7 +27,10 @@ function Merge-NAVGIT
         #If used, objects are not copied from repo to temp folders and existing temp folders are used to merge
         [switch]$remerge,
         #Languages, which will be removed from modified version and added after merge back (when merging with version without this language)
-        $RemoveLanguageId
+        $RemoveLanguageId,
+        #if set, not changed objects will be removed from result
+        [switch]$removeidentical,
+        [string]$versionlistFilter
     )
     Import-Module -Name NVR_NAVScripts -WarningAction SilentlyContinue
     Import-NAVModelTool -Global
@@ -50,14 +53,52 @@ function Merge-NAVGIT
             Throw 'There are uncommited changes!!!'
         }
     }
-
-    function SolveConflicts($conflicts) 
+    function AutoSolveConflicts($conflicts)
     {
+        foreach($c in $conflicts) 
+        {
+            $filename = (Split-Path -Path $c.Conflict.FileName -Leaf).Replace('.CONFLICT','.TXT')
+            $modified = (Split-Path -Path $c.Conflict.FileName -Parent)+'\ConflictModified\'+$filename
+            $source = (Split-Path -Path $c.Conflict.FileName -Parent)+'\ConflictOriginal\'+$filename
+            $target = (Split-Path -Path $c.Conflict.FileName -Parent)+'\ConflictTarget\'+$filename
+            $result = (Split-Path -Path $c.Conflict.FileName -Parent)+$filename
+            if ($c.Target) {
+              Write-InfoMessage "Autosolving: $filename -replaced by target"
+              remove-item $modified -ErrorAction SilentlyContinue
+              remove-item $source -ErrorAction SilentlyContinue
+              remove-item $target -ErrorAction SilentlyContinue
+              remove-item $c.Conflict -ErrorAction SilentlyContinue
+            } else {
+              Write-InfoMessage "Autosolving: $filename -removed"
+              remove-item $modified -ErrorAction SilentlyContinue
+              remove-item $source -ErrorAction SilentlyContinue
+              remove-item $target -ErrorAction SilentlyContinue
+              remove-item $result -ErrorAction SilentlyContinue
+              remove-item $c.Conflict -ErrorAction SilentlyContinue
+            }
+        }
+    }
+    function SolveConflicts
+    {
+        [CmdletBinding()]
+        param(
+          $conflicts,
+          $versionlistFilter
+        )
+
         $i = 0
-        $count = $conflicts.Count
+        if (-not $versionlistFilter) {
+            $versionlistFilter = '*'
+        }
+        $conflictsToSolve = $conflicts | Where-Object {(($_.Original.VersionList -like $versionlistFilter) -or ($_.Modified.VersionList -like $versionlistFilter) -or ($_.Target.VersionList -like $versionlistFilter))} 
+        $conflictsToAuto = $conflicts | Where-Object {(($_.Original.VersionList -notlike $versionlistFilter) -and ($_.Modified.VersionList -notlike $versionlistFilter) -and ($_.Target.VersionList -notlike $versionlistFilter))} 
+        if ($conflictsToAuto.Count -gt 0) {
+            AutoSolveConflicts($conflictsToAuto)
+        }
+        $count = $conflictsToSolve.Count
         if ($count -gt 0) 
         {
-            $conflicts | Sort-Object -Property ObjectType,Id | ForEach-Object -Process {
+            $conflictsToSolve | Sort-Object -Property ObjectType,Id | ForEach-Object -Process {
                 $i++
                 Write-Progress -Id 50 -Status "Processing $i of $count" -Activity 'Mergin GIT repositories...' -CurrentOperation 'Resolving conflicts' -PercentComplete ($i / $count*100)
                 $conflictfile = $_.Result.Filename.Replace('.TXT','') +'.conflict'
@@ -120,10 +161,14 @@ function Merge-NAVGIT
 
     function CreateResult([string]$resultfolder)
     {
-        $result = Remove-Item -Path $sourcefiles -Recurse
+        if (-not $removeidentical) {
+            $result = Remove-Item -Path $sourcefiles -Recurse
+        }
+        Write-InfoMessage -Message "Copy from $(Join-Path -Path $resultfolder -ChildPath $sourcefilespath) to $(Get-Location)..."
         $result = Copy-Item -Path (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -Filter $sourcefiles -Destination . -Exclude Conflict -Recurse -Force
         $source = (Join-Path -Path (Join-Path -Path $resultfolder -ChildPath $sourcefilespath) -ChildPath $sourcefiles)
         $target = '.\'+$sourcefilespath
+        Write-InfoMessage -Message "Copy from $source to $target..."
         Copy-Item -Path $source -Filter $sourcefiles -Destination $target -Force -Recurse
     }
 
@@ -438,13 +483,18 @@ function Merge-NAVGIT
         $_.MergeResult -EQ 'Conflict'
     }
     $identical = $mergeresult | Where-Object -FilterScript {
-        $_.MergeResult -eq 'Identical'
+        $_.MergeResult -eq 'Unchanged'
     }
 
 
     #$mergeresult | Out-GridView  #debug output
 
     $mergeresult.Summary
+
+    if ($removeidentical) {
+      Write-InfoMessage -Message 'Removing Unchanged files...'
+      Remove-Item -Path $identical.Result
+    }
 
     $enddatetime = Get-Date
     $TimeSpan = New-TimeSpan $startdatetime $enddatetime
@@ -462,7 +512,7 @@ function Merge-NAVGIT
     Write-Host  Merged in $TimeSpan
 
     Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 'Solving conflicts...'
-    SolveConflicts($conflicts)
+    SolveConflicts -conflicts $conflicts -versionlistFilter $versionlistFilter
     Write-Progress -Id 50 -Activity  'Mergin GIT repositories...' -CurrentOperation 'Solving conflicts...' -Completed
 
     if ($RemoveLanguageId) 
