@@ -42,7 +42,7 @@ function Test-NAVDatabase
             $CompanyName,
             $CodeunitId
         )
-        if ($env:NAVServicePath -match '.*\\(\d\d)\\.*') 
+        if ($env:NAVServicePath -match '.*\\(\d{2,3})\\.*') 
         {
             $NavVersion = $Matches[1]
         }
