@@ -12,11 +12,17 @@ Param (
 )
 
 if (Test-Path $TargetPath\setup.xml) {
-    $config = (. "$PSScriptRoot\..\Get-NAVGITSetup.ps1" -SetupFile "$TargetPath\setup.xml")
+    $null = (. "$TargetPath\NVRPowerShell\Scripts\Settings.ps1")
+    $config = (. "$TargetPath\NVRPowerShell\Scripts\Get-NAVGITSetup.ps1" -SetupFile "$TargetPath\setup.xml")
 }
 
 if (-not $BaseFob) {
     $BaseFob = $config.BaseFob
+}
+
+if ($env:NAV_FOBTOIMPORT2) {
+    $BaseFob = $env:NAV_FOBTOIMPORT2
+    Write-Host "env:NAV_FOBTOIMPORT2 = $($env:NAV_FOBTOIMPORT2)"
 }
 
 if (-not $DbBackupFile)

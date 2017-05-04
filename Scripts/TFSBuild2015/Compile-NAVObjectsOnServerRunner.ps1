@@ -4,12 +4,13 @@ Param (
 	[String]$LogFolder=$env:BUILD_STAGINGDIRECTORY,
 	[bool]$CompileAll=($env:NAV_CompileOnlyNotCompiled -ne '1'),
 	[String]$Server=$env:NAV_SQLSERVER,
-	[String]$Database=$env:NAV_SQLSERVERDB
+	[String]$Database=$env:NAV_SQLSERVERDB,
+        [String]$ServerInstance=$env:NAV_SERVERINSTANCE
 )
 
 try {
     $ProgressPreference="SilentlyContinue"
-    . "$PSScriptRoot\Compile-NAVObjectsOnServer.ps1" -NavIde $NavIde -Files $Files -LogFolder $LogFolder -CompileAll $CompileAll -Server $Server -Database $Database
+    . "$PSScriptRoot\Compile-NAVObjectsOnServer.ps1" -NavIde $NavIde -Files $Files -LogFolder $LogFolder -CompileAll $CompileAll -Server $Server -Database $Database -ServerInstance $ServerInstance
     $ProgressPreference="Continue"
 } catch [system.exception]
 {
