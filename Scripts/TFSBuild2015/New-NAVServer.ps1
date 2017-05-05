@@ -30,6 +30,12 @@ if (-not $DbBackupFile)
     $DbBackupFile = $config.DBBackupFile
 }
 
+if ($env:NAV_BACKUP2)
+{
+    $DbBackupFile = $env:NAV_BACKUP2
+    $BaseFob = ""
+}
+
 if (-not $LicenseFile)
 {
     $LicenseFile = $config.LicenseFile
