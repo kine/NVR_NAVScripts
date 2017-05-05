@@ -31,7 +31,7 @@ if (-not $ServerInstance)
 
 Import-Module CommonPSFunctions -Force -DisableNameChecking
 Import-Module NVR_NAVScripts -Force -DisableNameChecking
-Import-NAVAdminTool -Force -NAVVersion $config.NAVVersion
+Import-Module (Get-NAVAdminModuleName -NAVVersion $config.NAVVersion) -Force
 
 $ProgressPreference="SilentlyContinue"
 Write-Host 'Compiling uncompiled system tables...'
