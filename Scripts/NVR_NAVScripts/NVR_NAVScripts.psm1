@@ -1049,7 +1049,7 @@ Function New-NAVLocalApplication
     Start-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance") -ErrorAction Stop
         
     Write-InfoMessage -Message "Importing License $LicenseFile..."
-    Import-NAVServerLicense -LicenseFile $LicenseFile -Database Default -ServerInstance $ServerInstance -WarningAction SilentlyContinue -ErrorAction Stop
+    Import-NAVServerLicense -LicenseFile $LicenseFile -Database NavDatabase -ServerInstance $ServerInstance -WarningAction SilentlyContinue -ErrorAction Stop
     Write-Verbose -Message 'License imported'
         
     Write-InfoMessage -Message 'Syncing schema'
@@ -1061,8 +1061,8 @@ Function New-NAVLocalApplication
     #Write-Verbose -Message 'Server instance restarted'
     
     Write-InfoMessage -Message 'Adding current user as SUPER'
-    New-NAVServerUser -WindowsAccount "$($env:USERDOMAIN)\$($env:USERNAME)" -ServerInstance $ServerInstance  
-    New-NAVServerUserPermissionSet -WindowsAccount "$($env:USERDOMAIN)\$($env:USERNAME)" -ServerInstance $ServerInstance -PermissionSetId 'SUPER'
+    New-NAVServerUser -WindowsAccount "$($env:USERDOMAIN)\$($env:USERNAME)" -ServerInstance $ServerInstance -ErrorAction SilentlyContinue
+    New-NAVServerUserPermissionSet -WindowsAccount "$($env:USERDOMAIN)\$($env:USERNAME)" -ServerInstance $ServerInstance -PermissionSetId 'SUPER' -ErrorAction SilentlyContinue
     Write-InfoMessage -Message 'Adding current user as SUPER finished'
     
     if ($BaseFob -gt '') 
