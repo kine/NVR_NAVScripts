@@ -2,6 +2,7 @@
 {
     $IdeFile = (Get-NavIde)
     $IdeFileVersion= (Get-Command $IdeFile).FileVersionInfo.FileVersion
+    Write-InfoMessage "MajorVersion: $($IdeFileVersion.Split('.')[0])" -Level 200
     return ($IdeFileVersion.Split('.')[0])
 }
 
@@ -103,7 +104,7 @@ function Import-NAVApplicationObject2
                 Write-InfoMessage "Importing $file on $NavServerName : $NavServerManagementPort/$NavServerInstance"
                 # Log file name is based on the name of the imported file.
                 $logFile = "$LogPath\$((Get-Item $file).BaseName).log"
-                if ((Get-NavIdeMajorVersion) -ge 8) {
+                if (8 -lt (Get-NavIdeMajorVersion)) {
                     $command = "Command=ImportObjects`,ImportAction=$ImportAction`,SynchronizeSchemaChanges=$SynchronizeSchemaChanges`,File=`"$file`"" 
                 } else {
                     $command = "Command=ImportObjects`,ImportAction=$ImportAction`,File=`"$file`"" 
@@ -327,7 +328,7 @@ function Export-NAVApplicationObject2
         $skipUnlicensed = '1'
     }
 
-    if ((Get-NavIdeMajorVersion) -ge 8) {
+    if (8 -lt (Get-NavIdeMajorVersion)) {
         $command = "Command=ExportObjects`,ExportTxtSkipUnlicensed=$skipUnlicensed`,File=`"$Path`"" 
     } else {
         $command = "Command=ExportObjects`,File=`"$Path`"" 
@@ -430,7 +431,7 @@ function Delete-NAVApplicationObject2
     #    'Confirm'))
     if ($true)
     {
-        if ((Get-NavIdeMajorVersion) -ge 8) {
+        if (8 -lt (Get-NavIdeMajorVersion)) {
             $command = "Command=DeleteObjects`,SynchronizeSchemaChanges=$SynchronizeSchemaChanges"
         } else {
             Write-Error 'DeleteObjects command not supported!'
@@ -592,7 +593,7 @@ function Compile-NAVApplicationObject2
         {
             $logFile = (Join-Path $LogPath naverrorlog.txt)
             $navServerInfo = GetNavServerInfo $NavServerName $NavServerInstance $NavServerManagementPort     
-            if ((Get-NavIdeMajorVersion) -ge 8) {
+            if (8 -lt (Get-NavIdeMajorVersion)) {
                 $command = "Command=CompileObjects`,SynchronizeSchemaChanges=$SynchronizeSchemaChanges"
             } else {
                 $command = 'Command=CompileObjects'
@@ -674,7 +675,7 @@ function Create-NAVDatabase2
 
     $logFile = (Join-Path $LogPath naverrorlog.txt)
 
-    if ((Get-NavIdeMajorVersion) -ge 8) {
+    if (8 -lt (Get-NavIdeMajorVersion)) {
        $command = "Command=CreateDatabase`,Collation=$Collation"
     } else {
        $command = 'Command=CreateDatabase'
