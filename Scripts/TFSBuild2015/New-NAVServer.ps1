@@ -55,7 +55,7 @@ if (-not $Database)
 
 if (-not $NAVVersion)
 {
-    $NAVVersiopn = $config.NAVVersion
+    $NAVVersion = $config.NAVVersion
 }
 if (-not $Instance)
 {
