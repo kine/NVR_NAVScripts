@@ -927,16 +927,19 @@ Function Remove-NAVLocalApplication
         [string] $ServerInstance
     )
 
-    Write-Progress -Activity 'Remove NAV Application' -CurrentOperation "Removing server instance $ServerInstance..." -PercentComplete 50
-    Stop-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance") -Force
-    Remove-NAVServerInstance -ServerInstance $ServerInstance -Force
-    Write-Verbose -Message "Server instance $ServerInstance removed"
+    Write-InfoMessage "Removing server instance $ServerInstance..."
+    if (Get-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")) {
+      Stop-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance") -Force
+      Remove-NAVServerInstance -ServerInstance $ServerInstance -Force
+      Write-InfoMessage "Server instance $ServerInstance removed"
+    } else {
+      Write-InfoMessage "Server instance $ServerInstance does not exists"
+    }
 
-    Write-Progress -Activity 'Remove NAV Application' -CurrentOperation "Removing SQL DB $Database on server $Server ..." -PercentComplete 90
+    Write-InfoMessage "Removing SQL DB $Database on server $Server ..."
     Remove-SQLDatabase -Server $Server -Database $Database
-    Write-Verbose -Message "SQL Database $Dataase on $Server removed"
-
-    Write-Progress -Activity 'Remove NAV Application' -Completed
+    Write-InfoMessage "SQL Database $Dataase on $Server removed"
+    
 }
 
 function Set-ServicePortSharing
