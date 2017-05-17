@@ -5,7 +5,7 @@ function Create-NAVUserFromAD
       [Parameter(Mandatory = $true,ValueFromPipelinebyPropertyName = $true)]
       [string]$serverInstance,
       #Example of OUs parameter: @('ou=NAV,ou=Users,ou=Company,dc=mydomain,dc=local','ou=NAV2,ou=Users,ou=Company,dc=mydomain,dc=local')
-      [Parameter(Manatory = $true, ValueFromPipelineByPropertyName = $true)]
+      [Parameter(Mandatory = $true, ValueFromPipelineByPropertyName = $true)]
       $OUs,
       [Parameter(ValueFromPipelineByPropertyName = $true)]
       $PermissionSets='SUPER'
