@@ -928,7 +928,7 @@ Function Remove-NAVLocalApplication
     )
 
     Write-InfoMessage "Removing server instance $ServerInstance..."
-    if (Get-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance")) {
+    if (Get-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance") -ErrorAction SilentlyContinue) {
       Stop-Service -Name ("MicrosoftDynamicsNavServer`$$ServerInstance") -Force
       Remove-NAVServerInstance -ServerInstance $ServerInstance -Force
       Write-InfoMessage "Server instance $ServerInstance removed"
