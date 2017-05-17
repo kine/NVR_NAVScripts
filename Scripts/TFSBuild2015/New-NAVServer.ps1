@@ -7,7 +7,9 @@ Param (
     [String]$Database=$env:NAV_SQLSERVERDB,
     [String]$Instance=$env:NAV_SERVERINSTANCE,
     [String]$ForceNewDB=$env:NAV_FORCENEWDB,
-    [String]$SQLDbFolder=$env:NAV_SQLDBFOLDER
+    [String]$SQLDbFolder=$env:NAV_SQLDBFOLDER,
+    [String]$NAVVersion=$env:NAV_Version,
+    [String]$SQLDbTempFolder
 
 )
 
@@ -51,6 +53,10 @@ if (-not $Database)
     $Database = $config.Database
 }
 
+if (-not $NAVVersion)
+{
+    $NAVVersiopn = $config.NAVVersion
+}
 if (-not $Instance)
 {
     $Instance = $config.ServerInstance
@@ -70,13 +76,26 @@ if ($ForceNewDB -eq '0') {
 }
 
 if ((Get-NAVServerInstance -ServerInstance $Instance) -and ($ForceNewDB -eq $False)) {
-    Write-Host "Server instance $Instance already exists, skipping the initialization of environment..."
+    Write-InfoMessage "Server instance $Instance already exists, skipping the initialization of environment..."
 } else {
     if (Get-NAVServerInstance -ServerInstance $Instance) 
     {
         Write-InfoMessage -Message "Remove-NAVLocalApplication -Server $Server -Database $Database -ServerInstance $Instance"
         Remove-NAVLocalApplication -Server $Server -Database $Database -ServerInstance $Instance
     }
-    Write-InfoMessage -Message "New-NAVLocalApplication -Server $Server -Database $Database -BaseFob $BaseFob -License $LicenseFile -DbBackupFile $DbBackupFile -ServerInstance $Instance -TargetPath $SQLDbFolder -Version $($config.NAVVersion))"
-    New-NAVLocalApplication -Server $Server -Database $Database -BaseFob $BaseFob -License $LicenseFile -DbBackupFile $DbBackupFile -ServerInstance $Instance -TargetPath $SQLDbFolder -Version $config.NAVVersion
+    if (($Server -ine 'localhost') -and ($DbBackupFile -notlike '\\*')) {
+      if (-not $SQLDBTempFolder) {
+        Write-Error -Message "SQL Server $Server will not have access to file $DbBackupFile. Please, specify SQLDBTempFolder parameter!" -ErrorAction Stop
+      }
+      $DbBackupFile2 = (Join-Path $SQLDBTempFolder (Split-Path -Path $DbBackupFile -Leaf))
+      Write-InfoMessage "Copying $DbBackupFile to $DbBackupFile2..."
+      Copy-Item -Path $DbBackupFile -Destination $DbBackupFile2 -Force
+      $DbBackupFile = $DbBackupFile2
+    }
+    Write-InfoMessage -Message "New-NAVLocalApplication -Server $Server -Database $Database -BaseFob $BaseFob -License $LicenseFile -DbBackupFile $DbBackupFile -ServerInstance $Instance -TargetPath $SQLDbFolder -Version $NAVVersion)"
+    New-NAVLocalApplication -Server $Server -Database $Database -BaseFob $BaseFob -License $LicenseFile -DbBackupFile $DbBackupFile -ServerInstance $Instance -TargetPath $SQLDbFolder -Version $NAVVersion
+    if ($DbBackupFile2) {
+      Write-InfoMessage "Removing $DbBackupFile2..."
+      Remove-Item -Path $DbBackupFile2 -Force
+    }
 }
