@@ -69,7 +69,7 @@ if (-not $SQLDbFolder)
 
 Import-Module -Name NVR_NAVScripts -DisableNameChecking -Force
 Import-Module -Name CommonPSFunctions -Force
-Import-Module (Get-NAVAdminModuleName) -Force
+Import-Module (Get-NAVAdminModuleName -NAVVersion $NAVVersion) -Force
 
 if ($ForceNewDB -eq '0') {
     $ForceNewDB = $false
