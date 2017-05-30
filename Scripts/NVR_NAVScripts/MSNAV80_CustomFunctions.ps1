@@ -580,7 +580,7 @@ function Compile-NAVApplicationObject2
                 $args.Add('NavServerInstance',$NavServerInstance)
                 $args.Add('NavServerManagementPort',$NavServerManagementPort)
             }
-            #Import-Module NVR_NAVScripts -DisableNameChecking
+            import-Module NVR_NAVScripts -DisableNameChecking
             Compile-NAVApplicationObject2 @args -Verbose:$VerbosePreference
         }
 
