@@ -22,12 +22,12 @@ function Create-NAVUserFromAD
     }
 
     Write-InfoMessage 'Reading existing users...'
-    $ExistingUsers = (Get-NAVServerUser -ServerInstance $serverInstance).UserName
+    $ExistingUsers = (Get-NAVServerUser -ServerInstance $serverInstance).WindowsSecurityID
 
     foreach ($OU in $OUs) {
         $Users=Get-ADUser -Filter * -SearchBase $OU
         foreach ($User in $Users) {
-          if ($ExistingUsers -icontains $User.UserPrincipalName) {
+          if ($ExistingUsers -icontains $User.SID) {
               Write-InfoMessage "User $($User.UserPrincipalName) already exists"
           } else {
               Write-InfoMessage "Creating user $User"
