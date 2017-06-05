@@ -152,7 +152,7 @@ function Update-NAVApplicationFromTxt
             {
                 if (-not $NoProgress) 
                 {
-                    Write-Progress -Status "Processing $i of $count" -Activity 'Comparing objects...' -PercentComplete ($percent*100) -SecondsRemaining $remtime
+                    Write-Progress -Status "Processing $i of $count" -Activity 'Comparing objects...' -PercentComplete ($percent*100) -SecondsRemaining $remtime -CurrentOperation "$($UpdatedObjects.Count) objects to import"
                 }
             }
             $Type = Get-NAVObjectTypeIdFromName -TypeName $FileObject.ObjectType
@@ -193,11 +193,11 @@ function Update-NAVApplicationFromTxt
                         {
                             if (($NAVObject -eq $null) -or ($NAVObject -eq '')) 
                             {
-                                Write-Host -Object "$($FileObject.ObjectType) $($FileObject.Id) is new..."
+                                Write-Verbose -Message "$($FileObject.ObjectType) $($FileObject.Id) is new..."
                             }
                             else
                             {
-                                Write-Host -Object "$($FileObject.ObjectType) $($FileObject.Id) differs: Modified=$($FileObject.Modified -eq $NAVObject.Modified) Version=$($FileObject.VersionList -eq $NAVObject.'Version List') Time=$($FileObject.Time.TrimStart(' ') -eq $NAVObject.Time.ToString('H:mm:ss')) Date=$($FileObject.Date -eq $NAVObject.Date.ToString('dd.MM.yy'))"
+                                Write-Verbose -Message "$($FileObject.ObjectType) $($FileObject.Id) differs: Modified=$($FileObject.Modified -eq $NAVObject.Modified) Version=$($FileObject.VersionList -eq $NAVObject.'Version List') Time=$($FileObject.Time.TrimStart(' ') -eq $NAVObject.Time.ToString('H:mm:ss')) Date=$($FileObject.Date -eq $NAVObject.Date.ToString('dd.MM.yy'))"
                             }
                         }
                     }
