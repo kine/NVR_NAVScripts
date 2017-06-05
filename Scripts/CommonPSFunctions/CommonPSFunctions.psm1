@@ -614,16 +614,22 @@ function Invoke-AsAdministrator
     # We are not running "as Administrator" - so relaunch as administrator
    
     # Create a new process object that starts PowerShell
-    $newProcess = new-object System.Diagnostics.ProcessStartInfo "PowerShell";
+    $newProcess = new-object System.Diagnostics.ProcessStartInfo "PowerShell"
    
     # Specify the current script path and name as a parameter
-    $newProcess.Arguments = $Definition;
+    $newProcess.Arguments = $Definition
   
     # Indicate that the process should be elevated
-    $newProcess.Verb = 'runas';
-   
+    $newProcess.Verb = 'runas'
+    #$newProcess.UseShellExecute = $false
+    #$newProcess.RedirectStandardError = $true
+    #$newProcess.RedirectStandardOutput = $true
+    #$newProcess.RedirectStandardInput = $true
+    
     # Start the new process
-    [System.Diagnostics.Process]::Start($newProcess);
+    $process = [System.Diagnostics.Process]::Start($newProcess)
+    Write-InfoMessage 'Waiting for elevated process end...'
+    $result = $process.WaitForExit()
     # Exit from the current, unelevated, process
     exit
 }
