@@ -33,7 +33,7 @@
         
     foreach ($property in (Get-Member -InputObject $Object2 -MemberType NoteProperty)) {
         if (-not (Get-Member -InputObject $Object1 -Name $property.Name)) {
-            $Object1 = $Object1 | Add-Member -MemberType NoteProperty -Name $property.Name -Value $property.Value
+            $Object1 | Add-Member -MemberType NoteProperty -Name $property.Name -Value ($Object2 | Select -ExpandProperty $property.Name)
         } else {
             (Get-Member -InputObject $Object1 -MemberType NoteProperty).Value=$property.Value
         }
