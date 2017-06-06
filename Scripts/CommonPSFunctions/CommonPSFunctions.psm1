@@ -334,6 +334,7 @@ function Get-SQLCommandResult
     $SqlCmd = New-Object -TypeName System.Data.SqlClient.SqlCommand
     $SqlCmd.CommandText = $Command
     $SqlCmd.Connection = $SqlConnection
+    $SqlCmd.CommandTimeout = 3600
     
     if (($Command.Split(' ')[0] -ilike 'select') -or ($ForceDataset)) 
     {
