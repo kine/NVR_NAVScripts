@@ -35,7 +35,9 @@
         if (-not (Get-Member -InputObject $Object1 -Name $property.Name)) {
             $Object1 | Add-Member -MemberType NoteProperty -Name $property.Name -Value ($Object2 | Select -ExpandProperty $property.Name)
         } else {
-            (Get-Member -InputObject $Object1 -MemberType NoteProperty).Value=$property.Value
+          if ($Object2.$($property.Name)) {
+            $Object1.$($property.Name) = $Object2.$($property.Name)
+          }
         }
     }
     
